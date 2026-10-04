@@ -10,6 +10,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="landing.css">
+  <script>
+    // Immediate Theme Initialization to avoid FOUC
+    (function() {
+      const savedTheme = localStorage.getItem('aura-color-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
 </head>
 <body>
 
@@ -24,6 +31,30 @@
       <div class="header-links">
         <a href="#architecture" class="nav-link">Architecture</a>
         <a href="#hardware" class="nav-link">Hardware Spec</a>
+        
+        <!-- Theme Toggle Pill Button -->
+        <button id="theme-toggle-btn" class="theme-toggle-pill" aria-label="Toggle light or dark theme" title="Toggle light/dark theme">
+          <span class="theme-icon-sun" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </span>
+          <span class="theme-icon-moon" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </span>
+          <span class="theme-toggle-label" id="theme-toggle-label">Theme</span>
+        </button>
+
         <a href="control-plane.html" class="btn-pill-outline" title="Open the Live Control Plane Dashboard">
           <svg class="inline-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           <span>Control Plane</span>
@@ -68,35 +99,50 @@
       <!-- Yellow Bento Card -->
       <div class="card-yellow">
         <div class="yellow-tab-list" role="tablist">
-          <div class="yellow-tab-item active" role="tab" tabindex="0">
+          <div class="yellow-tab-item active" role="tab" tabindex="0" aria-selected="true" data-tab-index="0">
             <span>Aura turns moments into focus</span>
-            <span>→</span>
+            <span class="tab-arrow">→</span>
           </div>
-          <div class="yellow-tab-item" role="tab" tabindex="0">
+          <div class="yellow-tab-item" role="tab" tabindex="0" aria-selected="false" data-tab-index="1">
             <span>Aura prepares you before the moment</span>
-            <span>→</span>
+            <span class="tab-arrow">→</span>
           </div>
-          <div class="yellow-tab-item" role="tab" tabindex="0">
+          <div class="yellow-tab-item" role="tab" tabindex="0" aria-selected="false" data-tab-index="2">
             <span>Aura is ready when you need it</span>
-            <span>→</span>
+            <span class="tab-arrow">→</span>
           </div>
         </div>
 
         <div class="yellow-focus-content">
-          <h2 class="yellow-focus-title" id="yellow-focus-title">Aura is ready when you need it</h2>
+          <h2 class="yellow-focus-title" id="yellow-focus-title">Aura turns moments into focus</h2>
           <p class="yellow-focus-desc" id="yellow-focus-desc">
-            Need to remember an architectural decision? Have a question about your distraction trends? Want to defend an uninterrupted 45-minute sprint? Talk to Aura through the companion wearable, web control plane, or Apple Watch.
+            Bee remembers what you forgot. AURA anticipates what you're about to forget, and stops the world from distracting your deep work flow.
           </p>
         </div>
       </div>
 
       <!-- "A NEW WAY" Dark Aesthetic Card -->
       <div class="card-dark-aesthetic">
-        <div class="giant-watermark-text" aria-hidden="true">
-          A<br>New<br>Way
+        <div class="aesthetic-header-group">
+          <div class="aesthetic-kicker-pill">
+            <span class="pulsing-amber-dot" aria-hidden="true"></span>
+            <span>TACTILE AMBIENT INTERFACE</span>
+          </div>
+          <h2 class="giant-watermark-text" aria-label="A New Way">
+            <span>A NEW</span>
+            <span class="text-accent-gold">WAY</span>
+          </h2>
+          <p class="aesthetic-card-caption">
+            Zero screens during flow. Subtle haptic pulses whisper context before you enter the room.
+          </p>
+          <div class="aesthetic-spec-chips">
+            <span class="aesthetic-spec-pill">18g Featherweight</span>
+            <span class="aesthetic-spec-pill">Haptic Engine</span>
+            <span class="aesthetic-spec-pill">7-Day Battery</span>
+          </div>
         </div>
         <div class="dark-card-image-wrapper">
-          <img src="assets/aura-macro.jpg" alt="Aura sleek wearable smart band and dark mobile focus application">
+          <img src="assets/aura-macro.jpg" alt="Aura sleek wearable smart band and dark mobile focus application" loading="lazy">
         </div>
       </div>
     </section>

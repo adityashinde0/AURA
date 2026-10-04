@@ -105,3 +105,23 @@ def test_lambda_handler_websocket_route() -> None:
     }
     res = lambda_handler(event, table_override=mock_table)
     assert res["statusCode"] == 200
+
+
+def test_validate_connect_token_expired() -> None:
+    valid, _ = validate_connect_token("Bearer expired_token_value_32chars_long")
+    assert valid is False
+
+
+def test_handle_relay_rejects_oversized_payload() -> None:
+    mock_bus = MagicMock()
+    body = {
+        "action": "relay",
+        "event_id": "evt_huge_01",
+        "event_type": "focus_signal",
+        "user_id": "usr_aditi_01",
+        "bloat": "x" * 40000,  # 40KB > 32KB
+    }
+    resp = handle_relay(body, bus_client=mock_bus)
+    assert resp["statusCode"] == 400
+    assert resp["body"]["error"] == "oversized_payload"
+    mock_bus.put_events.assert_not_called()

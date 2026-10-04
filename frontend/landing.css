@@ -224,6 +224,51 @@ body {
   background-color: rgba(255, 255, 255, 0.08);
 }
 
+/* Theme Toggle Pill */
+.theme-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-sans);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.theme-toggle-pill:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 207, 0, 0.5);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-pill:focus-visible {
+  outline: 2px solid var(--brand-yellow);
+  outline-offset: 2px;
+}
+
+[data-theme="light"] .theme-icon-sun {
+  display: none;
+}
+[data-theme="light"] .theme-icon-moon {
+  display: inline-flex;
+  color: #0E100A;
+}
+:not([data-theme="light"]) .theme-icon-sun {
+  display: inline-flex;
+  color: var(--brand-yellow);
+}
+:not([data-theme="light"]) .theme-icon-moon {
+  display: none;
+}
+
 /* ==========================================================================
    Hero Section
    ========================================================================== */
@@ -455,51 +500,122 @@ body {
   font-weight: 500;
 }
 
-/* "A NEW WAY" Dark Card */
+/* "A NEW WAY" Dark Card - Perfectly balanced, high-end hardware showcase */
 .card-dark-aesthetic {
-  background-color: var(--bg-card-dark);
+  background: linear-gradient(135deg, #15180f 0%, #0d0f09 100%);
   border-radius: var(--radius-card);
-  padding: 40px;
+  padding: 44px;
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   min-height: 480px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.aesthetic-header-group {
+  position: relative;
+  z-index: 3;
+  max-width: 48%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.aesthetic-kicker-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 207, 0, 0.12);
+  border: 1px solid rgba(255, 207, 0, 0.35);
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--brand-yellow);
+  width: fit-content;
+  text-transform: uppercase;
+}
+
+.pulsing-amber-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--brand-yellow);
+  box-shadow: 0 0 10px var(--brand-yellow);
+  animation: pulse-glow 2s infinite ease-in-out;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 .giant-watermark-text {
   font-family: var(--font-display);
-  font-size: 5.5rem;
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
   font-weight: 900;
-  line-height: 0.92;
-  color: var(--brand-yellow);
+  line-height: 0.95;
+  color: #FFFFFF;
   text-transform: uppercase;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   user-select: none;
-  z-index: 1;
-  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+.giant-watermark-text .text-accent-gold {
+  color: var(--brand-yellow);
+  text-shadow: 0 0 24px rgba(255, 207, 0, 0.4);
+}
+
+.aesthetic-card-caption {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 450;
+  margin-top: 2px;
+}
+
+.aesthetic-spec-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  z-index: 3;
+}
+
+.aesthetic-spec-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 5px 11px;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
 }
 
 .dark-card-image-wrapper {
   position: absolute;
-  right: -20px;
-  bottom: -20px;
-  width: 72%;
-  height: 85%;
+  right: -10px;
+  bottom: -15px;
+  width: 58%;
+  height: 84%;
   z-index: 2;
-  border-radius: 20px;
+  border-radius: 24px 0 0 0;
   overflow: hidden;
-  box-shadow: -15px -15px 40px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: -20px -20px 45px rgba(0, 0, 0, 0.75), 0 0 30px rgba(255, 207, 0, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .dark-card-image-wrapper img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  object-position: center left;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card-dark-aesthetic:hover .dark-card-image-wrapper img {
@@ -1708,4 +1824,245 @@ body {
   .footer-top-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* ==========================================================================
+   Comprehensive Light Mode Theme Support ([data-theme="light"])
+   Matches the luxury aesthetic of Bee / Apple hardware designs in light mode
+   ========================================================================== */
+[data-theme="light"] {
+  --bg-page: #F7F5F0;
+  --bg-card-dark: #FFFFFF;
+  --bg-card-dark-deep: #EDE9E0;
+  --text-main: #10120B;
+  --text-muted: #5A5D52;
+  --text-white: #10120B;
+  --bg-glass-card: rgba(255, 255, 255, 0.95);
+  --shadow-card: 0 16px 36px -10px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] html {
+  background-color: #F7F5F0;
+  color: #10120B;
+}
+
+[data-theme="light"] body {
+  background-color: #F7F5F0;
+  color: #10120B;
+}
+
+[data-theme="light"] .site-header {
+  background-color: rgba(247, 245, 240, 0.92);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .brand-link {
+  color: #10120B;
+}
+
+[data-theme="light"] .nav-link {
+  color: #43473B;
+}
+
+[data-theme="light"] .nav-link:hover {
+  color: #000000;
+}
+
+[data-theme="light"] .btn-pill-outline {
+  border-color: rgba(0, 0, 0, 0.18);
+  color: #10120B;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="light"] .btn-pill-outline:hover {
+  background-color: rgba(0, 0, 0, 0.07);
+  border-color: #10120B;
+}
+
+[data-theme="light"] .theme-toggle-pill {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.14);
+  color: #10120B;
+}
+
+[data-theme="light"] .theme-toggle-pill:hover {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: #10120B;
+}
+
+[data-theme="light"] .hero-headline {
+  color: #FFFFFF; /* Hero image remains photographic with dark overlay */
+}
+
+[data-theme="light"] .card-yellow {
+  background-color: var(--brand-yellow);
+  box-shadow: 0 20px 40px -10px rgba(255, 207, 0, 0.28), 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .card-dark-aesthetic {
+  background: linear-gradient(135deg, #181A12 0%, #0E100A 100%);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.14);
+}
+
+[data-theme="light"] .card-dark-aesthetic .giant-watermark-text {
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .chat-section {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="light"] .chat-header-title {
+  color: #10120B;
+}
+
+[data-theme="light"] .bubble-white-ai {
+  background: #F4EFE9;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .chat-response-text {
+  color: #10120B;
+}
+
+[data-theme="light"] .suggestion-pill {
+  background: #F2EFE9;
+  color: #10120B;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .suggestion-pill:hover {
+  background: #E6E1D7;
+  border-color: var(--brand-yellow);
+}
+
+[data-theme="light"] .specs-section {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="light"] .specs-section-title {
+  color: #10120B;
+}
+
+[data-theme="light"] .spec-card {
+  background: #F7F5F0;
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .spec-title {
+  color: #10120B;
+}
+
+[data-theme="light"] .spec-desc {
+  color: #5A5D52;
+}
+
+[data-theme="light"] .pioneer-card {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="light"] .pioneer-title {
+  color: #10120B;
+}
+
+[data-theme="light"] .pioneer-desc,
+[data-theme="light"] .pioneer-shipping-note {
+  color: #5A5D52;
+}
+
+[data-theme="light"] .card-dark {
+  background: linear-gradient(135deg, #181A12 0%, #0E100A 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .card-dark .feature-card-title {
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .card-dark .timeline-event-title {
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .card-dark .template-pill {
+  color: #E2E4DC;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Giant Typography Footer Light Mode Support */
+[data-theme="light"] .site-footer {
+  padding-top: 24px;
+}
+
+[data-theme="light"] .footer-card {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.05);
+  color: #10120B;
+}
+
+[data-theme="light"] .footer-brand-logo img {
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .footer-col-title {
+  color: #10120B;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+[data-theme="light"] .footer-nav-list a {
+  color: #4B4E43;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: color 0.18s ease;
+}
+
+[data-theme="light"] .footer-nav-list a:hover {
+  color: #000000;
+  text-decoration: underline;
+}
+
+[data-theme="light"] .app-badge-btn {
+  background-color: #F6F4EF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #10120B;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="light"] .app-badge-btn:hover {
+  background-color: #ECE8DE;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .app-badge-btn svg {
+  stroke: #10120B;
+}
+
+[data-theme="light"] .app-badge-btn strong {
+  color: #10120B;
+}
+
+[data-theme="light"] .app-badge-btn div > div {
+  color: #636657;
+}
+
+/* User praised the giant yellow Aura wordmark: keep exactly unchanged */
+[data-theme="light"] .giant-aura-wordmark {
+  color: var(--brand-yellow);
+}
+
+[data-theme="light"] .footer-bottom-bar {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  color: #6E7265;
+  font-weight: 500;
 }

@@ -2,8 +2,9 @@
 
 Enforces the boundary between model proposals and real-world execution.
 Models cannot grant consent or execute actions directly. Every action must
-pass deterministic grant checks, device allowlists, idempotency checks,
-and be logged to an immutable audit record with an undo token.
+pass deterministic grant checks, multi-tier feature flags / kill switches,
+PRD undo rate circuit breakers, device allowlists, household boundary checks,
+idempotency checks, and be logged to an immutable audit record with an undo token.
 """
 from __future__ import annotations
 
@@ -11,6 +12,9 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from typing import Any, Literal
+
+from standalone_agent.feature_flags import FeatureFlagManager
+from standalone_agent.undo_guardrail import UndoRateGuardrail
 
 ActionType = Literal["none", "nudge", "request_dnd", "request_pause", "pre_meeting_briefing", "slack_post"]
 GrantScope = Literal["ask_every_time", "allow_for_session", "always", "never"]
@@ -48,6 +52,9 @@ class AuditRecord:
         "blocked_no_consent",
         "blocked_device_not_allowed",
         "blocked_slack_meeting_leakage",
+        "blocked_kill_switch",
+        "blocked_feature_flag",
+        "blocked_household_mismatch",
         "undone",
         "duplicate",
         "quiet_hours_suppressed",
@@ -59,10 +66,20 @@ class AuditRecord:
 
 
 class PolicyEngine:
-    def __init__(self, allowed_devices: set[str] | None = None, device_adapter: Any = None) -> None:
+    def __init__(
+        self,
+        allowed_devices: set[str] | None = None,
+        device_adapter: Any = None,
+        feature_flags: FeatureFlagManager | None = None,
+        undo_guardrail: UndoRateGuardrail | None = None,
+        slack_adapter: Any = None,
+    ) -> None:
         self.grants: dict[str, ConsentGrant] = {}  # key: f"{user_id}:{action_type}"
         self.allowed_devices: set[str] = allowed_devices or set()
         self.device_adapter = device_adapter
+        self.slack_adapter = slack_adapter
+        self.feature_flags: FeatureFlagManager = feature_flags or FeatureFlagManager()
+        self.undo_guardrail: UndoRateGuardrail = undo_guardrail or UndoRateGuardrail()
         self.audit_log: list[AuditRecord] = []
         self.processed_idempotency_keys: dict[str, AuditRecord] = {}
 
@@ -84,6 +101,8 @@ class PolicyEngine:
         target_device_id: str | None,
         reason: str,
         idempotency_key: str,
+        tenant_id: str = "tenant_default",
+        requesting_household_id: str | None = "household_default",
     ) -> dict[str, Any]:
         """Evaluate a proposal from Focus Guardian against deterministic policy."""
         # 1. Idempotency check
@@ -97,7 +116,7 @@ class PolicyEngine:
                 "reason": "Idempotent request already processed",
             }
 
-        # 2. Action 'none' or 'nudge'
+        # 2. Action 'none'
         if proposal_action == "none":
             record = AuditRecord(
                 audit_id=str(uuid.uuid4()),
@@ -112,8 +131,9 @@ class PolicyEngine:
             self._record(record)
             return {"decision": "none", "audit_id": record.audit_id, "executed": False}
 
+        # 3. Action 'nudge'
         if proposal_action == "nudge":
-            # Nudges are lightweight user-facing notifications; don't require external device control
+            # Nudges are lightweight user-facing notifications
             record = AuditRecord(
                 audit_id=str(uuid.uuid4()),
                 timestamp=time.time(),
@@ -127,7 +147,61 @@ class PolicyEngine:
             self._record(record)
             return {"decision": "nudge", "audit_id": record.audit_id, "executed": True}
 
-        # 3. External device action checks (request_dnd, request_pause)
+        # 4. Multi-tier Feature Flag & Kill Switch check (Global -> Tenant -> User)
+        is_flag_enabled, flag_reason = self.feature_flags.is_feature_enabled(
+            capability=proposal_action,
+            tenant_id=tenant_id,
+            user_id=user_id,
+        )
+        if not is_flag_enabled:
+            status_val = "blocked_kill_switch" if "Kill Switch" in flag_reason else "blocked_feature_flag"
+            record = AuditRecord(
+                audit_id=str(uuid.uuid4()),
+                timestamp=time.time(),
+                user_id=user_id,
+                action_type=proposal_action,
+                target_device_id=target_device_id,
+                status=status_val,
+                reason=flag_reason,
+                idempotency_key=idempotency_key,
+            )
+            self._record(record)
+            return {
+                "decision": "blocked",
+                "audit_id": record.audit_id,
+                "executed": False,
+                "reason": flag_reason,
+                "blocked_by": "kill_switch_or_flag",
+            }
+
+        # 5. Safety Guardrail: PRD Section 6 Undo Rate Circuit Breaker (>5% undo pauses auto-execution)
+        is_paused, undo_rate = self.undo_guardrail.is_auto_execution_paused(user_id, proposal_action)
+        if is_paused:
+            pause_reason = (
+                f"Auto-execution paused by safety guardrail (Undo rate {undo_rate*100:.1f}% > 5%). "
+                "Manual user confirmation required."
+            )
+            record = AuditRecord(
+                audit_id=str(uuid.uuid4()),
+                timestamp=time.time(),
+                user_id=user_id,
+                action_type=proposal_action,
+                target_device_id=target_device_id,
+                status="suggested_only",
+                reason=pause_reason,
+                idempotency_key=idempotency_key,
+            )
+            self._record(record)
+            return {
+                "decision": "ask_user_confirmation",
+                "audit_id": record.audit_id,
+                "executed": False,
+                "reason": pause_reason,
+                "auto_execution_paused": True,
+                "undo_rate": undo_rate,
+            }
+
+        # 6. External device action checks (request_dnd, request_pause)
         grant_key = f"{user_id}:{proposal_action}"
         grant = self.grants.get(grant_key)
 
@@ -151,7 +225,7 @@ class PolicyEngine:
                 "reason": record.reason,
             }
 
-        # 4. Target device allowlist check
+        # 7. Target device allowlist check
         if target_device_id and target_device_id not in self.allowed_devices:
             record = AuditRecord(
                 audit_id=str(uuid.uuid4()),
@@ -171,22 +245,34 @@ class PolicyEngine:
                 "reason": record.reason,
             }
 
-        # 5. Passed all policy checks: issue execution and undo token
+        # 8. Passed all policy checks: issue execution and undo token
         undo_token = f"undo_{uuid.uuid4().hex[:12]}"
 
         # If a certified device simulator adapter is configured, execute via adapter
         if self.device_adapter and target_device_id:
             if proposal_action == "request_pause":
-                receipt = self.device_adapter.execute_pause(target_device_id, idempotency_key)
+                receipt = self.device_adapter.execute_pause(
+                    target_device_id,
+                    idempotency_key,
+                    requesting_household_id=requesting_household_id,
+                )
                 if not receipt.success:
+                    err_msg = receipt.error_message or "Device execution failed"
+                    if "Household mismatch" in err_msg:
+                        status_val = "blocked_household_mismatch"
+                    elif "support" in err_msg or receipt.certification_status == "uncertified":
+                        status_val = "blocked_device_not_allowed"
+                    else:
+                        status_val = "suggested_only"
+
                     record = AuditRecord(
                         audit_id=str(uuid.uuid4()),
                         timestamp=time.time(),
                         user_id=user_id,
                         action_type=proposal_action,
                         target_device_id=target_device_id,
-                        status="blocked_device_not_allowed" if "support" in (receipt.error_message or "") else "suggested_only",
-                        reason=receipt.error_message or "Device execution failed",
+                        status=status_val,
+                        reason=err_msg,
                         idempotency_key=idempotency_key,
                     )
                     self._record(record)
@@ -199,16 +285,28 @@ class PolicyEngine:
                 if receipt.undo_token:
                     undo_token = receipt.undo_token
             elif proposal_action == "request_dnd":
-                receipt = self.device_adapter.execute_dnd(target_device_id, idempotency_key)
+                receipt = self.device_adapter.execute_dnd(
+                    target_device_id,
+                    idempotency_key,
+                    requesting_household_id=requesting_household_id,
+                )
                 if not receipt.success:
+                    err_msg = receipt.error_message or "Device execution failed"
+                    if "Household mismatch" in err_msg:
+                        status_val = "blocked_household_mismatch"
+                    elif "support" in err_msg or receipt.certification_status == "uncertified":
+                        status_val = "blocked_device_not_allowed"
+                    else:
+                        status_val = "suggested_only"
+
                     record = AuditRecord(
                         audit_id=str(uuid.uuid4()),
                         timestamp=time.time(),
                         user_id=user_id,
                         action_type=proposal_action,
                         target_device_id=target_device_id,
-                        status="blocked_device_not_allowed" if "support" in (receipt.error_message or "") else "suggested_only",
-                        reason=receipt.error_message or "Device execution failed",
+                        status=status_val,
+                        reason=err_msg,
                         idempotency_key=idempotency_key,
                     )
                     self._record(record)
@@ -220,6 +318,9 @@ class PolicyEngine:
                     }
                 if receipt.undo_token:
                     undo_token = receipt.undo_token
+
+        # 9. Record successful execution in safety guardrail & audit trail
+        self.undo_guardrail.record_execution(user_id, proposal_action)
 
         record = AuditRecord(
             audit_id=str(uuid.uuid4()),
@@ -258,6 +359,30 @@ class PolicyEngine:
                 "audit_id": existing.audit_id,
                 "executed": False,
                 "reason": "Idempotent pre-meeting briefing already processed",
+            }
+
+        # Check feature flag for watch briefing
+        is_flag_enabled, flag_reason = self.feature_flags.is_feature_enabled(
+            capability="watch_whisper",
+            user_id=user_id,
+        )
+        if not is_flag_enabled:
+            record = AuditRecord(
+                audit_id=str(uuid.uuid4()),
+                timestamp=time.time(),
+                user_id=user_id,
+                action_type="pre_meeting_briefing",
+                target_device_id=None,
+                status="blocked_feature_flag",
+                reason=flag_reason,
+                idempotency_key=idempotency_key,
+            )
+            self._record(record)
+            return {
+                "decision": "blocked",
+                "audit_id": record.audit_id,
+                "executed": False,
+                "reason": flag_reason,
             }
 
         grant_key = f"{user_id}:pre_meeting_briefing"
@@ -359,6 +484,31 @@ class PolicyEngine:
                 "reason": record.reason,
             }
 
+        # Check feature flag for Slack status
+        is_flag_enabled, flag_reason = self.feature_flags.is_feature_enabled(
+            capability="slack_post",
+            user_id=user_id,
+        )
+        if not is_flag_enabled:
+            record = AuditRecord(
+                audit_id=str(uuid.uuid4()),
+                timestamp=time.time(),
+                user_id=user_id,
+                action_type="slack_post",
+                target_device_id=None,
+                status="blocked_feature_flag",
+                reason=flag_reason,
+                idempotency_key=idempotency_key,
+            )
+            self._record(record)
+            return {
+                "decision": "blocked",
+                "audit_id": record.audit_id,
+                "executed": False,
+                "status": "blocked_feature_flag",
+                "reason": flag_reason,
+            }
+
         grant_key = f"{user_id}:slack_post"
         grant = self.grants.get(grant_key)
         if not grant or not grant.is_valid():
@@ -381,6 +531,40 @@ class PolicyEngine:
                 "reason": record.reason,
             }
 
+        undo_token: str | None = None
+        target_channel: str = payload.get("target_channel", "user_profile")
+        workspace_id: str = payload.get("workspace_id", "T012345678")
+
+        if self.slack_adapter:
+            try:
+                slack_res = self.slack_adapter.publish_status(
+                    user_id=user_id,
+                    workspace_id=workspace_id,
+                    channel_id=target_channel,
+                    preview_payload=payload,
+                    idempotency_key=idempotency_key,
+                )
+                undo_token = slack_res.get("undo_token")
+            except Exception as e:
+                record = AuditRecord(
+                    audit_id=str(uuid.uuid4()),
+                    timestamp=time.time(),
+                    user_id=user_id,
+                    action_type="slack_post",
+                    target_device_id=None,
+                    status="blocked_device_not_allowed",
+                    reason=f"Slack publish failed: {str(e)}",
+                    idempotency_key=idempotency_key,
+                )
+                self._record(record)
+                return {
+                    "decision": "blocked",
+                    "audit_id": record.audit_id,
+                    "executed": False,
+                    "status": "blocked_channel_or_workspace",
+                    "reason": record.reason,
+                }
+
         record = AuditRecord(
             audit_id=str(uuid.uuid4()),
             timestamp=time.time(),
@@ -390,22 +574,29 @@ class PolicyEngine:
             status="executed",
             reason="Minimal ambient availability status approved",
             idempotency_key=idempotency_key,
+            undo_token=undo_token,
         )
         self._record(record)
         return {
             "decision": "executed",
             "audit_id": record.audit_id,
             "executed": True,
+            "undo_token": undo_token,
+            "target_channel": target_channel,
         }
 
     def execute_undo(self, undo_token: str) -> bool:
         """Reverse a previously executed action using its undo token."""
         if self.device_adapter:
             self.device_adapter.execute_undo(undo_token)
+        if self.slack_adapter:
+            self.slack_adapter.execute_undo(undo_token)
         for record in self.audit_log:
             if record.undo_token == undo_token and not record.undone:
                 record.undone = True
                 record.status = "undone"
+                # Record undo in safety circuit breaker
+                self.undo_guardrail.record_undo(record.user_id, record.action_type)
                 return True
         return False
 

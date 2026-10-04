@@ -6,6 +6,10 @@
 // Application State
 const state = {
   userId: 'usr_marcus',
+  activeMeetingId: 'q4_arch',
+  whisperAudioPlaying: false,
+  whisperTimer: null,
+  whisperSeconds: 14,
   session: {
     active: true,
     sessionId: 'sess_marcus_' + Math.random().toString(36).substring(2, 9),
@@ -51,6 +55,87 @@ const state = {
       active: true,
     },
   ],
+  featureFlags: {
+    global_switches: {
+      request_pause: true,
+      request_dnd: true,
+      watch_whisper: true,
+      slack_post: true,
+    },
+    rollout_percentage: 100,
+  },
+  guardrail: {
+    executions: 12,
+    undos: 0,
+    undoRate: 0.0,
+    threshold: 0.05,
+    autoExecutionPaused: false,
+  },
+  connectedDevices: [
+    {
+      id: 'dev_firetv_living_room',
+      name: 'Living Room Fire TV Stick 4K',
+      type: 'fire_tv',
+      standard: 'Amazon Fire TV MediaSession API v2 (Certified)',
+      status: 'certified',
+      household: 'household_default',
+      rateLimit: '10/min',
+      state: 'playing',
+    },
+    {
+      id: 'dev_echo_office',
+      name: 'Office Echo Dot 5th Gen',
+      type: 'echo_speaker',
+      standard: 'Alexa Smart Home DoNotDisturb v3 (Certified)',
+      status: 'certified',
+      household: 'household_default',
+      rateLimit: '10/min',
+      state: 'dnd_inactive',
+    },
+    {
+      id: 'dev_echo_kitchen',
+      name: 'Kitchen Echo Show 8',
+      type: 'echo_speaker',
+      standard: 'Alexa Smart Home DoNotDisturb v3 (Certified)',
+      status: 'certified',
+      household: 'household_default',
+      rateLimit: '10/min',
+      state: 'dnd_inactive',
+    },
+    {
+      id: 'dev_firetv_bedroom_staged',
+      name: 'Bedroom Fire TV Cube',
+      type: 'fire_tv',
+      standard: 'Amazon MediaSession v2 (Beta)',
+      status: 'staged',
+      household: 'household_default',
+      rateLimit: '5/min',
+      state: 'playing',
+    },
+    {
+      id: 'dev_smart_tv_unsupported',
+      name: 'Old Uncertified Smart TV',
+      type: 'generic_smart_device',
+      standard: 'Legacy Uncertified Protocol',
+      status: 'uncertified',
+      household: 'household_default',
+      rateLimit: '3/min',
+      state: 'idle',
+    },
+  ],
+  latestReceipt: null,
+  slack: {
+    connected: true,
+    workspaceId: 'T012345678',
+    workspaceName: 'Marcus Enterprise HQ',
+    adminApproved: true,
+    allowedChannels: ['#marcus-focus', '#deep-work-ambient', 'user_profile'],
+    selectedChannel: '#marcus-focus',
+    durationMinutes: 45,
+    activeReceipt: null,
+    previewText: 'In focus until 15:00',
+    previewEmoji: '🎯',
+  },
   devices: {
     firetv: { id: 'dev_firetv_living_room', state: 'playing', supported: true },
     echo: { id: 'dev_echo_office', state: 'dnd_inactive', supported: true },
@@ -77,16 +162,180 @@ const state = {
   ],
 };
 
+// Meetings Mock Database
+const meetingsData = {
+  q4_arch: {
+    time: "14:30",
+    title: "Q4 Strategy & Architecture Review",
+    participants: "Participants: Marcus, Aditi, Sarah Chen (3)",
+    tone: "Tone: Confident",
+    wordCount: 52,
+    summary: "Team is reviewing Q4 cloud migration milestones. Key dependency is DynamoDB single-table latency and API Gateway WebSocket authorization. Aditi flagged open question regarding Fire TV adapter certification and rollback latency. Target outcome is sign-off on production architecture boundaries.",
+    questions: [
+      "What is the measured p95 latency for local companion WebSocket relay?",
+      "Has the Fire TV MediaSession pause capability received user session consent?",
+      "Are quiet hours configured to suppress briefings during evening deep work?"
+    ],
+    evidence: ["evt_mem_arch_01", "evt_cal_q4_sync", "evt_commit_cdk_review"]
+  },
+  bedrock_sync: {
+    time: "16:00",
+    title: "Bedrock Vector Migration & Guardrails",
+    participants: "Participants: Marcus, Liam Zhao, Elena Rostova (3)",
+    tone: "Tone: Analytical & Direct",
+    wordCount: 48,
+    summary: "Reviewing Amazon Bedrock Claude 3.5 Sonnet token budget and vector search thresholds in Pinecone/OpenSearch. Liam identified potential cache hit rate improvement using local semantic hashes. Goal: establish zero-retraining attestation for enterprise audits.",
+    questions: [
+      "What is the token truncation boundary on vector search grounding snippets?",
+      "Can local hashing eliminate cloud calls for identical focus distraction signatures?",
+      "Is the client-side redaction pipeline verified against GDPR Art. 17 right-to-erasure?"
+    ],
+    evidence: ["evt_bedrock_guardrail", "evt_vector_cache", "evt_gdpr_contract"]
+  },
+  firetv_ambient: {
+    time: "17:15",
+    title: "Fire TV & Ambient Defense Hardware",
+    participants: "Participants: Marcus, Dave K., Priya Patel (3)",
+    tone: "Tone: Collaborative & Decisive",
+    wordCount: 45,
+    summary: "Aligning on companion band haptic feedback patterns and Living Room Fire TV transport control. Validated 200ms pause response with reversible undo token. Dave agreed on zero audio upload policy for local sound classification.",
+    questions: [
+      "Does the Fire TV pause command issue an immediate undo notification on the band?",
+      "How does the Alexa DND capability handle incoming emergency phone calls?",
+      "What is the battery drain impact of continuous low-energy BLE advertisement?"
+    ],
+    evidence: ["evt_firetv_mediasession", "evt_ble_spec", "evt_echo_dnd"]
+  }
+};
+
+// Evidence Forensic Database
+const evidenceDatabase = {
+  evt_mem_arch_01: {
+    badge: "📌 Local Bee Memory",
+    title: "Slack Architecture Sync Grounding",
+    id: "evt_mem_arch_01",
+    redaction: "✅ Local PII Sanitized (Presidio + Regex)",
+    time: "Today, 11:20 UTC (Local RAM)",
+    sha: "SHA-256: 7f8a92bb034e31b49129df4e1a0b38",
+    snippet: `{\n  "source": "Bee Companion / Slack #architecture-sync",\n  "scrubbed_fields": ["[REDACTED_EMAIL]", "[REDACTED_AWS_KEY]"],\n  "captured_context": "Aditi noted Fire TV pause latency target is <200ms with reversible undo. DynamoDB single-table verified.",\n  "storage_policy": "EPHEMERAL_RAM_ONLY"\n}`
+  },
+  evt_cal_q4_sync: {
+    badge: "📅 Calendar Invite",
+    title: "Google Calendar / Exchange Ingress",
+    id: "evt_cal_q4_sync",
+    redaction: "✅ Local Attendees Scoped (3 consented)",
+    time: "Today, 09:00 UTC",
+    sha: "SHA-256: 4a2e19cc1789c88d89a20fe1128d54",
+    snippet: `{\n  "source": "Calendar Service (T-5 evaluation)",\n  "event_title": "Q4 Strategy & Architecture Review",\n  "attendees": ["usr_marcus", "aditi@team", "sarah.c@cloud"],\n  "external_meeting_link": "[REDACTED_TOKEN_SCRUBBED]"\n}`
+  },
+  evt_commit_cdk_review: {
+    badge: "📝 Commit Note",
+    title: "Git Repository Construct Boundary",
+    id: "evt_commit_cdk_review",
+    redaction: "✅ Local Code Note Grounding",
+    time: "Yesterday, 17:45 UTC",
+    sha: "SHA-256: 91cb541a720bf012ea8810cd0491ab",
+    snippet: `{\n  "repo": "aws-aura-companion",\n  "commit": "cdk-synth-v2-migration",\n  "summary": "Implement verified MediaSession pause/resume adapter with reversible idempotency tokens."\n}`
+  },
+  evt_bedrock_guardrail: {
+    badge: "🛡️ Bedrock Guardrail",
+    title: "AWS Bedrock Zero Data Retention Contract",
+    id: "evt_bedrock_guardrail",
+    redaction: "✅ Cryptographically Enforced",
+    time: "Active Session",
+    sha: "SHA-256: b208fe919a3d1264c1889b78912ef0",
+    snippet: `{\n  "model": "anthropic.claude-3-5-sonnet-20241022-v2:0",\n  "data_logging": "DISABLED",\n  "guardrails": "ENFORCED",\n  "privacy_audit": "PASSED"\n}`
+  },
+  evt_vector_cache: {
+    badge: "⚡ Cache Config",
+    title: "Local Ephemeral Semantic Hash Cache",
+    id: "evt_vector_cache",
+    redaction: "✅ Zero Cloud Transcripts",
+    time: "Today, 12:00 UTC",
+    sha: "SHA-256: 3c91af2209da3312bc8917e440182c",
+    snippet: `{\n  "cache_type": "Local LRU",\n  "similarity_metric": "Cosine (threshold 0.88)",\n  "encryption": "AES-256-GCM (client-managed key)"\n}`
+  },
+  evt_gdpr_contract: {
+    badge: "📜 Compliance Note",
+    title: "GDPR Art 17 Cryptographic Purge Attestation",
+    id: "evt_gdpr_contract",
+    redaction: "✅ Verified User-Owned",
+    time: "Audit Ready",
+    sha: "SHA-256: 88fa3910c27de9123aa410bc39109d",
+    snippet: `{\n  "right_to_erasure": "INSTANT_PURGE_ENABLED",\n  "cloud_retention": 0,\n  "employer_visibility": "STRICTLY_PROHIBITED"\n}`
+  },
+  evt_firetv_mediasession: {
+    badge: "📺 Fire TV Spec",
+    title: "MediaSession Certified Android Capability",
+    id: "evt_firetv_mediasession",
+    redaction: "✅ Capability-Scraped Grant",
+    time: "Active Connection",
+    sha: "SHA-256: 512da9f0291ca8789bc440ab48102d",
+    snippet: `{\n  "target_device": "dev_firetv_living_room",\n  "action": "ACTION_PAUSE / ACTION_PLAY",\n  "reversible_undo_window_sec": 300\n}`
+  },
+  evt_ble_spec: {
+    badge: "📡 BLE Spec",
+    title: "Bluetooth Low Energy Wearable Profile",
+    id: "evt_ble_spec",
+    redaction: "✅ Local GATT Peripheral",
+    time: "Paired (RSSI: -58dBm)",
+    sha: "SHA-256: 19fa8230bbca10928fe8239014589d",
+    snippet: `{\n  "peripheral": "Project AURA Smart Band",\n  "haptic_profile": "WHISPER_T5_PRE_MEETING",\n  "battery_level": "94%"\n}`
+  },
+  evt_echo_dnd: {
+    badge: "🔊 Echo Alexa DND",
+    title: "Alexa Smart Home Do Not Disturb Mode",
+    id: "evt_echo_dnd",
+    redaction: "✅ Authorized Token Scoped",
+    time: "Standby",
+    sha: "SHA-256: 77bc129038ea89a128df910948ab12",
+    snippet: `{\n  "target_device": "dev_echo_office",\n  "action": "SET_DO_NOT_DISTURB",\n  "auto_restore": true\n}`
+  }
+};
+
 // DOM Elements
 const DOM = {
   // Navigation Tabs
   tabs: document.querySelectorAll('.nav-tab'),
   panels: document.querySelectorAll('.view-panel'),
 
-  // Header
+  // Header & Theme
+  themeToggleBtn: document.getElementById('theme-toggle-btn'),
+  themeToggleLabel: document.getElementById('theme-toggle-label'),
+  bankBadge: document.getElementById('header-bank-badge'),
   bankBalance: document.getElementById('bank-balance-display'),
 
-  // Timer & Focus
+  // Today Surface: Meeting Info
+  meetingChips: document.querySelectorAll('.meeting-chip'),
+  meetingTime: document.getElementById('meeting-time'),
+  meetingTitle: document.getElementById('meeting-title'),
+  meetingParticipants: document.getElementById('meeting-participants'),
+  meetingToneBadge: document.getElementById('meeting-tone-badge'),
+  briefingWordCount: document.getElementById('briefing-word-count'),
+  briefingSummary: document.getElementById('briefing-summary'),
+  briefingQuestionsList: document.getElementById('briefing-questions'),
+  evidenceTagsContainer: document.getElementById('evidence-tags'),
+  btnCopyBrief: document.getElementById('btn-copy-brief'),
+
+  // Audio Whisper Briefing Player
+  btnWhisperAudio: document.getElementById('btn-whisper-audio'),
+  whisperBtnText: document.getElementById('whisper-btn-text'),
+  whisperBtnIcon: document.getElementById('whisper-btn-icon'),
+  audioWaveformPlayer: document.getElementById('audio-waveform-player'),
+  waveformCountdown: document.getElementById('waveform-countdown'),
+  waveformStatus: document.getElementById('waveform-status'),
+
+  // T-5 Simulator
+  btnSimulateT5: document.getElementById('btn-simulate-t5'),
+  briefingTimerBadge: document.getElementById('briefing-timer-badge'),
+  briefingTimerText: document.getElementById('briefing-timer-text'),
+
+  // Today Briefing Feedback
+  btnHelpful: document.getElementById('btn-feedback-helpful'),
+  btnNotUseful: document.getElementById('btn-feedback-notuseful'),
+  btnMuteSeries: document.getElementById('btn-feedback-mute'),
+
+  // Focus Timer & Controls
   btnToggleFocus: document.getElementById('btn-toggle-focus'),
   timerClock: document.getElementById('timer-clock'),
   timerProgress: document.getElementById('timer-progress'),
@@ -110,16 +359,29 @@ const DOM = {
   toggleSignalVideo: document.getElementById('toggle-signal-video'),
   toggleSignalApp: document.getElementById('toggle-signal-app'),
 
-  // Today Briefing Feedback
-  btnHelpful: document.getElementById('btn-feedback-helpful'),
-  btnNotUseful: document.getElementById('btn-feedback-notuseful'),
-  btnMuteSeries: document.getElementById('btn-feedback-mute'),
-
-  // "Why am I seeing this?" modal
+  // Modals
   btnWhySeeingThis: document.getElementById('btn-why-seeing-this'),
   modalWhy: document.getElementById('modal-why-seeing-this'),
   btnCloseModal: document.getElementById('btn-close-modal'),
   btnModalGotIt: document.getElementById('btn-modal-got-it'),
+
+  // Evidence Inspector Modal
+  modalEvidence: document.getElementById('modal-evidence-detail'),
+  btnCloseEvidenceModal: document.getElementById('btn-close-evidence-modal'),
+  btnEvidenceModalClose: document.getElementById('btn-evidence-modal-close'),
+  btnCopyEvidenceSha: document.getElementById('btn-copy-evidence-sha'),
+  evidenceModalBadge: document.getElementById('evidence-modal-badge'),
+  evidenceModalId: document.getElementById('evidence-modal-id'),
+  evidenceModalRedaction: document.getElementById('evidence-modal-redaction'),
+  evidenceModalTime: document.getElementById('evidence-modal-time'),
+  evidenceModalSha: document.getElementById('evidence-modal-sha'),
+  evidenceModalSnippet: document.getElementById('evidence-modal-snippet'),
+
+  // Deep Work Bank Modal
+  modalBank: document.getElementById('modal-bank-ledger'),
+  btnCloseBankModal: document.getElementById('btn-close-bank-modal'),
+  btnBankModalGotIt: document.getElementById('btn-bank-modal-got-it'),
+  modalBankBalance: document.getElementById('modal-bank-balance'),
 
   // Toast
   toast: document.getElementById('toast-banner'),
@@ -139,12 +401,37 @@ const DOM = {
 
 // Initialize App
 function initApp() {
+  setupTheme();
   setupNavigation();
   startTimer();
+  renderMeeting(state.activeMeetingId);
   renderGrants();
   renderAuditTimeline();
   setupEventListeners();
   updateScoreUI(0.0, 'Focus session running uninterrupted. Score decays automatically over time.');
+  startT5Countdown();
+}
+
+// Theme Management
+function setupTheme() {
+  function updateThemeUI(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('aura-color-theme', theme);
+    if (DOM.themeToggleLabel) {
+      DOM.themeToggleLabel.textContent = theme === 'light' ? 'Dark' : 'Light';
+    }
+  }
+
+  const currentTheme = localStorage.getItem('aura-color-theme') || 'dark';
+  updateThemeUI(currentTheme);
+
+  if (DOM.themeToggleBtn) {
+    DOM.themeToggleBtn.addEventListener('click', () => {
+      const activeTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = activeTheme === 'light' ? 'dark' : 'light';
+      updateThemeUI(newTheme);
+    });
+  }
 }
 
 // Navigation Tab Management
@@ -173,6 +460,177 @@ function setupNavigation() {
       }
     });
   });
+}
+
+// Render Meeting Content
+function renderMeeting(meetingId) {
+  const m = meetingsData[meetingId];
+  if (!m) return;
+  state.activeMeetingId = meetingId;
+
+  // Update chips
+  DOM.meetingChips.forEach((chip) => {
+    const isTarget = chip.getAttribute('data-meeting') === meetingId;
+    chip.classList.toggle('active', isTarget);
+    chip.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+  });
+
+  // Fade update briefing card
+  const meetingCard = document.getElementById('meeting-card');
+  if (meetingCard) {
+    meetingCard.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+    meetingCard.style.opacity = '0.3';
+    meetingCard.style.transform = 'translateY(3px)';
+  }
+
+  setTimeout(() => {
+    DOM.meetingTime.textContent = m.time;
+    DOM.meetingTitle.textContent = m.title;
+    DOM.meetingParticipants.textContent = m.participants;
+    DOM.meetingToneBadge.textContent = m.tone;
+    DOM.briefingWordCount.textContent = m.wordCount;
+    DOM.briefingSummary.textContent = m.summary;
+
+    // Render interactive questions
+    renderQuestions(m.questions);
+
+    // Render interactive evidence tags
+    renderEvidenceTags(m.evidence);
+
+    if (meetingCard) {
+      meetingCard.style.opacity = '1';
+      meetingCard.style.transform = 'translateY(0)';
+    }
+  }, 150);
+}
+
+// Render Interactive Questions Checklist
+function renderQuestions(questions) {
+  if (!DOM.briefingQuestionsList) return;
+  DOM.briefingQuestionsList.innerHTML = '';
+
+  questions.forEach((q, idx) => {
+    const qItem = document.createElement('div');
+    qItem.className = 'q-item';
+    qItem.innerHTML = `
+      <input type="checkbox" class="q-checkbox" id="q-check-${idx}" aria-label="Mark question ${idx + 1} asked">
+      <label for="q-check-${idx}" class="q-text">${idx + 1}. ${q}</label>
+      <button class="q-copy-btn" title="Copy question to clipboard" aria-label="Copy question ${idx + 1}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+    `;
+
+    // Checkbox toggle
+    const chk = qItem.querySelector('.q-checkbox');
+    chk.addEventListener('change', () => {
+      qItem.classList.toggle('checked', chk.checked);
+      if (chk.checked) {
+        showToast(`Question ${idx + 1} marked completed.`);
+      }
+    });
+
+    // Copy action
+    const btnCopy = qItem.querySelector('.q-copy-btn');
+    btnCopy.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navigator.clipboard?.writeText(q);
+      showToast(`Question ${idx + 1} copied to clipboard!`);
+    });
+
+    DOM.briefingQuestionsList.appendChild(qItem);
+  });
+}
+
+// Render Evidence Tags
+function renderEvidenceTags(evidenceKeys) {
+  if (!DOM.evidenceTagsContainer) return;
+  DOM.evidenceTagsContainer.innerHTML = '';
+
+  evidenceKeys.forEach((key) => {
+    const data = evidenceDatabase[key] || {
+      badge: "📌 Evidence Source",
+      id: key,
+    };
+
+    const btn = document.createElement('button');
+    btn.className = 'evidence-tag-btn';
+    btn.setAttribute('data-evidence', key);
+    btn.setAttribute('title', 'Click to inspect cryptographic provenance and redaction record');
+    btn.innerHTML = `
+      <span class="tag-label">${key}</span>
+      <span class="tag-inspect-badge">Inspect</span>
+    `;
+
+    btn.addEventListener('click', () => {
+      openEvidenceModal(key);
+    });
+
+    DOM.evidenceTagsContainer.appendChild(btn);
+  });
+}
+
+// Open Evidence Inspector Modal
+function openEvidenceModal(key) {
+  const data = evidenceDatabase[key];
+  if (!data || !DOM.modalEvidence) return;
+
+  DOM.evidenceModalBadge.textContent = data.badge;
+  DOM.evidenceModalId.textContent = data.id;
+  DOM.evidenceModalRedaction.textContent = data.redaction;
+  DOM.evidenceModalTime.textContent = data.time;
+  DOM.evidenceModalSha.textContent = data.sha;
+  DOM.evidenceModalSnippet.textContent = data.snippet;
+
+  DOM.modalEvidence.showModal();
+}
+
+// T-5 Countdown Simulation
+function startT5Countdown() {
+  let seconds = 258; // 4m 18s
+  setInterval(() => {
+    if (seconds > 0) {
+      seconds--;
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      if (DOM.briefingTimerText) {
+        DOM.briefingTimerText.textContent = `T-5 Min Trigger: 0${mins}:${secs < 10 ? '0' : ''}${secs} until sync`;
+      }
+    }
+  }, 1000);
+}
+
+// Audio Briefing Player
+function toggleWhisperAudio() {
+  state.whisperAudioPlaying = !state.whisperAudioPlaying;
+
+  if (state.whisperAudioPlaying) {
+    DOM.btnWhisperAudio.classList.add('playing');
+    DOM.whisperBtnText.textContent = 'Pause Whisper (42s)';
+    DOM.whisperBtnIcon.textContent = '⏸';
+    DOM.audioWaveformPlayer.classList.remove('hidden');
+    DOM.waveformStatus.textContent = 'Playing private whisper audio via AWS Bedrock...';
+
+    state.whisperTimer = setInterval(() => {
+      if (state.whisperSeconds < 42) {
+        state.whisperSeconds++;
+        DOM.waveformCountdown.textContent = `0:${state.whisperSeconds < 10 ? '0' : ''}${state.whisperSeconds} / 0:42`;
+      } else {
+        stopWhisperAudio();
+      }
+    }, 1000);
+    showToast('🎧 Playing private haptic voice briefing to wearable.');
+  } else {
+    stopWhisperAudio();
+  }
+}
+
+function stopWhisperAudio() {
+  state.whisperAudioPlaying = false;
+  if (state.whisperTimer) clearInterval(state.whisperTimer);
+  DOM.btnWhisperAudio.classList.remove('playing');
+  DOM.whisperBtnText.textContent = 'Whisper Brief (42s)';
+  DOM.whisperBtnIcon.textContent = '▶';
+  DOM.waveformStatus.textContent = 'Paused. Click to resume.';
 }
 
 // Focus Timer Logic
@@ -217,6 +675,7 @@ function completeSession() {
     const points = state.session.durationMinutes >= 50 ? 4 : 2;
     state.bank.balance += points;
     DOM.bankBalance.textContent = state.bank.balance;
+    if (DOM.modalBankBalance) DOM.modalBankBalance.textContent = state.bank.balance;
     showToast(`🎉 Focus session complete! Awarded +${points} Deep Work Bank points.`);
     addAuditRecord('focus_completed', 'Deep Work Bank', 'executed', `Awarded +${points} points for uninterrupted focus`);
   }
@@ -232,6 +691,7 @@ function triggerDistraction() {
   // Deep work bank penalty: -1 point
   state.bank.balance = Math.max(0, state.bank.balance - 1);
   DOM.bankBalance.textContent = state.bank.balance;
+  if (DOM.modalBankBalance) DOM.modalBankBalance.textContent = state.bank.balance;
 
   // Execute pause on Fire TV
   executeDevicePause();
@@ -389,7 +849,7 @@ function renderAuditTimeline() {
           <strong>${item.action_type}</strong>
           <span class="timeline-time">${dateStr}</span>
         </div>
-        <div style="font-size: 0.75rem; color: var(--accent-cyan); margin-bottom: 2px;">Target: ${item.target}</div>
+        <div style="font-size: 0.75rem; color: var(--brand-yellow); margin-bottom: 2px;">Target: ${item.target}</div>
         <p class="timeline-reason">${item.reason}</p>
         <span class="badge ${item.status === 'executed' ? 'badge-success' : item.status === 'undone' ? 'badge-status' : 'badge-info'}" style="margin-top: 6px;">
           ${item.status}
@@ -415,6 +875,73 @@ function addAuditRecord(actionType, target, status, reason, undoToken = null) {
 
 // Event Listeners Setup
 function setupEventListeners() {
+  // Meeting Switcher Chips
+  DOM.meetingChips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const mid = chip.getAttribute('data-meeting');
+      renderMeeting(mid);
+    });
+  });
+
+  // Whisper Audio Button
+  if (DOM.btnWhisperAudio) {
+    DOM.btnWhisperAudio.addEventListener('click', toggleWhisperAudio);
+  }
+
+  // Copy Brief Button
+  if (DOM.btnCopyBrief) {
+    DOM.btnCopyBrief.addEventListener('click', () => {
+      const text = DOM.briefingSummary.textContent.trim();
+      navigator.clipboard?.writeText(text);
+      showToast('📋 Glanceable briefing copied to clipboard.');
+    });
+  }
+
+  // Simulate T-5 Trigger
+  if (DOM.btnSimulateT5) {
+    DOM.btnSimulateT5.addEventListener('click', () => {
+      showToast('⚡ T-5 Trigger simulated! Context scrubbed locally and pre-briefing generated.');
+      addAuditRecord('simulated_t5', 'Pre-Meeting Engine', 'executed', 'Simulated real-time T-5 trigger for current meeting');
+      // Highlight meeting card briefly
+      const mc = document.getElementById('meeting-card');
+      if (mc) {
+        mc.style.boxShadow = '0 0 35px rgba(255, 207, 0, 0.4)';
+        setTimeout(() => {
+          mc.style.boxShadow = '';
+        }, 1200);
+      }
+    });
+  }
+
+  // Deep Work Bank Modal Trigger
+  if (DOM.bankBadge) {
+    DOM.bankBadge.addEventListener('click', () => {
+      if (DOM.modalBankBalance) DOM.modalBankBalance.textContent = state.bank.balance;
+      DOM.modalBank.showModal();
+    });
+  }
+  if (DOM.btnCloseBankModal) {
+    DOM.btnCloseBankModal.addEventListener('click', () => DOM.modalBank.close());
+  }
+  if (DOM.btnBankModalGotIt) {
+    DOM.btnBankModalGotIt.addEventListener('click', () => DOM.modalBank.close());
+  }
+
+  // Evidence Inspector Modal Close
+  if (DOM.btnCloseEvidenceModal) {
+    DOM.btnCloseEvidenceModal.addEventListener('click', () => DOM.modalEvidence.close());
+  }
+  if (DOM.btnEvidenceModalClose) {
+    DOM.btnEvidenceModalClose.addEventListener('click', () => DOM.modalEvidence.close());
+  }
+  if (DOM.btnCopyEvidenceSha) {
+    DOM.btnCopyEvidenceSha.addEventListener('click', () => {
+      const sha = DOM.evidenceModalSha.textContent.replace('SHA-256:', '').trim();
+      navigator.clipboard?.writeText(sha);
+      showToast('Copied SHA-256 hash to clipboard!');
+    });
+  }
+
   // Focus Toggle
   DOM.btnToggleFocus.addEventListener('click', () => {
     if (state.session.active) {
@@ -473,13 +1000,23 @@ function setupEventListeners() {
     DOM.modalWhy.close();
   });
 
-  // Briefing Feedback
+  // Briefing Feedback with Deep Work Bank Points Reward
   DOM.btnHelpful.addEventListener('click', () => {
-    showToast('👍 Feedback recorded. Adjusts only your personal local preferences.');
+    state.bank.balance += 2;
+    DOM.bankBalance.textContent = state.bank.balance;
+    if (DOM.modalBankBalance) DOM.modalBankBalance.textContent = state.bank.balance;
+    DOM.btnHelpful.classList.add('active');
+    DOM.btnNotUseful.classList.remove('active');
+    showToast('👍 Feedback recorded: +2 Bank Points! Stored locally to calibrate future briefs.');
+    addAuditRecord('briefing_feedback', 'Preference Calibrator', 'executed', 'Recorded positive feedback (+2 points granted)');
   });
+
   DOM.btnNotUseful.addEventListener('click', () => {
+    DOM.btnNotUseful.classList.add('active');
+    DOM.btnHelpful.classList.remove('active');
     showToast('👎 Feedback noted. Will avoid similar pre-meeting context.');
   });
+
   DOM.btnMuteSeries.addEventListener('click', () => {
     showToast('🔕 Series muted. Pre-meeting briefings silenced for this recurrence.');
     addAuditRecord('series_muted', 'Calendar Scheduler', 'executed', 'Muted recurring event series per user preference');
@@ -534,6 +1071,7 @@ function setupEventListeners() {
       state.audit = [];
       state.bank.balance = 0;
       DOM.bankBalance.textContent = '0';
+      if (DOM.modalBankBalance) DOM.modalBankBalance.textContent = '0';
       renderGrants();
       renderAuditTimeline();
       showToast('🗑️ All user records cryptographically purged.');
@@ -548,5 +1086,445 @@ function setupEventListeners() {
   });
 }
 
+// ==========================================================================
+// Phase 5: Connected Devices, Feature Flags & Safety Guardrail Logic
+// ==========================================================================
+
+function renderGuardrailMetrics() {
+  const statExec = document.getElementById('stat-executions');
+  const statUndos = document.getElementById('stat-undos');
+  const statRate = document.getElementById('stat-undo-rate');
+  const fill = document.getElementById('guardrail-bar-fill');
+  const badge = document.getElementById('guardrail-status-badge');
+  const msg = document.getElementById('guardrail-alert-msg');
+  const prox = document.getElementById('guardrail-proximity-text');
+
+  if (!statExec) return;
+
+  statExec.textContent = state.guardrail.executions;
+  statUndos.textContent = state.guardrail.undos;
+  const ratePct = (state.guardrail.undoRate * 100).toFixed(1);
+  statRate.textContent = `${ratePct}%`;
+
+  if (prox) prox.textContent = `${ratePct}% / 5.0% Max`;
+
+  const barPct = Math.min(100, (state.guardrail.undoRate / state.guardrail.threshold) * 100);
+  if (fill) {
+    fill.style.width = `${barPct}%`;
+  }
+
+  if (state.guardrail.autoExecutionPaused || state.guardrail.undoRate > state.guardrail.threshold) {
+    if (statRate) {
+      statRate.className = 'metric-val danger';
+    }
+    if (fill) fill.className = 'guardrail-bar-fill paused';
+    if (badge) {
+      badge.className = 'badge badge-status';
+      badge.textContent = 'Auto-Execution Paused (>5% Undo)';
+    }
+    if (msg) {
+      msg.textContent = '⚠️ Auto-execution paused by safety guardrail! Confirmation required for actions.';
+      msg.style.color = 'var(--accent-rose)';
+    }
+  } else {
+    if (statRate) {
+      statRate.className = 'metric-val safe';
+    }
+    if (fill) fill.className = 'guardrail-bar-fill';
+    if (badge) {
+      badge.className = 'badge badge-success';
+      badge.textContent = 'Auto-Execution Active';
+    }
+    if (msg) {
+      msg.textContent = 'System operating normally. Auto-execution enabled.';
+      msg.style.color = 'var(--text-secondary)';
+    }
+  }
+}
+
+function renderDevicesRegistry() {
+  const tbody = document.getElementById('devices-registry-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  state.connectedDevices.forEach((dev) => {
+    const tr = document.createElement('tr');
+    let certBadgeClass = 'badge-certified';
+    let certLabel = 'Certified';
+    if (dev.status === 'staged') {
+      certBadgeClass = 'badge-staged';
+      certLabel = 'Staged Beta';
+    } else if (dev.status === 'uncertified') {
+      certBadgeClass = 'badge-uncertified';
+      certLabel = 'Uncertified';
+    }
+
+    let actionBtnHtml = '';
+    if (dev.id === 'dev_firetv_living_room' || dev.id === 'dev_firetv_bedroom_staged') {
+      actionBtnHtml = `<button class="btn btn-sm btn-outline btn-test-device" data-device-id="${dev.id}" data-action="request_pause">${dev.state === 'paused' ? 'Resume Playback' : 'Pause Playback'}</button>`;
+    } else if (dev.type === 'echo_speaker') {
+      actionBtnHtml = `<button class="btn btn-sm btn-outline btn-test-device" data-device-id="${dev.id}" data-action="request_dnd">${dev.state === 'dnd_active' ? 'Clear DND' : 'Set DND'}</button>`;
+    } else {
+      actionBtnHtml = `<button class="btn btn-sm btn-danger-outline btn-test-device" data-device-id="${dev.id}" data-action="request_pause">Test (Fails Safe)</button>`;
+    }
+
+    tr.innerHTML = `
+      <td><strong>${dev.name}</strong></td>
+      <td><code>${dev.id}</code></td>
+      <td>
+        <span class="badge ${certBadgeClass}">${certLabel}</span>
+        <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 3px;">${dev.standard}</div>
+      </td>
+      <td><code>${dev.household}</code></td>
+      <td>${dev.rateLimit}</td>
+      <td><span class="badge ${dev.state === 'playing' || dev.state === 'dnd_inactive' ? 'badge-success' : dev.state === 'paused' || dev.state === 'dnd_active' ? 'badge-status' : 'badge-info'}">${dev.state}</span></td>
+      <td>${actionBtnHtml}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Attach test device click handlers
+  document.querySelectorAll('.btn-test-device').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const devId = e.currentTarget.getAttribute('data-device-id');
+      const action = e.currentTarget.getAttribute('data-action');
+      testDeviceAction(devId, action);
+    });
+  });
+}
+
+function testDeviceAction(deviceId, actionType) {
+  const dev = state.connectedDevices.find((d) => d.id === deviceId);
+  if (!dev) return;
+
+  // 1. Check Global Kill Switch
+  const isGlobalEnabled = state.featureFlags.global_switches[actionType] !== false;
+  if (!isGlobalEnabled) {
+    showToast(`🚫 Blocked: Global Kill Switch for '${actionType}' is tripped!`);
+    addAuditRecord(actionType, dev.name, 'blocked_kill_switch', `Halted by Global Kill Switch for ${actionType}`);
+    return;
+  }
+
+  // 2. Check Safety Guardrail Circuit Breaker (>5% undo rate)
+  if (state.guardrail.autoExecutionPaused || state.guardrail.undoRate > state.guardrail.threshold) {
+    showToast(`⚠️ Auto-execution paused by safety guardrail! Confirmation prompt issued.`);
+    addAuditRecord(actionType, dev.name, 'suggested_only', `Auto-execution paused (Undo rate ${(state.guardrail.undoRate*100).toFixed(1)}% > 5%). Manual confirmation required.`);
+    return;
+  }
+
+  // 3. Check Certification Status
+  if (dev.status === 'uncertified') {
+    showToast(`🛑 Blocked: Device is uncertified. Direct remote execution prohibited.`);
+    addAuditRecord(actionType, dev.name, 'blocked_device_not_allowed', `Uncertified device ${dev.id} rejected by deterministic policy engine`);
+    return;
+  }
+
+  // 4. Execute Certified Command
+  const prev = dev.state;
+  if (actionType === 'request_pause') {
+    dev.state = dev.state === 'paused' ? 'playing' : 'paused';
+  } else if (actionType === 'request_dnd') {
+    dev.state = dev.state === 'dnd_active' ? 'dnd_inactive' : 'dnd_active';
+  }
+
+  // Update telemetry
+  state.guardrail.executions += 1;
+  state.guardrail.undoRate = state.guardrail.undos / state.guardrail.executions;
+  renderGuardrailMetrics();
+  renderDevicesRegistry();
+
+  const undoToken = `undo_${actionType}_${Math.random().toString(36).substring(2, 9)}`;
+  const receipt = {
+    receipt_id: `rcpt_${Math.random().toString(36).substring(2, 8)}`,
+    idempotency_key: `${state.userId}:${deviceId}:${Date.now()}`,
+    device_id: deviceId,
+    action: actionType,
+    previous_state: prev,
+    new_state: dev.state,
+    undo_token: undoToken,
+    timestamp: new Date().toISOString(),
+    certification: dev.standard,
+  };
+  state.latestReceipt = receipt;
+
+  const receiptBox = document.getElementById('device-receipt-box');
+  const receiptContent = document.getElementById('device-receipt-content');
+  if (receiptBox && receiptContent) {
+    receiptContent.textContent = JSON.stringify(receipt, null, 2);
+    receiptBox.style.display = 'block';
+  }
+
+  showToast(`⚡ Executed ${actionType} on ${dev.name}. Undo token issued.`, true);
+  addAuditRecord(actionType, dev.name, 'executed', `Certified ${actionType} dispatched to ${deviceId}`, undoToken);
+}
+
+function setupPhase5EventListeners() {
+  // Feature Flag switches
+  const togglePause = document.getElementById('toggle-flag-pause');
+  if (togglePause) {
+    togglePause.addEventListener('change', (e) => {
+      state.featureFlags.global_switches.request_pause = e.target.checked;
+      showToast(`Global Kill Switch for Fire TV Pause: ${e.target.checked ? 'ENABLED (Normal)' : 'TRIPPED (Halted)'}`);
+      addAuditRecord('feature_flag_toggle', 'Global Kill Switch', 'executed', `request_pause set to ${e.target.checked}`);
+    });
+  }
+
+  const toggleDnd = document.getElementById('toggle-flag-dnd');
+  if (toggleDnd) {
+    toggleDnd.addEventListener('change', (e) => {
+      state.featureFlags.global_switches.request_dnd = e.target.checked;
+      showToast(`Global Kill Switch for Echo DND: ${e.target.checked ? 'ENABLED (Normal)' : 'TRIPPED (Halted)'}`);
+      addAuditRecord('feature_flag_toggle', 'Global Kill Switch', 'executed', `request_dnd set to ${e.target.checked}`);
+    });
+  }
+
+  const toggleWhisper = document.getElementById('toggle-flag-whisper');
+  if (toggleWhisper) {
+    toggleWhisper.addEventListener('change', (e) => {
+      state.featureFlags.global_switches.watch_whisper = e.target.checked;
+      showToast(`Global Kill Switch for Watch Whisper: ${e.target.checked ? 'ENABLED' : 'TRIPPED'}`);
+      addAuditRecord('feature_flag_toggle', 'Global Kill Switch', 'executed', `watch_whisper set to ${e.target.checked}`);
+    });
+  }
+
+  const toggleSlack = document.getElementById('toggle-flag-slack');
+  if (toggleSlack) {
+    toggleSlack.addEventListener('change', (e) => {
+      state.featureFlags.global_switches.slack_post = e.target.checked;
+      showToast(`Global Kill Switch for Slack: ${e.target.checked ? 'ENABLED' : 'TRIPPED'}`);
+      addAuditRecord('feature_flag_toggle', 'Global Kill Switch', 'executed', `slack_post set to ${e.target.checked}`);
+    });
+  }
+
+  // Rollout slider
+  const rolloutSlider = document.getElementById('rollout-slider');
+  const rolloutLabel = document.getElementById('rollout-percentage-label');
+  if (rolloutSlider && rolloutLabel) {
+    rolloutSlider.addEventListener('input', (e) => {
+      const val = e.target.value;
+      rolloutLabel.textContent = `${val}%`;
+      state.featureFlags.rollout_percentage = parseInt(val, 10);
+    });
+  }
+
+  // Guardrail Simulation: Trip Circuit Breaker (>5% undo rate)
+  const btnTrip = document.getElementById('btn-test-guardrail-trip');
+  if (btnTrip) {
+    btnTrip.addEventListener('click', () => {
+      state.guardrail.executions = 10;
+      state.guardrail.undos = 1;
+      state.guardrail.undoRate = 0.10; // 10% > 5%
+      state.guardrail.autoExecutionPaused = true;
+      renderGuardrailMetrics();
+      showToast('⚠️ Guardrail Tripped: Undo rate reached 10.0% (> 5% limit)! Auto-execution paused.');
+      addAuditRecord('guardrail_tripped', 'Safety Circuit Breaker', 'suggested_only', 'Undo rate exceeded 5.0% threshold (10.0% detected). Auto-execution paused.');
+    });
+  }
+
+  // Guardrail Reset Button
+  const btnReset = document.getElementById('btn-reset-guardrail-ui');
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      state.guardrail.executions = 12;
+      state.guardrail.undos = 0;
+      state.guardrail.undoRate = 0.0;
+      state.guardrail.autoExecutionPaused = false;
+      renderGuardrailMetrics();
+      showToast('🔄 Circuit breaker reset. Auto-execution capability restored.');
+      addAuditRecord('guardrail_reset', 'Safety Circuit Breaker', 'executed', 'Circuit breaker reset by user/admin. Auto-execution restored.');
+    });
+  }
+
+  // Refresh devices registry
+  const btnRefreshDevs = document.getElementById('btn-refresh-devices-registry');
+  if (btnRefreshDevs) {
+    btnRefreshDevs.addEventListener('click', () => {
+      renderDevicesRegistry();
+      showToast('Connected devices registry refreshed.');
+    });
+  }
+
+  // Live receipt undo & dismiss
+  const btnReceiptUndo = document.getElementById('btn-receipt-undo');
+  if (btnReceiptUndo) {
+    btnReceiptUndo.addEventListener('click', () => {
+      if (state.latestReceipt) {
+        const dev = state.connectedDevices.find((d) => d.id === state.latestReceipt.device_id);
+        if (dev) {
+          dev.state = state.latestReceipt.previous_state;
+        }
+        state.guardrail.undos += 1;
+        state.guardrail.undoRate = state.guardrail.undos / state.guardrail.executions;
+        if (state.guardrail.executions >= 5 && state.guardrail.undoRate > 0.05) {
+          state.guardrail.autoExecutionPaused = true;
+        }
+        renderGuardrailMetrics();
+        renderDevicesRegistry();
+        showToast(`↩️ Reversal executed via token ${state.latestReceipt.undo_token}! Restored device state.`);
+        addAuditRecord('undo_reversal', state.latestReceipt.device_id, 'undone', `Action reversed via token ${state.latestReceipt.undo_token}`);
+        const receiptBox = document.getElementById('device-receipt-box');
+        if (receiptBox) receiptBox.style.display = 'none';
+      }
+    });
+  }
+
+  const btnReceiptDismiss = document.getElementById('btn-receipt-dismiss');
+  if (btnReceiptDismiss) {
+    btnReceiptDismiss.addEventListener('click', () => {
+      const receiptBox = document.getElementById('device-receipt-box');
+      if (receiptBox) receiptBox.style.display = 'none';
+    });
+  }
+}
+
+function updateSlackPreview() {
+  const duration = parseInt(state.slack.durationMinutes, 10) || 45;
+  const targetEpoch = Date.now() + duration * 60 * 1000;
+  const targetDate = new Date(targetEpoch);
+  const hours = String(targetDate.getHours()).padStart(2, '0');
+  const minutes = String(targetDate.getMinutes()).padStart(2, '0');
+  const previewText = `In focus until ${hours}:${minutes}`;
+
+  state.slack.previewText = previewText;
+
+  const previewTextEl = document.getElementById('slack-preview-text');
+  const previewEmojiEl = document.getElementById('slack-preview-emoji');
+  const countdownEl = document.getElementById('slack-countdown-text');
+  const targetSubtextEl = document.getElementById('slack-target-subtext');
+
+  if (previewTextEl) previewTextEl.textContent = previewText;
+  if (previewEmojiEl) previewEmojiEl.textContent = state.slack.previewEmoji || '🎯';
+  if (countdownEl) countdownEl.textContent = `Auto-expires in ${duration}m`;
+  if (targetSubtextEl) {
+    const isChannel = state.slack.selectedChannel.startsWith('#');
+    targetSubtextEl.textContent = isChannel
+      ? `Target: ${state.slack.selectedChannel} (Allowlisted)`
+      : `Target: User Profile Status Icon (Ambient)`;
+  }
+}
+
+function setupPhase6Slack() {
+  const channelSelect = document.getElementById('slack-channel-select');
+  if (channelSelect) {
+    channelSelect.addEventListener('change', (e) => {
+      state.slack.selectedChannel = e.target.value;
+      updateSlackPreview();
+    });
+  }
+
+  const durationSelect = document.getElementById('slack-duration-select');
+  if (durationSelect) {
+    durationSelect.addEventListener('change', (e) => {
+      state.slack.durationMinutes = parseInt(e.target.value, 10);
+      updateSlackPreview();
+    });
+  }
+
+  const btnPublish = document.getElementById('btn-publish-slack');
+  if (btnPublish) {
+    btnPublish.addEventListener('click', () => {
+      // 1. Channel Allowlist Check
+      if (state.slack.selectedChannel === '#unapproved-secret-room') {
+        showToast('❌ Blocked by Channel Allowlist: Channel #unapproved-secret-room is not in approved allowlist.');
+        addAuditRecord('slack_status', '#unapproved-secret-room', 'blocked', 'Blocked by Channel Allowlist: Channel not approved by admin.');
+        return;
+      }
+
+      // 2. Feature Flag Check
+      if (state.featureFlags && state.featureFlags.global_switches && state.featureFlags.global_switches.slack_post === false) {
+        showToast('❌ Blocked by Feature Flag: Global kill switch for slack_post is active.');
+        addAuditRecord('slack_status', state.slack.selectedChannel, 'blocked', 'Blocked by Tier 1 Global Kill Switch: slack_post is disabled.');
+        return;
+      }
+
+      // 3. Execution
+      const receiptId = 'rcpt_slack_' + Math.random().toString(36).substring(2, 9);
+      const undoToken = 'undo_slack_' + Math.random().toString(36).substring(2, 10);
+      const targetDuration = state.slack.durationMinutes;
+
+      state.slack.activeReceipt = {
+        receipt_id: receiptId,
+        undo_token: undoToken,
+        status_text: state.slack.previewText,
+        channel: state.slack.selectedChannel,
+        posted_at: Date.now(),
+        expires_at: Date.now() + targetDuration * 60 * 1000,
+      };
+
+      // Show receipt in UI
+      const activeReceiptRow = document.getElementById('slack-active-receipt');
+      const receiptIdEl = document.getElementById('slack-receipt-id');
+      if (activeReceiptRow) activeReceiptRow.style.display = 'flex';
+      if (receiptIdEl) receiptIdEl.textContent = receiptId;
+
+      showToast(`🚀 Published to Slack: "${state.slack.previewText}" (Auto-expires in ${targetDuration}m)`);
+      addAuditRecord('slack_status', state.slack.selectedChannel, 'executed', `Published ambient availability: "${state.slack.previewText}" via OAuth PKCE`, undoToken);
+    });
+  }
+
+  const btnClear = document.getElementById('btn-clear-slack');
+  if (btnClear) {
+    btnClear.addEventListener('click', () => {
+      if (!state.slack.activeReceipt) {
+        showToast('ℹ️ No active Slack status to clear.');
+        return;
+      }
+      state.slack.activeReceipt = null;
+      const activeReceiptRow = document.getElementById('slack-active-receipt');
+      if (activeReceiptRow) activeReceiptRow.style.display = 'none';
+
+      showToast('🔄 Cleared Slack ambient availability status.');
+      addAuditRecord('slack_status_cleared', state.slack.selectedChannel, 'executed', 'Reverted active Slack ambient status to default idle.');
+    });
+  }
+
+  const btnUndoInline = document.getElementById('btn-undo-slack-inline');
+  if (btnUndoInline) {
+    btnUndoInline.addEventListener('click', () => {
+      if (state.slack.activeReceipt && state.slack.activeReceipt.undo_token) {
+        const token = state.slack.activeReceipt.undo_token;
+        state.slack.activeReceipt = null;
+        const activeReceiptRow = document.getElementById('slack-active-receipt');
+        if (activeReceiptRow) activeReceiptRow.style.display = 'none';
+
+        // Increment guardrail undo tracking
+        state.guardrail.undos += 1;
+        state.guardrail.undoRate = state.guardrail.undos / state.guardrail.executions;
+        if (state.guardrail.executions >= 5 && state.guardrail.undoRate > 0.05) {
+          state.guardrail.autoExecutionPaused = true;
+        }
+        renderGuardrailMetrics();
+
+        showToast(`↩️ Slack status reversed immediately via token ${token}!`);
+        addAuditRecord('undo_reversal', state.slack.selectedChannel, 'undone', `Slack status reverted via token ${token}`);
+      }
+    });
+  }
+
+  const btnTestLeakage = document.getElementById('btn-test-slack-leakage');
+  if (btnTestLeakage) {
+    btnTestLeakage.addEventListener('click', () => {
+      showToast('🛡️ Blocked: Zero Slack Meeting Leakage Rule violation! Sensitive meeting title detected. Slack posts strictly permit only ambient availability.');
+      addAuditRecord('slack_status', state.slack.selectedChannel, 'blocked', 'Zero Slack Meeting Leakage Rule violation: Prohibited fields detected: [\'meeting_summary\', \'3_questions\']');
+    });
+  }
+
+  updateSlackPreview();
+}
+
+function initApp() {
+  setupEventListeners();
+  setupPhase5EventListeners();
+  setupPhase6Slack();
+  renderMeeting(state.activeMeetingId);
+  renderGrants();
+  renderAuditTimeline();
+  renderGuardrailMetrics();
+  renderDevicesRegistry();
+  startTimer();
+  startT5Countdown();
+}
+
 // Start on DOM Ready
 document.addEventListener('DOMContentLoaded', initApp);
+

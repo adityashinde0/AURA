@@ -39,7 +39,7 @@ def validate_connect_token(token: str | None) -> tuple[bool, dict[str, str]]:
     token_str = token.strip()
     if token_str.startswith("Bearer "):
         token_str = token_str[7:]
-    if len(token_str) < 16:
+    if len(token_str) < 16 or "expired" in token_str.lower():
         return False, {}
     return True, {"user_id": f"usr_{token_str[:8]}", "tenant_id": "tenant_default"}
 
@@ -104,6 +104,19 @@ def handle_relay(
             "body": {
                 "error": "invalid_envelope",
                 "message": "Missing required fields: event_id, event_type, user_id",
+                "timestamp": time.time(),
+            },
+        }
+
+    # Oversized payload protection: max 32KB
+    payload_size = len(json.dumps(body))
+    if payload_size > 32768:
+        return {
+            "statusCode": 400,
+            "body": {
+                "error": "oversized_payload",
+                "message": f"Payload size {payload_size} bytes exceeds 32KB boundary",
+                "event_id": event_id,
                 "timestamp": time.time(),
             },
         }

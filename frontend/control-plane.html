@@ -3,19 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Project AURA — Control Plane & Focus Guardian</title>
+  <title>Project AURA — Control Plane &amp; Focus Guardian</title>
   <meta name="description" content="Mobile-first privacy control plane, pre-meeting intelligence, focus guardian, and deterministic policy engine for Project AURA.">
+  <link rel="icon" type="image/jpeg" href="assets/aura-logo.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="index.css">
+  <script>
+    // Immediate Theme Initialization to avoid FOUC
+    (function() {
+      const savedTheme = localStorage.getItem('aura-color-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
 </head>
 <body>
   <!-- Top App Bar -->
   <header class="app-header" role="banner">
     <div class="header-brand">
-      <a href="index.html" style="text-decoration:none; display:flex; align-items:center; gap:10px;">
-        <img src="assets/aura-logo.jpg" alt="AURA Logo" style="width:32px; height:32px; border-radius:8px; border:1px solid rgba(255,207,0,0.4);">
+      <a href="index.html" class="brand-link-header" title="AURA Home">
+        <img src="assets/aura-logo.jpg" alt="AURA Logo" class="brand-header-logo">
         <div>
           <h1 class="brand-title">AURA</h1>
           <span class="brand-subtitle">Private Focus &amp; Memory Guardian</span>
@@ -24,7 +32,30 @@
     </div>
 
     <div class="header-right">
-      <a href="index.html" class="user-pill" style="text-decoration:none; color:inherit;" title="Return to Landing Page">
+      <!-- Theme Toggle Button -->
+      <button id="theme-toggle-btn" class="theme-toggle-btn" aria-label="Toggle light or dark theme" title="Toggle color theme">
+        <span class="theme-icon-sun" aria-hidden="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </span>
+        <span class="theme-icon-moon" aria-hidden="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </span>
+        <span class="theme-label" id="theme-toggle-label">Theme</span>
+      </button>
+
+      <a href="index.html" class="user-pill overview-pill" title="Return to Landing Page">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
         <span class="user-name">Overview</span>
       </a>
@@ -32,8 +63,8 @@
         <span class="status-dot status-active" aria-hidden="true"></span>
         <span id="header-user-id" class="user-name">usr_marcus</span>
       </div>
-      <div class="bank-pill" id="header-bank-badge" title="Deep Work Bank points (Strictly user-private, no employer view)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <div class="bank-pill" id="header-bank-badge" role="button" tabindex="0" title="Click to open Deep Work Bank Ledger (Strictly private)">
+        <svg class="bank-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         <span id="bank-balance-display">12</span> <span class="bank-label">pts</span>
         <span class="private-tag" aria-label="Private to you only">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -84,9 +115,14 @@
 
     <!-- Toast Notification Banner -->
     <aside id="toast-banner" class="toast-banner hidden" role="status" aria-live="polite">
-      <span id="toast-message" class="toast-text"></span>
-      <button id="toast-action-btn" class="toast-btn hidden">Action</button>
-      <button id="toast-close-btn" class="toast-close" aria-label="Close notification">&times;</button>
+      <div class="toast-content-wrapper">
+        <span class="toast-badge-dot"></span>
+        <span id="toast-message" class="toast-text"></span>
+      </div>
+      <div class="toast-actions-wrapper">
+        <button id="toast-action-btn" class="toast-btn hidden">Action</button>
+        <button id="toast-close-btn" class="toast-close" aria-label="Close notification">&times;</button>
+      </div>
     </aside>
 
     <!-- SURFACE 1: TODAY / PRE-MEETING -->
@@ -96,7 +132,36 @@
           <h2 class="panel-title">Today's Briefing</h2>
           <p class="panel-desc">Glanceable, privacy-scrubbed pre-meeting context grounded in your approved memory.</p>
         </div>
-        <span class="badge badge-t5" id="briefing-timer-badge">T-5 Min Trigger</span>
+        <div class="header-actions-group">
+          <span class="badge badge-t5" id="briefing-timer-badge">
+            <span class="pulse-dot-amber"></span>
+            <span id="briefing-timer-text">T-5 Min Trigger: 04:18 until sync</span>
+          </span>
+          <button class="btn btn-sm btn-simulate-t5" id="btn-simulate-t5" title="Simulate a real-time T-5 pre-meeting intelligence trigger">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Simulate T-5</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Meeting Switcher Bar (Interactive Context Carousel) -->
+      <div class="meeting-selector-bar" role="tablist" aria-label="Select meeting context">
+        <button class="meeting-chip active" data-meeting="q4_arch" role="tab" aria-selected="true" tabindex="0">
+          <span class="chip-status-dot"></span>
+          <span class="chip-time">14:30</span>
+          <span class="chip-title">Q4 Strategy &amp; Architecture</span>
+          <span class="chip-tag">Active</span>
+        </button>
+        <button class="meeting-chip" data-meeting="bedrock_sync" role="tab" aria-selected="false" tabindex="-1">
+          <span class="chip-status-dot"></span>
+          <span class="chip-time">16:00</span>
+          <span class="chip-title">Bedrock Vector Migration</span>
+        </button>
+        <button class="meeting-chip" data-meeting="firetv_ambient" role="tab" aria-selected="false" tabindex="-1">
+          <span class="chip-status-dot"></span>
+          <span class="chip-time">17:15</span>
+          <span class="chip-title">Fire TV &amp; Ambient Defense</span>
+        </button>
       </div>
 
       <!-- Next Meeting Card -->
@@ -107,47 +172,100 @@
             <span class="time-val" id="meeting-time">14:30</span>
           </div>
           <div class="meeting-meta">
-            <h3 class="meeting-title" id="meeting-title">Q4 Strategy & Architecture Review</h3>
+            <h3 class="meeting-title" id="meeting-title">Q4 Strategy &amp; Architecture Review</h3>
             <p class="meeting-participants" id="meeting-participants">Participants: Marcus, Aditi, Sarah Chen (3)</p>
           </div>
-          <span class="badge badge-tone" id="meeting-tone-badge">Tone: Confident</span>
+          <div class="meeting-header-tools">
+            <span class="badge badge-tone" id="meeting-tone-badge">Tone: Confident</span>
+            <button class="btn btn-sm btn-whisper-audio" id="btn-whisper-audio" title="Play synthesized audio briefing to companion wearable">
+              <span class="audio-btn-icon" id="whisper-btn-icon">▶</span>
+              <span id="whisper-btn-text">Whisper Brief (42s)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Audio Waveform Player Bar -->
+        <div class="audio-waveform-player hidden" id="audio-waveform-player">
+          <div class="waveform-inner">
+            <div class="waveform-bars-visual" id="waveform-visual">
+              <span class="wbar"></span><span class="wbar"></span><span class="wbar"></span><span class="wbar"></span>
+              <span class="wbar"></span><span class="wbar"></span><span class="wbar"></span><span class="wbar"></span>
+              <span class="wbar"></span><span class="wbar"></span><span class="wbar"></span><span class="wbar"></span>
+              <span class="wbar"></span><span class="wbar"></span><span class="wbar"></span><span class="wbar"></span>
+            </div>
+            <div class="waveform-info">
+              <span class="waveform-status-text" id="waveform-status">Synthesizing private whisper audio via AWS Bedrock...</span>
+              <span class="waveform-countdown" id="waveform-countdown">0:14 / 0:42</span>
+            </div>
+          </div>
         </div>
 
         <div class="briefing-box">
-          <h4 class="section-label">Glanceable Briefing (52 words)</h4>
+          <div class="section-label-row">
+            <h4 class="section-label">Glanceable Briefing (<span id="briefing-word-count">52</span> words · 18s read)</h4>
+            <button class="btn-copy-action" id="btn-copy-brief" title="Copy briefing summary to clipboard">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy Brief</span>
+            </button>
+          </div>
           <p class="briefing-text" id="briefing-summary">
             Team is reviewing Q4 cloud migration milestones. Key dependency is DynamoDB single-table latency and API Gateway WebSocket authorization. Aditi flagged open question regarding Fire TV adapter certification and rollback latency. Target outcome is sign-off on production architecture boundaries.
           </p>
         </div>
 
         <div class="questions-box">
-          <h4 class="section-label">3 Actionable Prep Questions</h4>
-          <ol class="questions-list" id="briefing-questions">
-            <li>What is the measured p95 latency for local companion WebSocket relay?</li>
-            <li>Has the Fire TV MediaSession pause capability received user session consent?</li>
-            <li>Are quiet hours configured to suppress briefings during evening deep work?</li>
-          </ol>
+          <div class="section-label-row">
+            <h4 class="section-label">3 Actionable Prep Questions</h4>
+            <span class="section-hint">Click question to check off or copy to meeting notes</span>
+          </div>
+          <div class="questions-interactive-list" id="briefing-questions">
+            <!-- Dynamically populated or rendered with checkboxes & copy icons -->
+          </div>
         </div>
 
         <div class="evidence-box">
           <div class="evidence-header">
-            <h4 class="section-label">Approved Evidence Sources (Redacted locally)</h4>
+            <div class="evidence-title-group">
+              <h4 class="section-label">Approved Evidence Sources (Redacted locally)</h4>
+              <span class="evidence-hint">Click any source to inspect cryptographic provenance</span>
+            </div>
             <button class="link-btn" id="btn-why-seeing-this" aria-haspopup="dialog">Why am I seeing this?</button>
           </div>
           <div class="evidence-tags" id="evidence-tags">
-            <span class="evidence-tag" title="Local Bee memory snippet #1">📌 evt_mem_arch_01</span>
-            <span class="evidence-tag" title="Calendar invite metadata">📅 evt_cal_q4_sync</span>
-            <span class="evidence-tag" title="Previous commitment note">📝 evt_commit_cdk_review</span>
+            <button class="evidence-tag-btn" data-evidence="evt_mem_arch_01" title="Click to inspect cryptographic provenance and redaction record">
+              <span class="tag-icon">📌</span>
+              <span class="tag-label">evt_mem_arch_01</span>
+              <span class="tag-inspect-badge">Inspect</span>
+            </button>
+            <button class="evidence-tag-btn" data-evidence="evt_cal_q4_sync" title="Click to inspect cryptographic provenance and redaction record">
+              <span class="tag-icon">📅</span>
+              <span class="tag-label">evt_cal_q4_sync</span>
+              <span class="tag-inspect-badge">Inspect</span>
+            </button>
+            <button class="evidence-tag-btn" data-evidence="evt_commit_cdk_review" title="Click to inspect cryptographic provenance and redaction record">
+              <span class="tag-icon">📝</span>
+              <span class="tag-label">evt_commit_cdk_review</span>
+              <span class="tag-inspect-badge">Inspect</span>
+            </button>
           </div>
         </div>
 
         <!-- Feedback & Mute Controls -->
         <div class="feedback-row" role="group" aria-label="Briefing usefulness feedback">
-          <span class="feedback-prompt">Was this helpful?</span>
+          <div class="feedback-prompt-group">
+            <span class="feedback-prompt">Was this helpful?</span>
+            <span class="feedback-sub-prompt">Calibrates your local memory relevance threshold</span>
+          </div>
           <div class="feedback-actions">
-            <button class="btn btn-sm btn-outline" id="btn-feedback-helpful">👍 Helpful</button>
-            <button class="btn btn-sm btn-outline" id="btn-feedback-notuseful">👎 Not useful</button>
-            <button class="btn btn-sm btn-outline btn-mute" id="btn-feedback-mute">🔕 Mute series</button>
+            <button class="btn btn-sm btn-outline btn-feedback-item" id="btn-feedback-helpful" title="Give positive feedback (+2 Bank Points)">
+              👍 Helpful <span class="points-chip">+2 pts</span>
+            </button>
+            <button class="btn btn-sm btn-outline btn-feedback-item" id="btn-feedback-notuseful" title="Calibrate future briefings">
+              👎 Not useful
+            </button>
+            <button class="btn btn-sm btn-outline btn-mute" id="btn-feedback-mute" title="Mute briefings for this recurring calendar series">
+              🔕 Mute series
+            </button>
           </div>
         </div>
       </article>
@@ -420,6 +538,259 @@
           </div>
         </article>
       </div>
+
+      <!-- PHASE 5: PRD SECTION 6 SAFETY GUARDRAIL & UNDO CIRCUIT BREAKER -->
+      <article class="guardrail-card" id="guardrail-panel">
+        <div class="panel-header" style="margin-bottom: 0;">
+          <div>
+            <h3 class="card-title">PRD Section 6 Safety Guardrail: Auto-Execution Circuit Breaker</h3>
+            <p class="card-desc">Automatically pauses auto-execution if the policy undo rate exceeds 5.0%, preserving user sovereignty.</p>
+          </div>
+          <span class="badge badge-success" id="guardrail-status-badge">Auto-Execution Active</span>
+        </div>
+
+        <div class="guardrail-metrics-grid">
+          <div class="guardrail-metric-box">
+            <span class="metric-val" id="stat-executions">12</span>
+            <span class="metric-label">Total Executions</span>
+          </div>
+          <div class="guardrail-metric-box">
+            <span class="metric-val" id="stat-undos">0</span>
+            <span class="metric-label">Reversals (Undos)</span>
+          </div>
+          <div class="guardrail-metric-box">
+            <span class="metric-val safe" id="stat-undo-rate">0.0%</span>
+            <span class="metric-label">Current Undo Rate</span>
+          </div>
+          <div class="guardrail-metric-box">
+            <span class="metric-val" style="color: var(--accent-gold);">5.0%</span>
+            <span class="metric-label">Guardrail Ceiling</span>
+          </div>
+        </div>
+
+        <div class="guardrail-bar-container">
+          <div class="guardrail-bar-header">
+            <span>Safety Limit Proximity</span>
+            <span id="guardrail-proximity-text">0.0% / 5.0% Max</span>
+          </div>
+          <div class="guardrail-bar-track">
+            <div class="guardrail-bar-fill" id="guardrail-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="guardrail-actions">
+          <button class="btn btn-sm btn-outline" id="btn-test-guardrail-trip">
+            <span class="btn-icon" aria-hidden="true">⚠️</span> Simulate High Undo Trip (>5%)
+          </button>
+          <button class="btn btn-sm btn-primary" id="btn-reset-guardrail-ui">
+            <span class="btn-icon" aria-hidden="true">🔄</span> Reset Circuit Breaker
+          </button>
+          <span id="guardrail-alert-msg" class="text-muted" style="font-size: 0.82rem; align-self: center;">System operating normally. Auto-execution enabled.</span>
+        </div>
+      </article>
+
+      <!-- PHASE 5: MULTI-TIER FEATURE FLAGS & KILL SWITCHES -->
+      <article class="flags-card" id="flags-panel">
+        <div class="panel-header" style="margin-bottom: 0;">
+          <div>
+            <h3 class="card-title">Multi-Tier Feature Flags &amp; Emergency Kill Switches</h3>
+            <p class="card-desc">Instantaneous system-wide (Global), organizational (Tenant), or user isolation. Fails safe in &lt;1 second.</p>
+          </div>
+          <span class="badge badge-success">3 Tiers Active</span>
+        </div>
+
+        <div class="flags-list">
+          <div class="flag-row">
+            <div class="flag-info">
+              <span class="flag-title">Fire TV Media Pause (<code>request_pause</code>)</span>
+              <span class="flag-desc">Tier 1 Global Kill Switch — Instantly halts all Fire TV remote transport actions</span>
+            </div>
+            <label class="switch" aria-label="Toggle Global Kill Switch for Fire TV Pause">
+              <input type="checkbox" id="toggle-flag-pause" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="flag-row">
+            <div class="flag-info">
+              <span class="flag-title">Echo Speaker Do Not Disturb (<code>request_dnd</code>)</span>
+              <span class="flag-desc">Tier 1 Global Kill Switch — Instantly halts all Alexa DND directives</span>
+            </div>
+            <label class="switch" aria-label="Toggle Global Kill Switch for Echo DND">
+              <input type="checkbox" id="toggle-flag-dnd" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="flag-row">
+            <div class="flag-info">
+              <span class="flag-title">Watch Whisper Briefing (<code>watch_whisper</code>)</span>
+              <span class="flag-desc">Tier 1 Global Kill Switch — Halts pre-meeting T-5 haptic briefs to Apple Watch / Wearable</span>
+            </div>
+            <label class="switch" aria-label="Toggle Global Kill Switch for Watch Whisper">
+              <input type="checkbox" id="toggle-flag-whisper" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="flag-row">
+            <div class="flag-info">
+              <span class="flag-title">Slack Status Publisher (<code>slack_post</code>)</span>
+              <span class="flag-desc">Tier 1 Global Kill Switch — Disables Slack workspace ambient status publishing</span>
+            </div>
+            <label class="switch" aria-label="Toggle Global Kill Switch for Slack Status">
+              <input type="checkbox" id="toggle-flag-slack" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="rollout-container">
+          <div class="rollout-header">
+            <span>Staged Cohort Rollout Percentage (Hash Partitioned)</span>
+            <span id="rollout-percentage-label" style="color: var(--brand-yellow);">100%</span>
+          </div>
+          <input type="range" id="rollout-slider" class="aura-slider" min="0" max="100" value="100" aria-label="Rollout cohort percentage">
+        </div>
+      </article>
+
+      <!-- PHASE 5: CERTIFIED DEVICE REGISTRY & COMMAND SIMULATOR -->
+      <article class="devices-matrix-card" id="devices-matrix-panel">
+        <div class="panel-header" style="margin-bottom: 0;">
+          <div>
+            <h3 class="card-title">Connected Devices Certification Registry</h3>
+            <p class="card-desc">Amazon MediaSession and Alexa Smart Home certified control paths. Uncertified devices fail safe.</p>
+          </div>
+          <button class="btn btn-sm btn-outline" id="btn-refresh-devices-registry">Refresh Devices</button>
+        </div>
+
+        <div class="grants-table-container" style="margin-top: 16px;">
+          <table class="aura-table" id="devices-registry-table">
+            <thead>
+              <tr>
+                <th scope="col">Device Name</th>
+                <th scope="col">Identifier</th>
+                <th scope="col">Certification Standard</th>
+                <th scope="col">Household</th>
+                <th scope="col">Rate Limit</th>
+                <th scope="col">Status</th>
+                <th scope="col">Test Action</th>
+              </tr>
+            </thead>
+            <tbody id="devices-registry-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="device-receipt-box" class="receipt-display-box" style="display: none;">
+          <strong>Live Outbox Receipt:</strong>
+          <pre id="device-receipt-content" style="margin-top: 6px; white-space: pre-wrap;"></pre>
+          <div style="margin-top: 10px; display: flex; gap: 8px;">
+            <button class="btn btn-sm btn-primary" id="btn-receipt-undo">Undo Action Immediately</button>
+            <button class="btn btn-sm btn-outline" id="btn-receipt-dismiss">Dismiss</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- PHASE 6: SLACK AMBIENT STATUS & OAUTH PKCE CONTROL CENTER -->
+      <article class="slack-panel-card" id="slack-panel">
+        <div class="panel-header" style="margin-bottom: 0.75rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span class="int-icon" style="font-size: 1.6rem;" aria-hidden="true">💬</span>
+            <div>
+              <h3 class="card-title">Slack Ambient Status &amp; OAuth PKCE Control Center</h3>
+              <p class="card-desc">Publishes minimal ambient availability ("In focus until 15:00"). Zero meeting context or score leakage guaranteed.</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <span class="badge badge-success" id="slack-connection-badge">
+              <span class="pulse-dot" style="background: #10b981;"></span>
+              OAuth PKCE: Connected (S256)
+            </span>
+            <span class="badge badge-certified" id="slack-admin-badge" title="Workspace Admin security review certified">
+              Admin Approved
+            </span>
+          </div>
+        </div>
+
+        <!-- Zero Leakage Privacy Guarantee Banner -->
+        <div class="slack-shield-banner">
+          <div class="shield-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="shield-text">
+            <strong>Zero Slack Meeting Leakage Rule Enforced:</strong> No meeting titles, summaries, 3 questions, distraction scores, transcripts, private notes, or locations ever leave your personal boundary or reach team channels.
+          </div>
+          <div class="shield-scopes" title="Least-Privilege OAuth Scopes">
+            <code>chat:write</code> <code>users.profile:write</code>
+          </div>
+        </div>
+
+        <!-- Live Preview & Publisher Grid -->
+        <div class="slack-interactive-grid">
+          <!-- Left: Live Status Preview Card -->
+          <div class="slack-preview-box">
+            <div class="slack-box-header">
+              <span class="slack-box-title">Live Slack Ambient Preview</span>
+              <span class="slack-expiry-countdown" id="slack-countdown-text">Auto-expires in 45m</span>
+            </div>
+            <div class="slack-rendered-preview" id="slack-rendered-preview">
+              <div class="slack-avatar-mock">M</div>
+              <div class="slack-preview-content">
+                <div class="slack-preview-author">
+                  <span class="author-name">Marcus</span>
+                  <span class="slack-preview-pill" id="slack-preview-pill">
+                    <span id="slack-preview-emoji">🎯</span>
+                    <span id="slack-preview-text">In focus until 15:00</span>
+                  </span>
+                </div>
+                <div class="slack-preview-subtext" id="slack-target-subtext">Target: #marcus-focus (Allowlisted)</div>
+              </div>
+            </div>
+            <div class="slack-receipt-row" id="slack-active-receipt" style="display: none;">
+              <span class="receipt-label">Active Receipt:</span>
+              <code id="slack-receipt-id">rcpt_slack_...</code>
+              <button class="btn btn-xs btn-outline" id="btn-undo-slack-inline" title="Immediately undo status">Undo</button>
+            </div>
+          </div>
+
+          <!-- Right: Controls & Parameters -->
+          <div class="slack-controls-box">
+            <div class="slack-form-row">
+              <div class="slack-input-group">
+                <label for="slack-channel-select" class="slack-label">Channel Allowlist Target</label>
+                <select id="slack-channel-select" class="form-select" style="width: 100%;">
+                  <option value="#marcus-focus">#marcus-focus (User Opted-in)</option>
+                  <option value="#deep-work-ambient">#deep-work-ambient (Team Feed)</option>
+                  <option value="user_profile">User Profile Status (Direct Ambient Icon)</option>
+                  <option value="#unapproved-secret-room">#unapproved-secret-room (Blocked Test)</option>
+                </select>
+              </div>
+              <div class="slack-input-group">
+                <label for="slack-duration-select" class="slack-label">Focus Expiry Duration</label>
+                <select id="slack-duration-select" class="form-select" style="width: 100%;">
+                  <option value="25">25 Minutes (Standard Pomodoro)</option>
+                  <option value="45" selected>45 Minutes (Deep Work Session)</option>
+                  <option value="60">60 Minutes (Long Block)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="slack-btn-row">
+              <button class="btn btn-primary" id="btn-publish-slack">
+                <span class="btn-icon">🚀</span> Publish Ambient Status
+              </button>
+              <button class="btn btn-outline" id="btn-clear-slack">
+                <span class="btn-icon">🔄</span> Clear / Revert Status
+              </button>
+              <button class="btn btn-danger-outline" id="btn-test-slack-leakage" title="Test Zero Leakage Guard by injecting meeting text">
+                <span class="btn-icon">🛡️</span> Test Zero Leakage Guard
+              </button>
+            </div>
+          </div>
+        </div>
+      </article>
     </section>
 
     <!-- SURFACE 5: ACTION AUDIT TRAIL -->
@@ -469,7 +840,7 @@
           <div class="chain-step">
             <span class="chain-num">1</span>
             <div>
-              <strong>Calendar Ingress:</strong> Event "Q4 Strategy & Architecture Review" at 14:30 triggered T-5 prep evaluation.
+              <strong>Calendar Ingress:</strong> Event "Q4 Strategy &amp; Architecture Review" at 14:30 triggered T-5 prep evaluation.
             </div>
           </div>
           <div class="chain-step">
@@ -497,6 +868,126 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-primary" id="btn-modal-got-it">Got it</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Evidence Source Provenance Inspector Modal -->
+  <dialog id="modal-evidence-detail" class="aura-modal" aria-labelledby="modal-evidence-title">
+    <div class="modal-content modal-content-lg">
+      <div class="modal-header">
+        <div class="modal-title-lockup">
+          <span class="evidence-badge-chip" id="evidence-modal-badge">📌 Memory Snippet</span>
+          <h3 id="modal-evidence-title" class="modal-title">Cryptographic Provenance Record</h3>
+        </div>
+        <button class="modal-close" id="btn-close-evidence-modal" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="evidence-provenance-grid">
+          <div class="provenance-metric-card">
+            <span class="p-label">Evidence Identifier</span>
+            <code class="p-value" id="evidence-modal-id">evt_mem_arch_01</code>
+          </div>
+          <div class="provenance-metric-card">
+            <span class="p-label">Redaction Status</span>
+            <span class="p-value text-emerald" id="evidence-modal-redaction">✅ Local PII Sanitized</span>
+          </div>
+          <div class="provenance-metric-card">
+            <span class="p-label">Local Capture Time</span>
+            <span class="p-value" id="evidence-modal-time">Yesterday, 16:42 UTC</span>
+          </div>
+          <div class="provenance-metric-card">
+            <span class="p-label">Zero-Storage Guarantee</span>
+            <span class="p-value text-gold">Ephemeral RAM Only</span>
+          </div>
+        </div>
+
+        <div class="evidence-code-box">
+          <div class="code-box-header">
+            <span>Client-Sanitized Memory Snippet (Grounded Input)</span>
+            <span class="sha-tag" id="evidence-modal-sha">SHA-256: 7f8a92...e31b</span>
+          </div>
+          <pre class="code-box-content" id="evidence-modal-snippet">{
+  "source_entity": "Slack / #architecture-sync",
+  "topic": "DynamoDB Single-Table Migration & Latency SLA",
+  "scrubbed_entities": ["[REDACTED_EMAIL]", "[REDACTED_API_KEY]"],
+  "approved_context": "Aditi noted Fire TV adapter pause latency target is under 200ms with reversible undo."
+}</pre>
+        </div>
+
+        <div class="modal-privacy-callout">
+          🛡️ <strong>Zero-Surveillance Guarantee:</strong> This snippet was scrubbed on your device before entering Amazon Bedrock Claude 3.5 Sonnet. No tokens are retained in the cloud.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btn-copy-evidence-sha">Copy Hash</button>
+        <button class="btn btn-primary" id="btn-evidence-modal-close">Close Inspector</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Deep Work Bank Ledger Modal -->
+  <dialog id="modal-bank-ledger" class="aura-modal" aria-labelledby="modal-bank-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-lockup">
+          <div class="bank-ledger-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>DEEP WORK BANK</span>
+          </div>
+          <h3 id="modal-bank-title" class="modal-title">Your Private Focus Balance</h3>
+        </div>
+        <button class="modal-close" id="btn-close-bank-modal" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="bank-hero-balance">
+          <div class="balance-number-box">
+            <span class="bank-big-num" id="modal-bank-balance">12</span>
+            <span class="bank-big-unit">Focus Points</span>
+          </div>
+          <div class="bank-privacy-pill">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Strictly Private • No Employer Telemetry
+          </div>
+        </div>
+
+        <p class="modal-desc" style="margin-top: 14px;">
+          Points are awarded for completing uninterrupted deep work blocks and submitting briefing feedback. They can never be accessed by managers or HR.
+        </p>
+
+        <div class="bank-transactions-list">
+          <div class="bank-tx-item">
+            <span class="tx-badge positive">+4 pts</span>
+            <div class="tx-info">
+              <strong>90-Min Deep Flow Sprint</strong>
+              <span>Defended against 3 distraction spikes</span>
+            </div>
+            <span class="tx-time">Today, 11:30</span>
+          </div>
+          <div class="bank-tx-item">
+            <span class="tx-badge positive">+2 pts</span>
+            <div class="tx-info">
+              <strong>Pre-Meeting Brief Calibration</strong>
+              <span>Rated Q4 Strategy Briefing as helpful</span>
+            </div>
+            <span class="tx-time">Today, 14:25</span>
+          </div>
+          <div class="bank-tx-item">
+            <span class="tx-badge neutral">+6 pts</span>
+            <div class="tx-info">
+              <strong>Morning Focus Sanctuary</strong>
+              <span>Zero notifications during uninterrupted code review</span>
+            </div>
+            <span class="tx-time">Yesterday</span>
+          </div>
+        </div>
+
+        <div class="modal-privacy-callout">
+          ✨ <em>Focus Economy:</em> Reach 20 points to unlock automatic Slack DND status scheduling and adaptive quiet hours.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btn-bank-modal-got-it">Done</button>
       </div>
     </div>
   </dialog>

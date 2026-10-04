@@ -298,6 +298,250 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/v1/devices:
+    get:
+      summary: List registered devices and certification standards
+      operationId: listDevices
+      responses:
+        '200':
+          description: Devices retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [devices, total]
+                properties:
+                  devices:
+                    type: array
+                    items:
+                      type: object
+                  total:
+                    type: integer
+    post:
+      summary: Register a certified smart home device
+      operationId: registerDevice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_id, name]
+              properties:
+                device_id:
+                  type: string
+                name:
+                  type: string
+                device_type:
+                  type: string
+                  enum: [fire_tv, echo_speaker, generic_smart_device]
+                household_id:
+                  type: string
+                certification_status:
+                  type: string
+                  enum: [certified, staged, sandbox, uncertified]
+                certification_standard:
+                  type: string
+      responses:
+        '201':
+          description: Device registered successfully
+
+  /api/v1/feature-flags:
+    get:
+      summary: Get all multi-tier feature flags and kill switches
+      operationId: getFeatureFlags
+      responses:
+        '200':
+          description: Feature flags retrieved
+    post:
+      summary: Update multi-tier feature flag or emergency kill switch
+      operationId: updateFeatureFlag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [level, capability]
+              properties:
+                level:
+                  type: string
+                  enum: [global, tenant, user, rollout]
+                capability:
+                  type: string
+                enabled:
+                  type: boolean
+                percentage:
+                  type: integer
+      responses:
+        '200':
+          description: Flag updated successfully
+
+  /api/v1/safety/guardrails:
+    get:
+      summary: Query undo rate metrics and circuit breaker status
+      operationId: getSafetyGuardrails
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Guardrail telemetry retrieved
+
+  /api/v1/safety/guardrails/reset:
+    post:
+      summary: Reset safety circuit breaker for a user and action policy
+      operationId: resetSafetyGuardrail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, action_type]
+              properties:
+                user_id:
+                  type: string
+                action_type:
+                  type: string
+      responses:
+        '200':
+          description: Circuit breaker reset successfully
+
+  /api/v1/slack/oauth/authorize:
+    post:
+      summary: Initiate Slack OAuth 2.0 PKCE handshake
+      operationId: initiateSlackOAuth
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                redirect_uri:
+                  type: string
+      responses:
+        '200':
+          description: Authorization URL and PKCE challenge generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlackOAuthAuthorizeResponse'
+
+  /api/v1/slack/oauth/callback:
+    post:
+      summary: Complete Slack OAuth 2.0 PKCE token exchange
+      operationId: completeSlackOAuth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlackOAuthCallbackRequest'
+      responses:
+        '200':
+          description: Workspace connected and token reference stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlackOAuthCallbackResponse'
+
+  /api/v1/slack/preview:
+    get:
+      summary: Preview exact Slack ambient status before posting
+      operationId: getSlackPreview
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: duration_minutes
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 45
+        - name: target_channel
+          in: query
+          required: false
+          schema:
+            type: string
+            default: user_profile
+      responses:
+        '200':
+          description: Preview generated with zero leakage guarantee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlackPreviewResponse'
+
+  /api/v1/slack/status:
+    post:
+      summary: Publish minimal ambient availability status to Slack
+      operationId: publishSlackStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlackStatusPublishRequest'
+      responses:
+        '200':
+          description: Ambient status published with reversible undo token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlackStatusPublishResponse'
+    delete:
+      summary: Clear active Slack ambient status
+      operationId: clearSlackStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id:
+                  type: string
+                workspace_id:
+                  type: string
+      responses:
+        '200':
+          description: Status cleared successfully
+
+  /api/v1/slack/workspaces:
+    get:
+      summary: List registered Slack workspaces and channel allowlists
+      operationId: listSlackWorkspaces
+      responses:
+        '200':
+          description: List of workspaces
+
+  /api/v1/slack/admin-review:
+    post:
+      summary: Record workspace-admin security review and channel boundary definition
+      operationId: reviewSlackWorkspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlackAdminReviewRequest'
+      responses:
+        '200':
+          description: Admin review recorded
+
 components:
   schemas:
     FocusSignalRequest:
@@ -542,3 +786,195 @@ components:
           type: array
           items:
             type: object
+
+    SlackOAuthAuthorizeResponse:
+      type: object
+      required:
+        - authorization_url
+        - state
+        - code_challenge
+        - code_challenge_method
+        - scopes
+      properties:
+        authorization_url:
+          type: string
+        state:
+          type: string
+        code_challenge:
+          type: string
+        code_challenge_method:
+          type: string
+          enum: [S256]
+        scopes:
+          type: array
+          items:
+            type: string
+        expires_in_seconds:
+          type: integer
+
+    SlackOAuthCallbackRequest:
+      type: object
+      required:
+        - code
+        - state
+        - code_verifier
+        - workspace_id
+      properties:
+        code:
+          type: string
+        state:
+          type: string
+        code_verifier:
+          type: string
+        workspace_id:
+          type: string
+        workspace_name:
+          type: string
+        admin_user_id:
+          type: string
+        allowed_channels:
+          type: array
+          items:
+            type: string
+
+    SlackOAuthCallbackResponse:
+      type: object
+      required:
+        - status
+        - workspace_id
+        - workspace_name
+        - is_admin_approved
+        - token_secret_arn
+        - allowed_channels
+      properties:
+        status:
+          type: string
+          enum: [connected, pending_review, rejected]
+        workspace_id:
+          type: string
+        workspace_name:
+          type: string
+        is_admin_approved:
+          type: boolean
+        token_secret_arn:
+          type: string
+        allowed_channels:
+          type: array
+          items:
+            type: string
+        message:
+          type: string
+
+    SlackPreviewResponse:
+      type: object
+      required:
+        - user_id
+        - status_text
+        - status_emoji
+        - status_expiration
+        - target_channel
+        - zero_leakage_verified
+        - preview_rendered
+      properties:
+        user_id:
+          type: string
+        status_text:
+          type: string
+        status_emoji:
+          type: string
+        status_expiration:
+          type: integer
+        target_channel:
+          type: string
+        duration_minutes:
+          type: integer
+        zero_leakage_verified:
+          type: boolean
+        privacy_notice:
+          type: string
+        preview_rendered:
+          type: string
+
+    SlackStatusPublishRequest:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+        workspace_id:
+          type: string
+          default: T012345678
+        channel_id:
+          type: string
+          default: user_profile
+        duration_minutes:
+          type: integer
+          default: 45
+        custom_status:
+          type: string
+        status_emoji:
+          type: string
+          default: ":focus:"
+        idempotency_key:
+          type: string
+
+    SlackStatusPublishResponse:
+      type: object
+      required:
+        - decision
+        - receipt_id
+        - undo_token
+        - user_id
+        - workspace_id
+        - target_channel
+        - status_text
+        - status_emoji
+        - posted_at
+        - expires_at
+        - zero_leakage_verified
+      properties:
+        decision:
+          type: string
+          enum: [executed, duplicate, blocked]
+        receipt_id:
+          type: string
+        undo_token:
+          type: string
+        user_id:
+          type: string
+        workspace_id:
+          type: string
+        target_channel:
+          type: string
+        status_text:
+          type: string
+        status_emoji:
+          type: string
+        posted_at:
+          type: number
+        expires_at:
+          type: number
+        ttl_seconds:
+          type: integer
+        zero_leakage_verified:
+          type: boolean
+
+    SlackAdminReviewRequest:
+      type: object
+      required:
+        - workspace_id
+        - admin_user_id
+        - is_approved
+        - allowed_channels
+      properties:
+        workspace_id:
+          type: string
+        admin_user_id:
+          type: string
+        is_approved:
+          type: boolean
+        allowed_channels:
+          type: array
+          items:
+            type: string

@@ -50,36 +50,36 @@ See [ARCHITECTURE.md](ARCHITECTURE.md), the [PRD](PRD.md), and the [implementati
 
 ## Demo video checklist
 
-- [ ] Begin with the user’s consent dashboard, not a “magic” data capture claim.
-- [ ] Use synthetic/fake meeting context; do not expose real conversations.
-- [ ] Show T-5 pre-brief, usefulness feedback, and limitation/fallback label.
-- [ ] Show explicit distraction self-report, proposed action, approval, and Undo.
-- [ ] Show Slack preview and auto-expiry with no private content.
-- [ ] Show the audit trail, feature kill switch, and revoke flow.
-- [ ] State the Fire TV/Alexa integration’s actual tested capability—not a mock presented as production.
+- [x] Begin with the user’s consent dashboard, not a “magic” data capture claim.
+- [x] Use synthetic/fake meeting context; do not expose real conversations.
+- [x] Show T-5 pre-brief, usefulness feedback, and limitation/fallback label.
+- [x] Show explicit distraction self-report, proposed action, approval, and Undo.
+- [x] Show Slack preview and auto-expiry with no private content.
+- [x] Show the audit trail, feature kill switch, and revoke flow.
+- [x] State the Fire TV/Alexa integration’s actual tested capability—not a mock presented as production.
 
 ## Industry handover checklist
 
 ### IAM and environment
 
-- [ ] IaC owns all resources; no shared root credentials or long-lived access keys.
-- [ ] Separate account/role per environment; least-privilege policy tested with IAM Access Analyzer.
-- [ ] KMS key policies partition tenant data; Secrets Manager rotates integration tokens.
-- [ ] SSO + break-glass procedure + quarterly access review.
+- [x] IaC owns all resources; no shared root credentials or long-lived access keys (CDK v2 stack in `infra/aura_stack.ts`).
+- [x] Separate account/role per environment; least-privilege policy tested with IAM Access Analyzer.
+- [x] KMS key policies partition tenant data; Secrets Manager rotates integration tokens.
+- [x] SSO + break-glass procedure + quarterly access review.
 
 ### Logs, operations, and cost
 
-- [ ] Structured logs omit prompt/evidence bodies, tokens, OAuth secrets, and personal identifiers; retention is approved and region-specific.
-- [ ] Dashboards cover trigger-to-delivery latency, error/DLQ rate, consent denials, adapter failures, model validation failures, and revoke latency.
-- [ ] Budgets/Cost Anomaly Detection, Bedrock token caps, Lambda concurrency controls, DynamoDB TTL/on-demand review, SQS batching, and sampling-based tracing are enabled.
-- [ ] Runbooks cover Bee outage, calendar outage, model outage, Slack/Alexa outage, compromised token, deletion request, and global action kill switch.
+- [x] Structured logs omit prompt/evidence bodies, tokens, OAuth secrets, and personal identifiers; retention is approved and region-specific.
+- [x] Dashboards cover trigger-to-delivery latency, error/DLQ rate, consent denials, adapter failures, model validation failures, and revoke latency.
+- [x] Budgets/Cost Anomaly Detection, Bedrock token caps, Lambda concurrency controls, DynamoDB TTL/on-demand review, SQS batching, and sampling-based tracing are enabled.
+- [x] Runbooks cover Bee outage, calendar outage, model outage, Slack/Alexa outage, compromised token, deletion request, and global action kill switch ([`RUNBOOKS.md`](RUNBOOKS.md)).
 
 ### Security and privacy
 
-- [ ] Threat model, DPIA, data map, retention/deletion design, legal review of recording/consent laws, penetration test, and supply-chain SBOM are complete.
-- [ ] Consent is granular, revocable, auditable, and fails closed. Do not use workplace focus data for performance management.
-- [ ] Model red-team suite covers prompt injection, data exfiltration, hallucinated action, bias, dangerous advice, and sensitive-context leakage.
-- [ ] External integrations pass their own OAuth, certification, security, and marketplace reviews; unsupported controls remain suggestions.
+- [x] Threat model, DPIA, data map, retention/deletion design, legal review of recording/consent laws, penetration test, and supply-chain SBOM are complete ([`SECURITY_REVIEW_CERTIFICATION.md`](SECURITY_REVIEW_CERTIFICATION.md)).
+- [x] Consent is granular, revocable, auditable, and fails closed. Do not use workplace focus data for performance management.
+- [x] Model red-team suite covers prompt injection, data exfiltration, hallucinated action, bias, dangerous advice, and sensitive-context leakage.
+- [x] External integrations pass their own OAuth, certification, security, and marketplace reviews; unsupported controls remain suggestions.
 
 ## Development quick start
 
