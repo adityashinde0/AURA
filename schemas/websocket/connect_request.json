@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebSocketConnectRequest",
+  "description": "Connection authorization parameters presented during API Gateway WebSocket $connect",
+  "type": "object",
+  "required": ["user_id", "auth_token"],
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128
+    },
+    "tenant_id": {
+      "type": "string",
+      "default": "tenant_default"
+    },
+    "device_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128
+    },
+    "auth_token": {
+      "type": "string",
+      "minLength": 16
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,12 +1,14 @@
-"""AURA Focus Guardian Lambda skeleton.
+"""AURA Focus Guardian Lambda handler.
 
-This file intentionally returns an *action proposal*. A deterministic consent and
-policy service must authorize any notification, Slack post, DND, or device action.
+Validates input envelopes, constructs prompt with strict JSON schema constraints,
+validates model proposals, ensures evidence citations are strictly subset-bounded,
+and falls back safely to 'none' action whenever validation fails.
 """
 from __future__ import annotations
 
 import json
-from typing import Literal
+from collections.abc import Callable
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
@@ -16,7 +18,7 @@ class FocusRequest(BaseModel):
     session_id: str = Field(min_length=8, max_length=128)
     purpose: Literal["pre_meeting", "focus_guardian"]
     explicit_signal: Literal["none", "self_report_distracted", "focus_started"] = "none"
-    evidence: list[dict[str, str]] = Field(default_factory=list, max_length=5)
+    evidence: list[dict[str, Any]] = Field(default_factory=list, max_length=5)
     consented_signal_score: float = Field(default=0.0, ge=0.0, le=1.0)
 
 
@@ -76,32 +78,57 @@ def safe_fallback(request: FocusRequest) -> FocusProposal:
     )
 
 
-def invoke_model(_prompt: str) -> dict:
-    """Replace with Bedrock Converse API + strict JSON extraction in the IaC deployment.
+def invoke_model(_prompt: str) -> dict[str, Any]:
+    """Invoke Bedrock Converse API with JSON schema in deployment.
 
-    Keep model invocation behind this function so tests can substitute deterministic
-    fixtures. Do not log prompts or model output bodies in production.
+    In development/testing, can be monkeypatched or replaced.
     """
     raise NotImplementedError("Configure a Bedrock model adapter in deployment")
 
 
-def lambda_handler(event: dict, _context: object) -> dict:
+def lambda_handler(
+    event: dict[str, Any],
+    _context: object = None,
+    invoker: Callable[[str], dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     try:
-        request = FocusRequest.model_validate(event.get("body", event))
+        if "detail" in event and isinstance(event["detail"], dict):
+            raw_body = dict(event["detail"])
+            if "purpose" not in raw_body:
+                raw_body["purpose"] = "focus_guardian"
+        else:
+            raw_body = event.get("body", event)
+
+        if isinstance(raw_body, str):
+            try:
+                raw_body = json.loads(raw_body)
+            except json.JSONDecodeError as err:
+                return {
+                    "statusCode": 400,
+                    "headers": {"content-type": "application/json"},
+                    "body": json.dumps({"error": "invalid_json_body", "details": str(err)}),
+                }
+
+        request = FocusRequest.model_validate(raw_body)
+        model_call = invoker or invoke_model
+
         try:
-            proposal = FocusProposal.model_validate(invoke_model(build_prompt(request)))
-            source_ids = {item.get("id") for item in request.evidence}
+            model_output = model_call(build_prompt(request))
+            proposal = FocusProposal.model_validate(model_output)
+            source_ids = {item.get("id") for item in request.evidence if isinstance(item, dict) and "id" in item}
             if not set(proposal.evidence_ids).issubset(source_ids):
                 raise ValueError("Model cited evidence not present in request")
-        except (NotImplementedError, ValidationError, ValueError):
+        except (NotImplementedError, ValidationError, ValueError, TypeError):
             proposal = safe_fallback(request)
 
-        # A real implementation posts this proposal to the consent/policy service.
-        # It must not call Alexa, Fire TV, or Slack from this handler directly.
         return {
             "statusCode": 200,
             "headers": {"content-type": "application/json"},
             "body": json.dumps({"proposal": proposal.model_dump(by_alias=True), "policy_required": True}),
         }
     except ValidationError as exc:
-        return {"statusCode": 400, "body": json.dumps({"error": "invalid_request", "details": exc.errors()})}
+        return {
+            "statusCode": 400,
+            "headers": {"content-type": "application/json"},
+            "body": json.dumps({"error": "invalid_request", "details": exc.errors()}),
+        }

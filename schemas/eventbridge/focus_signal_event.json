@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuraFocusSignalEvent",
+  "description": "EventBridge event envelope emitted to aura-event-bus for focus signals",
+  "type": "object",
+  "required": ["source", "detail-type", "detail", "resources"],
+  "properties": {
+    "source": {
+      "type": "string",
+      "const": "aura.companion"
+    },
+    "detail-type": {
+      "type": "string",
+      "const": "FocusSignalDetected"
+    },
+    "resources": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "detail": {
+      "type": "object",
+      "required": ["event_id", "user_id", "session_id", "timestamp", "explicit_signal", "evidence"],
+      "properties": {
+        "event_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "session_id": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "explicit_signal": {
+          "type": "string",
+          "enum": ["none", "self_report_distracted", "focus_started"]
+        },
+        "consented_signal_score": { "type": "number" },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "snippet"],
+            "properties": {
+              "id": { "type": "string" },
+              "snippet": { "type": "string" }
+            }
+          }
+        },
+        "idempotency_key": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

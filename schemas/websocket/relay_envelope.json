@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebSocketRelayEnvelope",
+  "description": "Sanitized client envelope relayed over WebSocket to Cloud Intake. Prohibits raw audio, transcripts, or unredacted PII.",
+  "type": "object",
+  "required": ["action", "event_id", "event_type", "timestamp", "user_id"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "const": "relay"
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["transcription_snippet", "focus_signal", "noise_detected", "mark_moment", "meeting_prep_envelope"]
+    },
+    "timestamp": {
+      "type": "number"
+    },
+    "user_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "default": "bee_local"
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["id", "snippet"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "snippet": {
+            "type": "string",
+            "maxLength": 300
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "signal_payload": {
+      "type": "object",
+      "properties": {
+        "explicit_signal": {
+          "type": "string",
+          "enum": ["none", "self_report_distracted", "focus_started"]
+        },
+        "consented_signal_score": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "app": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

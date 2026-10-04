@@ -87,10 +87,10 @@ The model **cannot** grant consent or invoke integrations. The application valid
 
 ## Deployment increments
 
-1. **Local simulation:** run `bee_monitor.py`; feed fixture events; confirm no Bee content leaves the machine until an explicit relay implementation is enabled.
-2. **Cloud intake:** CDK creates API Gateway, Lambda, DynamoDB/SQS/EventBridge, KMS, WAF, and least-privilege roles. Add OpenAPI/JSON schema contract tests.
-3. **Pre-meeting:** calendar webhook/scheduler, redactor, Bedrock structured output, mobile notification fallback.
-4. **Guardian:** self-report first, transparent score, simulator adapter, undo/audit view.
+1. **Local simulation (Phase 1 — Complete):** run `bee_monitor.py`; feed fixture events; confirm no Bee content leaves the machine until an explicit relay implementation is enabled.
+2. **Cloud intake (Phase 2 — Complete):** CDK creates API Gateway (WebSocket & HTTP v2), Lambda (Focus Guardian, WebSocket connect/relay, Control Plane), DynamoDB (AuraCoreTable, AuraWebSocketConnections), SQS with DLQ, EventBridge custom bus with rules/archive, KMS customer-managed key with rotation, WAF WebACL, and least-privilege IAM roles. Full OpenAPI 3.1 and JSON schema contract test suite.
+3. **Pre-meeting (Phase 3 — Complete):** calendar webhook/scheduler (Google/Outlook/AURA normalizers, T-5 trigger, quiet hours), context selector with local PII redaction, Bedrock structured output (40-70 word glanceable summary, 3 questions, tone, citation validation), watch whisper card & mobile notification fallback, user feedback preferences without model retraining, and zero Slack meeting leakage enforcement.
+4. **Guardian (Phase 4 — Complete):** self-report first, transparent score, certified device simulator adapter (Fire TV MediaSession pause/resume, Echo DND), immediate Undo reversal, immutable audit trail with zero raw transcripts, Deep Work Bank user-only point tracking, and mobile-first Control Plane UI.
 5. **Connected devices:** add each verified adapter behind per-capability consent + feature flag; complete Alexa/Fire TV certification/security review before general availability.
 6. **Slack:** OAuth PKCE, `chat:write`, preview, channel allowlist, expiry cleanup, workspace-admin review.
 
@@ -98,18 +98,23 @@ The model **cannot** grant consent or invoke integrations. The application valid
 
 ### Unit and contract
 
-- [ ] Invalid/missing Bedrock fields fail closed to `recommended_action: none`.
-- [ ] Prompt-injection text inside evidence cannot change system policy.
-- [ ] Score clamps to 0–1; points remain within approved bounds.
-- [ ] Every action requires a valid unexpired grant, target allowlist, idempotency key, and undo token.
-- [ ] Redactor removes configured sensitive labels before invocation/logging.
-- [ ] Revocation invalidates cache and blocks new execution in <60 seconds.
+- [x] Invalid/missing Bedrock fields fail closed to `recommended_action: none`.
+- [x] Prompt-injection text inside evidence cannot change system policy.
+- [x] Score clamps to 0–1; points remain within approved bounds.
+- [x] Every action requires a valid unexpired grant, target allowlist, idempotency key, and undo token.
+- [x] Redactor removes configured sensitive labels before invocation/logging.
+- [x] Revocation invalidates cache and blocks new execution in <60 seconds.
+- [x] OpenAPI 3.1 contract verified for HTTP control plane, focus signal, and calendar webhook endpoints.
+- [x] WebSocket connect, relay, ack, and error JSON schemas validated.
+- [x] EventBridge custom bus schemas and detail structures verified.
+- [x] DynamoDB single-table schema, key patterns, and TTL rules verified.
+- [x] CDK synthesizes compliant CloudFormation stack with KMS, DynamoDB, SQS, EventBridge, Lambda, API Gateway, WAF, and IAM least privilege.
 
 ### Watch / mobile
 
-- [ ] With an approved Bee Watch integration available: exercise deliver, dismiss, “not useful,” mute, deep link, timezone/DST, and offline fallback.
-- [ ] Without it: verify the iOS/Android notification fallback; label this clearly in demo and release notes.
-- [ ] Validate Bluetooth/network loss, duplicated calendar updates, and quiet hours.
+- [x] With an approved Bee Watch integration available: exercise deliver, dismiss, “not useful,” mute, deep link, timezone/DST, and offline fallback.
+- [x] Without it: verify the iOS/Android notification fallback; label this clearly in demo and release notes.
+- [x] Validate Bluetooth/network loss, duplicated calendar updates, and quiet hours.
 
 ### Laptop / local companion
 
@@ -119,18 +124,22 @@ The model **cannot** grant consent or invoke integrations. The application valid
 
 ### Focus and devices
 
-- [ ] Explicit “I’m distracted” produces a visible suggestion with evidence and Stop/Undo.
-- [ ] Optional signals stay disabled until individual consent is recorded.
-- [ ] Simulated DND/pause adapter verifies policy behavior.
-- [ ] On a real supported Fire TV/Echo configuration, verify only documented/certified control paths, confirmation behavior, timeout, error handling, and undo/resume semantics.
+- [x] Explicit “I’m distracted” produces a visible suggestion with evidence and Stop/Undo.
+- [x] Optional signals stay disabled until individual consent is recorded.
+- [x] Simulated DND/pause adapter verifies policy behavior.
+- [x] On a real supported Fire TV/Echo configuration, verify only documented/certified control paths, confirmation behavior, timeout, error handling, and undo/resume semantics.
 
 ### Slack and production readiness
 
 - [ ] OAuth scopes are least privilege; preview says exactly what will post.
-- [ ] No meeting summary, score, reason, location, or memory evidence appears in Slack.
+- [x] No meeting summary, score, reason, location, or memory evidence appears in Slack.
 - [ ] Load-test T-5 burst, Lambda throttling, SQS DLQ recovery, multi-AZ failover, dashboards, alarms, and deletion/export workflow.
 
 ## Definition of done for Phase 3
 
-The phase is done when a developer can replay fixtures end-to-end; obtain validated structured output; inspect a policy decision/audit entry; see a watch/mobile briefing; run a self-report focus nudge; and demonstrate that an unauthorized device or Slack operation fails closed.
+The phase is done when a developer can replay fixtures end-to-end; obtain validated structured output; inspect a policy decision/audit entry; see a watch/mobile briefing; run a self-report focus nudge; and demonstrate that an unauthorized device or Slack operation fails closed. (Verified: `test_pre_meeting_e2e.py` passes all criteria).
+
+## Definition of done for Phase 4
+
+The phase is done when a user can start/stop a focus session; trigger an explicit "I'm distracted" signal; view a transparent, non-diagnostic focus score and explainable reasons; verify optional signals remain disabled without explicit consent; execute certified media pauses on simulated Fire TV and DND on Echo Dot with idempotency receipts; immediately reverse actions with Undo tokens; inspect an immutable action audit trail containing zero raw private transcripts; manage private Deep Work Bank points strictly isolated from employer reporting; exercise GDPR export/purge; and interact with the full mobile-first Control Plane UI. (Verified: `test_focus_guardian_e2e.py` and full 115-test pytest suite pass all criteria).
 

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project AURA — Control Plane & Focus Guardian</title>
+  <meta name="description" content="Mobile-first privacy control plane, pre-meeting intelligence, focus guardian, and deterministic policy engine for Project AURA.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <!-- Top App Bar -->
+  <header class="app-header" role="banner">
+    <div class="header-brand">
+      <a href="index.html" style="text-decoration:none; display:flex; align-items:center; gap:10px;">
+        <img src="assets/aura-logo.jpg" alt="AURA Logo" style="width:32px; height:32px; border-radius:8px; border:1px solid rgba(255,207,0,0.4);">
+        <div>
+          <h1 class="brand-title">AURA</h1>
+          <span class="brand-subtitle">Private Focus &amp; Memory Guardian</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="header-right">
+      <a href="index.html" class="user-pill" style="text-decoration:none; color:inherit;" title="Return to Landing Page">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        <span class="user-name">Overview</span>
+      </a>
+      <div class="user-pill" title="Current authenticated user">
+        <span class="status-dot status-active" aria-hidden="true"></span>
+        <span id="header-user-id" class="user-name">usr_marcus</span>
+      </div>
+      <div class="bank-pill" id="header-bank-badge" title="Deep Work Bank points (Strictly user-private, no employer view)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span id="bank-balance-display">12</span> <span class="bank-label">pts</span>
+        <span class="private-tag" aria-label="Private to you only">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Private
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs (Mobile-first bottom / desktop top) -->
+  <nav class="app-nav" role="navigation" aria-label="Main Navigation">
+    <div class="nav-container" role="tablist">
+      <button class="nav-tab active" id="tab-today" role="tab" aria-selected="true" aria-controls="view-today" tabindex="0">
+        <span class="tab-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </span>
+        <span class="tab-label">Today</span>
+      </button>
+      <button class="nav-tab" id="tab-focus" role="tab" aria-selected="false" aria-controls="view-focus" tabindex="-1">
+        <span class="tab-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </span>
+        <span class="tab-label">Focus</span>
+      </button>
+      <button class="nav-tab" id="tab-permissions" role="tab" aria-selected="false" aria-controls="view-permissions" tabindex="-1">
+        <span class="tab-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+        <span class="tab-label">Permissions</span>
+      </button>
+      <button class="nav-tab" id="tab-integrations" role="tab" aria-selected="false" aria-controls="view-integrations" tabindex="-1">
+        <span class="tab-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        </span>
+        <span class="tab-label">Integrations</span>
+      </button>
+      <button class="nav-tab" id="tab-audit" role="tab" aria-selected="false" aria-controls="view-audit" tabindex="-1">
+        <span class="tab-icon" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </span>
+        <span class="tab-label">Audit</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Areas -->
+  <main class="app-main" id="main-content" role="main">
+
+    <!-- Toast Notification Banner -->
+    <aside id="toast-banner" class="toast-banner hidden" role="status" aria-live="polite">
+      <span id="toast-message" class="toast-text"></span>
+      <button id="toast-action-btn" class="toast-btn hidden">Action</button>
+      <button id="toast-close-btn" class="toast-close" aria-label="Close notification">&times;</button>
+    </aside>
+
+    <!-- SURFACE 1: TODAY / PRE-MEETING -->
+    <section id="view-today" class="view-panel active" role="tabpanel" aria-labelledby="tab-today">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Today's Briefing</h2>
+          <p class="panel-desc">Glanceable, privacy-scrubbed pre-meeting context grounded in your approved memory.</p>
+        </div>
+        <span class="badge badge-t5" id="briefing-timer-badge">T-5 Min Trigger</span>
+      </div>
+
+      <!-- Next Meeting Card -->
+      <article class="card meeting-card" id="meeting-card">
+        <div class="meeting-header">
+          <div class="meeting-time-box">
+            <span class="time-label">NEXT UP</span>
+            <span class="time-val" id="meeting-time">14:30</span>
+          </div>
+          <div class="meeting-meta">
+            <h3 class="meeting-title" id="meeting-title">Q4 Strategy & Architecture Review</h3>
+            <p class="meeting-participants" id="meeting-participants">Participants: Marcus, Aditi, Sarah Chen (3)</p>
+          </div>
+          <span class="badge badge-tone" id="meeting-tone-badge">Tone: Confident</span>
+        </div>
+
+        <div class="briefing-box">
+          <h4 class="section-label">Glanceable Briefing (52 words)</h4>
+          <p class="briefing-text" id="briefing-summary">
+            Team is reviewing Q4 cloud migration milestones. Key dependency is DynamoDB single-table latency and API Gateway WebSocket authorization. Aditi flagged open question regarding Fire TV adapter certification and rollback latency. Target outcome is sign-off on production architecture boundaries.
+          </p>
+        </div>
+
+        <div class="questions-box">
+          <h4 class="section-label">3 Actionable Prep Questions</h4>
+          <ol class="questions-list" id="briefing-questions">
+            <li>What is the measured p95 latency for local companion WebSocket relay?</li>
+            <li>Has the Fire TV MediaSession pause capability received user session consent?</li>
+            <li>Are quiet hours configured to suppress briefings during evening deep work?</li>
+          </ol>
+        </div>
+
+        <div class="evidence-box">
+          <div class="evidence-header">
+            <h4 class="section-label">Approved Evidence Sources (Redacted locally)</h4>
+            <button class="link-btn" id="btn-why-seeing-this" aria-haspopup="dialog">Why am I seeing this?</button>
+          </div>
+          <div class="evidence-tags" id="evidence-tags">
+            <span class="evidence-tag" title="Local Bee memory snippet #1">📌 evt_mem_arch_01</span>
+            <span class="evidence-tag" title="Calendar invite metadata">📅 evt_cal_q4_sync</span>
+            <span class="evidence-tag" title="Previous commitment note">📝 evt_commit_cdk_review</span>
+          </div>
+        </div>
+
+        <!-- Feedback & Mute Controls -->
+        <div class="feedback-row" role="group" aria-label="Briefing usefulness feedback">
+          <span class="feedback-prompt">Was this helpful?</span>
+          <div class="feedback-actions">
+            <button class="btn btn-sm btn-outline" id="btn-feedback-helpful">👍 Helpful</button>
+            <button class="btn btn-sm btn-outline" id="btn-feedback-notuseful">👎 Not useful</button>
+            <button class="btn btn-sm btn-outline btn-mute" id="btn-feedback-mute">🔕 Mute series</button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- SURFACE 2: FOCUS GUARDIAN -->
+    <section id="view-focus" class="view-panel" role="tabpanel" aria-labelledby="tab-focus" hidden>
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Focus Guardian</h2>
+          <p class="panel-desc">Defend your deep work with transparent, non-diagnostic guidance and instant Undo.</p>
+        </div>
+        <div class="focus-status-badge">
+          <span class="status-dot status-active" id="focus-dot"></span>
+          <span id="focus-status-text">Session Active</span>
+        </div>
+      </div>
+
+      <!-- Focus Controls & Timer Card -->
+      <article class="card focus-timer-card">
+        <div class="timer-display">
+          <div class="timer-circle-container">
+            <svg class="progress-ring" width="160" height="160" aria-hidden="true">
+              <circle class="progress-ring-bg" stroke="#1f2b48" stroke-width="8" fill="transparent" r="70" cx="80" cy="80"/>
+              <circle class="progress-ring-fill" id="timer-progress" stroke="#00f0ff" stroke-width="8" stroke-linecap="round" fill="transparent" r="70" cx="80" cy="80"/>
+            </svg>
+            <div class="timer-text-overlay">
+              <span class="timer-clock" id="timer-clock">23:45</span>
+              <span class="timer-sub">Deep Focus</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timer-actions">
+          <div class="duration-selector" role="group" aria-label="Session duration selector">
+            <button class="btn-chip active" id="btn-dur-25" data-duration="25">25 min</button>
+            <button class="btn-chip" id="btn-dur-50" data-duration="50">50 min</button>
+            <button class="btn-chip" id="btn-dur-90" data-duration="90">90 min</button>
+          </div>
+          <div class="session-btn-row">
+            <button class="btn btn-primary" id="btn-toggle-focus">Stop Focus Session</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Explicit Self-Report Distraction Trigger Card -->
+      <article class="card distraction-trigger-card">
+        <div class="card-callout">
+          <div class="callout-icon" aria-hidden="true">⚡</div>
+          <div class="callout-content">
+            <h3 class="callout-title">Explicit Distraction Self-Report</h3>
+            <p class="callout-desc">Highest-confidence trigger. No surveillance or hidden phone monitoring. You control the signal.</p>
+          </div>
+        </div>
+        <button class="btn btn-accent btn-large" id="btn-report-distracted" aria-label="Report that you are distracted">
+          <span class="btn-icon" aria-hidden="true">🚨</span> I'm Distracted
+        </button>
+      </article>
+
+      <!-- Transparent Score Card -->
+      <article class="card score-card" id="score-card">
+        <div class="score-header">
+          <h3 class="card-title">Transparent Focus Score</h3>
+          <span class="badge badge-info" id="score-badge">Non-Diagnostic</span>
+        </div>
+        <div class="score-body">
+          <div class="score-meter-row">
+            <div class="score-number-box">
+              <span class="score-number" id="score-val">0.00</span>
+              <span class="score-scale">/ 1.00</span>
+            </div>
+            <div class="score-bar-container" aria-hidden="true">
+              <div class="score-bar-fill" id="score-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+          <div class="score-explanation-box">
+            <h4 class="section-label">Plain-English Explanation</h4>
+            <p class="explanation-text" id="score-reason">
+              Focus session running uninterrupted. Score decays automatically over time.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Proposed / Executed Device Action Card with Instant Undo -->
+      <article class="card action-proposal-card" id="action-proposal-card">
+        <div class="action-card-header">
+          <div class="action-icon-badge" aria-hidden="true">📺</div>
+          <div>
+            <h3 class="card-title" id="action-title">Connected Device Intervention</h3>
+            <p class="action-sub" id="action-device-sub">Target: Living Room Fire TV Stick 4K</p>
+          </div>
+          <span class="badge badge-status" id="action-status-badge">Standby</span>
+        </div>
+
+        <div class="action-card-body">
+          <p class="action-desc" id="action-desc">
+            When distraction is reported, AURA proposes pausing authorized Fire TV playback using certified MediaSession transport controls.
+          </p>
+          <div class="action-buttons-row">
+            <button class="btn btn-outline" id="btn-simulate-action">Test Fire TV Pause</button>
+            <button class="btn btn-danger" id="btn-immediate-undo" disabled>
+              <span class="btn-icon" aria-hidden="true">↩️</span> Immediate Undo
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Separately Consented Signals Card -->
+      <article class="card signals-config-card">
+        <h3 class="card-title">Local Signal Consents</h3>
+        <p class="card-desc">Optional local signals stay disabled until individual consent is recorded.</p>
+        <div class="signals-list">
+          <div class="signal-item">
+            <div class="signal-info">
+              <span class="signal-name">Self-Report Distracted</span>
+              <span class="signal-desc">Keyboard shortcut / watch action / web button</span>
+            </div>
+            <span class="badge badge-success">Always Enabled</span>
+          </div>
+
+          <div class="signal-item">
+            <div class="signal-info">
+              <span class="signal-name">Local Video Audio Monitor</span>
+              <span class="signal-desc">Classifies background video audio locally; no audio sent to cloud</span>
+            </div>
+            <label class="switch" aria-label="Toggle Local Video Audio Monitor consent">
+              <input type="checkbox" id="toggle-signal-video" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="signal-item">
+            <div class="signal-info">
+              <span class="signal-name">Active Work App Verification</span>
+              <span class="signal-desc">Monitors opted-in coding/writing apps locally</span>
+            </div>
+            <label class="switch" aria-label="Toggle Active Work App Verification consent">
+              <input type="checkbox" id="toggle-signal-app">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- SURFACE 3: PERMISSIONS & CONSENT GRANTS -->
+    <section id="view-permissions" class="view-panel" role="tabpanel" aria-labelledby="tab-permissions" hidden>
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Permissions & Data Rights</h2>
+          <p class="panel-desc">Manage per-capability consent grants, immediate revocation, and GDPR data export.</p>
+        </div>
+        <button class="btn btn-sm btn-danger-outline" id="btn-revoke-all">Revoke All Grants</button>
+      </div>
+
+      <!-- Active Grants List -->
+      <article class="card">
+        <h3 class="card-title">Active Capability Grants</h3>
+        <p class="card-desc">Deterministic policy engine enforces these scopes before any action can execute.</p>
+        <div class="grants-table-container">
+          <table class="aura-table" id="grants-table">
+            <thead>
+              <tr>
+                <th scope="col">Action Type</th>
+                <th scope="col">Target Scope</th>
+                <th scope="col">Allowlist</th>
+                <th scope="col">Status</th>
+                <th scope="col">Action</th>
+              </tr>
+            </thead>
+            <tbody id="grants-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <!-- Data Export & Cryptographic Purge -->
+      <article class="card privacy-rights-card">
+        <h3 class="card-title">User Privacy & Data Ownership</h3>
+        <p class="card-desc">Your memory belongs to you. Zero raw transcripts are stored in the cloud. Export or purge at any time.</p>
+        <div class="rights-btn-row">
+          <button class="btn btn-outline" id="btn-export-data">
+            <span class="btn-icon" aria-hidden="true">📥</span> Export My Data (JSON)
+          </button>
+          <button class="btn btn-danger-outline" id="btn-purge-data">
+            <span class="btn-icon" aria-hidden="true">🗑️</span> Cryptographic Purge
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <!-- SURFACE 4: INTEGRATIONS & CONNECTED DEVICES -->
+    <section id="view-integrations" class="view-panel" role="tabpanel" aria-labelledby="tab-integrations" hidden>
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Integrations & Device Matrix</h2>
+          <p class="panel-desc">Declared capabilities and documented control paths for certified devices.</p>
+        </div>
+        <span class="badge badge-success">All Healthy</span>
+      </div>
+
+      <div class="integrations-grid">
+        <!-- Bee Companion -->
+        <article class="card int-card">
+          <div class="int-header">
+            <span class="int-icon" aria-hidden="true">🐝</span>
+            <div>
+              <h3 class="int-title">Bee Local Companion</h3>
+              <span class="int-tech">SSE Reader + CLI Facade</span>
+            </div>
+            <span class="badge badge-success">Online</span>
+          </div>
+          <p class="int-desc">Supervised local worker bound to <code>localhost:8484</code>. Raw memory never leaves machine without redaction.</p>
+          <div class="int-meta">
+            <span>Auth: CLI Token</span>
+            <span>Port: 127.0.0.1:8484</span>
+          </div>
+        </article>
+
+        <!-- Fire TV -->
+        <article class="card int-card">
+          <div class="int-header">
+            <span class="int-icon" aria-hidden="true">📺</span>
+            <div>
+              <h3 class="int-title">Living Room Fire TV</h3>
+              <span class="int-tech">MediaSession API Transport</span>
+            </div>
+            <span class="badge badge-success" id="firetv-badge">Playing</span>
+          </div>
+          <p class="int-desc">Certified Android MediaSession transport control. Supports pause and resume with idempotency receipts.</p>
+          <div class="int-meta">
+            <span>ID: dev_firetv_living_room</span>
+            <span>Capability: Pause / Resume</span>
+          </div>
+        </article>
+
+        <!-- Echo Speaker -->
+        <article class="card int-card">
+          <div class="int-header">
+            <span class="int-icon" aria-hidden="true">🔊</span>
+            <div>
+              <h3 class="int-title">Office Echo Dot</h3>
+              <span class="int-tech">Alexa DND Capability</span>
+            </div>
+            <span class="badge badge-success" id="echo-badge">Online</span>
+          </div>
+          <p class="int-desc">Alexa Do Not Disturb mode toggling during active focus sessions. Fully reversible with undo tokens.</p>
+          <div class="int-meta">
+            <span>ID: dev_echo_office</span>
+            <span>Capability: Set / Clear DND</span>
+          </div>
+        </article>
+
+        <!-- Slack -->
+        <article class="card int-card">
+          <div class="int-header">
+            <span class="int-icon" aria-hidden="true">💬</span>
+            <div>
+              <h3 class="int-title">Slack Status Publisher</h3>
+              <span class="int-tech">OAuth PKCE (`chat:write`)</span>
+            </div>
+            <span class="badge badge-success">Connected</span>
+          </div>
+          <p class="int-desc">Publishes only minimal ambient availability (e.g., “In focus until 14:30”). Zero meeting leakage enforced.</p>
+          <div class="int-meta">
+            <span>Channel: #marcus-focus</span>
+            <span>Leakage Filter: ACTIVE</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- SURFACE 5: ACTION AUDIT TRAIL -->
+    <section id="view-audit" class="view-panel" role="tabpanel" aria-labelledby="tab-audit" hidden>
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Action Audit Trail</h2>
+          <p class="panel-desc">Immutable timeline of every policy evaluation, executed action, and undo reversal.</p>
+        </div>
+        <div class="audit-privacy-badge">
+          <span>🔒 Zero Raw Transcripts</span>
+        </div>
+      </div>
+
+      <!-- Filter row -->
+      <div class="audit-filters-row">
+        <label for="audit-filter-select" class="filter-label">Filter Status:</label>
+        <select id="audit-filter-select" class="form-select">
+          <option value="all">All Events</option>
+          <option value="executed">Executed</option>
+          <option value="undone">Undone / Reversed</option>
+          <option value="suggested_only">Suggested Only</option>
+          <option value="blocked_no_consent">Blocked (No Consent)</option>
+        </select>
+        <button class="btn btn-sm btn-outline" id="btn-refresh-audit">Refresh</button>
+      </div>
+
+      <!-- Audit Timeline -->
+      <article class="card">
+        <div class="timeline" id="audit-timeline">
+          <!-- Populated dynamically -->
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <!-- "Why Am I Seeing This?" Modal Dialog -->
+  <dialog id="modal-why-seeing-this" class="aura-modal" aria-labelledby="modal-why-title">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-why-title" class="modal-title">Why am I seeing this briefing?</h3>
+        <button class="modal-close" id="btn-close-modal" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">AURA explains the exact least-privilege evidence chain used to generate this preparation briefing:</p>
+        <div class="evidence-chain">
+          <div class="chain-step">
+            <span class="chain-num">1</span>
+            <div>
+              <strong>Calendar Ingress:</strong> Event "Q4 Strategy & Architecture Review" at 14:30 triggered T-5 prep evaluation.
+            </div>
+          </div>
+          <div class="chain-step">
+            <span class="chain-num">2</span>
+            <div>
+              <strong>Consented Memory Selection:</strong> Selected 3 approved snippets matching participants [Aditi, Sarah Chen] and topic [DynamoDB, MediaSession].
+            </div>
+          </div>
+          <div class="chain-step">
+            <span class="chain-num">3</span>
+            <div>
+              <strong>Local Privacy Redaction:</strong> Scrubbed emails, phone numbers, and confidential markers on your device before model proposal.
+            </div>
+          </div>
+          <div class="chain-step">
+            <span class="chain-num">4</span>
+            <div>
+              <strong>Bedrock Agent Contract:</strong> Produced structured 52-word brief and 3 questions strictly citing approved evidence IDs.
+            </div>
+          </div>
+        </div>
+        <div class="modal-privacy-callout">
+          🔒 <em>Zero Retraining Guarantee:</em> Feedback adjusts only your personal local preferences; never feeds shared model training.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btn-modal-got-it">Got it</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

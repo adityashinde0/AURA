@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuraWatchWhisperCard",
+  "description": "Glanceable preparation card delivered to Bee Watch or Apple Watch companion",
+  "type": "object",
+  "required": [
+    "card_id",
+    "calendar_event_id",
+    "user_id",
+    "meeting_title",
+    "start_epoch",
+    "prep_summary",
+    "questions",
+    "emotion_tone",
+    "evidence_sources",
+    "actions",
+    "created_at",
+    "delivered_to"
+  ],
+  "properties": {
+    "card_id": { "type": "string" },
+    "calendar_event_id": { "type": "string" },
+    "user_id": { "type": "string" },
+    "meeting_title": { "type": "string" },
+    "start_epoch": { "type": "integer" },
+    "prep_summary": { "type": "string", "maxLength": 500 },
+    "questions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "emotion_tone": {
+      "type": "string",
+      "enum": ["calm", "confident", "supportive", "neutral", "cautious"]
+    },
+    "evidence_sources": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["Read", "Save", "Not useful", "Mute this event series"]
+      }
+    },
+    "created_at": { "type": "number" },
+    "delivered_to": {
+      "type": "string",
+      "enum": ["bee_watch", "mobile_fallback"]
+    },
+    "is_quiet_hours": {
+      "type": "boolean",
+      "default": false
+    },
+    "haptic_enabled": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebSocketRelayAcknowledgement",
+  "description": "Server acknowledgement returned to local companion upon successful intake into EventBridge/queue. Signals that the local outbox can safely purge payload bodies.",
+  "type": "object",
+  "required": ["ack_id", "event_id", "status", "timestamp"],
+  "properties": {
+    "ack_id": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["accepted", "quarantined", "rejected"]
+    },
+    "bus_message_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "number"
+    }
+  },
+  "additionalProperties": false
+}

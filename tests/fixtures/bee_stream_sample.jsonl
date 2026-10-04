@@ -1,0 +1,5 @@
+{"event": "status", "timestamp": "2026-10-04T12:00:00Z", "device": "bee_pioneer_01", "battery": 92}
+{"event": "transcription", "timestamp": "2026-10-04T12:01:15Z", "id": "evt_001", "text": "Aditi: We need to prepare for tomorrow's placement mentoring session on AWS system design.", "speaker": "Aditi"}
+{"event": "transcription", "timestamp": "2026-10-04T12:01:45Z", "id": "evt_002", "text": "Aditi: My email is aditi@university.edu and contact is +1-555-0199.", "speaker": "Aditi"}
+{"event": "noise_detected", "timestamp": "2026-10-04T12:10:00Z", "id": "evt_003", "type": "allowed_video_noise", "app": "YouTube"}
+{"event": "mark_moment", "timestamp": "2026-10-04T12:15:30Z", "id": "evt_004", "source": "aura_watch_tap", "label": "Key Insight"}

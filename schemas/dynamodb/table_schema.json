@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuraDynamoDBSingleTableSchema",
+  "description": "Single-table design entity mapping and key patterns for AuraCoreTable",
+  "entities": {
+    "ConsentGrant": {
+      "PK": "TENANT#{tenant_id}#USER#{user_id}",
+      "SK": "GRANT#{action_type}",
+      "attributes": {
+        "grant_id": "string",
+        "action_type": "nudge|request_dnd|request_pause|slack_status",
+        "scope": "ask_every_time|allow_session|allow_always|never",
+        "target_allowlist": "list[string]",
+        "active": "boolean",
+        "created_at": "number",
+        "expires_at": "number",
+        "ttl": "number"
+      }
+    },
+    "MeetingContext": {
+      "PK": "USER#{user_id}",
+      "SK": "EVENT#{calendar_event_id}#V#{version}",
+      "attributes": {
+        "user_id": "string",
+        "calendar_event_id": "string",
+        "version": "string",
+        "evidence_ids": "list[string]",
+        "prep_summary": "string",
+        "created_at": "number",
+        "ttl": "number (24 hours default)"
+      }
+    },
+    "GraphEdge": {
+      "PK": "USER#{user_id}#ENTITY#{source_id}",
+      "SK": "EDGE#{relationship}#{target_id}",
+      "GSI1PK": "USER#{user_id}#TARGET#{target_id}",
+      "GSI1SK": "EDGE#{relationship}#{source_id}",
+      "attributes": {
+        "relationship": "discussed_with|blocked_by|follows_up",
+        "summary": "string",
+        "created_at": "number"
+      }
+    },
+    "FocusSession": {
+      "PK": "USER#{user_id}",
+      "SK": "SESSION#{session_id}",
+      "attributes": {
+        "session_id": "string",
+        "status": "active|completed|cancelled",
+        "started_at": "number",
+        "expires_at": "number",
+        "ttl": "number (30 days default)"
+      }
+    },
+    "ActionAudit": {
+      "PK": "TENANT#{tenant_id}#USER#{user_id}",
+      "SK": "AUDIT#{timestamp}#{action_id}",
+      "GSI1PK": "USER#{user_id}#ACTION_TYPE#{action_type}",
+      "GSI1SK": "AUDIT#{timestamp}",
+      "attributes": {
+        "action_id": "string",
+        "action_type": "string",
+        "target_device": "string",
+        "status": "executed|blocked|suggested|undone",
+        "reason": "string",
+        "undo_token": "string",
+        "timestamp": "number",
+        "ttl": "number (90 days default)"
+      }
+    },
+    "SlackStatus": {
+      "PK": "WORKSPACE#{workspace_id}#USER#{user_id}",
+      "SK": "STATUS#{timestamp}",
+      "attributes": {
+        "status_text": "string (ambient only, no meeting text)",
+        "status_emoji": "string",
+        "expires_at": "number",
+        "ttl": "number"
+      }
+    }
+  }
+}

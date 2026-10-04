@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuraUserPreferences",
+  "description": "Per-user preference profile for pre-meeting intelligence and quiet hours",
+  "type": "object",
+  "required": [
+    "user_id",
+    "pre_meeting_enabled",
+    "quiet_hours",
+    "muted_series",
+    "updated_at"
+  ],
+  "properties": {
+    "user_id": { "type": "string" },
+    "pre_meeting_enabled": { "type": "boolean", "default": true },
+    "quiet_hours": {
+      "type": "object",
+      "required": ["enabled", "start_time", "end_time", "timezone"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "start_time": { "type": "string", "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$" },
+        "end_time": { "type": "string", "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$" },
+        "timezone": { "type": "string", "default": "UTC" }
+      },
+      "additionalProperties": false
+    },
+    "muted_series": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "preferred_tone": {
+      "type": ["string", "null"],
+      "enum": ["calm", "confident", "supportive", "neutral", "cautious", null]
+    },
+    "feedback_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action", "timestamp"],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["not_useful", "mute_series", "save", "read"]
+          },
+          "calendar_event_id": { "type": "string" },
+          "series_id": { "type": "string" },
+          "timestamp": { "type": "number" }
+        }
+      },
+      "default": []
+    },
+    "updated_at": { "type": "number" }
+  },
+  "additionalProperties": false
+}

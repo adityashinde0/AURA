@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project AURA — Proactive Memory That Fights For Your Focus</title>
+  <meta name="description" content="Aura remembers what you're about to forget, and stops the world from distracting you. Privacy-first proactive memory layer built on AWS Bedrock and Bee CLI.">
+  <link rel="icon" type="image/jpeg" href="assets/aura-logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="landing.css">
+</head>
+<body>
+
+  <!-- Sticky Top Header -->
+  <header class="site-header" role="banner">
+    <div class="nav-wrapper">
+      <a href="index.html" class="brand-link" aria-label="AURA Home">
+        <img src="assets/aura-logo.jpg" alt="AURA Logo Mark" class="brand-logo-img">
+        <span>aura</span>
+      </a>
+
+      <div class="header-links">
+        <a href="#architecture" class="nav-link">Architecture</a>
+        <a href="#hardware" class="nav-link">Hardware Spec</a>
+        <a href="control-plane.html" class="btn-pill-outline" title="Open the Live Control Plane Dashboard">
+          <svg class="inline-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Control Plane</span>
+        </a>
+        <a href="control-plane.html" class="btn-pill-yellow">Launch Demo</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container">
+    <!-- Hero Section -->
+    <section class="hero-section" aria-label="Introducing Aura">
+      <div class="hero-card">
+        <img src="assets/aura-hero.jpg" alt="Developer wearing Aura wearable smart band while focusing deeply at desk" class="hero-bg-img" loading="eager">
+        <div class="hero-overlay">
+          <div class="hero-kicker">Introducing Aura</div>
+          <h1 class="hero-headline">The proactive AI that fights for your focus</h1>
+          <div class="hero-actions">
+            <div class="hero-badge-tag">
+              <span class="pulse-dot" aria-hidden="true"></span>
+              <span><strong>BEFORE, not AFTER:</strong> T-5 Pre-briefing &amp; Ambient Defense</span>
+            </div>
+            <a href="control-plane.html" class="hero-cta-btn">
+              <span>Launch Control Plane</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="7" y1="17" x2="17" y2="7"></line>
+                <polyline points="7 7 17 7 17 17"></polyline>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-floating-badge" aria-hidden="true">
+          <img src="assets/aura-logo.jpg" alt="" style="width:24px; height:24px; border-radius:6px;">
+          <div class="floating-logo-icon">aura</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Section 1: Yellow Value Statement + "A NEW WAY" -->
+    <section class="bento-grid-2col" aria-label="Aura Philosophy">
+      <!-- Yellow Bento Card -->
+      <div class="card-yellow">
+        <div class="yellow-tab-list" role="tablist">
+          <div class="yellow-tab-item active" role="tab" tabindex="0">
+            <span>Aura turns moments into focus</span>
+            <span>→</span>
+          </div>
+          <div class="yellow-tab-item" role="tab" tabindex="0">
+            <span>Aura prepares you before the moment</span>
+            <span>→</span>
+          </div>
+          <div class="yellow-tab-item" role="tab" tabindex="0">
+            <span>Aura is ready when you need it</span>
+            <span>→</span>
+          </div>
+        </div>
+
+        <div class="yellow-focus-content">
+          <h2 class="yellow-focus-title" id="yellow-focus-title">Aura is ready when you need it</h2>
+          <p class="yellow-focus-desc" id="yellow-focus-desc">
+            Need to remember an architectural decision? Have a question about your distraction trends? Want to defend an uninterrupted 45-minute sprint? Talk to Aura through the companion wearable, web control plane, or Apple Watch.
+          </p>
+        </div>
+      </div>
+
+      <!-- "A NEW WAY" Dark Aesthetic Card -->
+      <div class="card-dark-aesthetic">
+        <div class="giant-watermark-text" aria-hidden="true">
+          A<br>New<br>Way
+        </div>
+        <div class="dark-card-image-wrapper">
+          <img src="assets/aura-macro.jpg" alt="Aura sleek wearable smart band and dark mobile focus application">
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Section 2: Four Feature Cards -->
+    <section class="bento-grid-features" aria-label="Aura Features Showcase">
+      <!-- Card 1: Summaries and takeaways (Lilac) -->
+      <div class="feature-card card-lilac">
+        <div class="feature-card-header">
+          <h3 class="feature-card-title">Pre-Meeting Intelligence (T-5)</h3>
+        </div>
+        <div class="phone-mockup-container">
+          <div class="phone-notch-bar">
+            <span>9:41</span>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><circle cx="12" cy="20" r="1"/></svg>
+              <svg width="14" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="23" y1="11" x2="23" y2="13" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+          </div>
+          <div class="phone-header-actions">
+            <span class="phone-back-arrow">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </span>
+            <div class="phone-action-icons">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </div>
+          </div>
+          <h4 class="mockup-meeting-title">AWS Platform Architecture Sync</h4>
+          <div class="mockup-meeting-meta">10:00 AM · Today · 45m · With Marcus Vance</div>
+          <div class="pill-group">
+            <span class="mock-pill dark">T-5 Briefing</span>
+            <span class="mock-pill light">KMS Encrypted</span>
+            <span class="mock-pill light">Local SSE</span>
+          </div>
+          <div class="yellow-brief-card">
+            <p><strong>Goal:</strong> Finalize Bedrock Claude 3.5 token caps and DynamoDB single-table TTL.</p>
+            <p><strong>3 Crucial Questions:</strong><br>
+            1. Are we enforcing client-side minimization before WebSocket dispatch?<br>
+            2. How does the Alexa capability adapter handle unsupported Echo models?<br>
+            3. Can users trigger instant Undo on automated Slack status updates?</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Patterns and insights (Cream) -->
+      <div class="feature-card card-cream">
+        <div class="feature-card-header">
+          <h3 class="feature-card-title">Focus Guardian &amp; Ambient Defense</h3>
+        </div>
+        <div class="phone-mockup-container">
+          <div class="phone-notch-bar">
+            <span>9:41</span>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><circle cx="12" cy="20" r="1"/></svg>
+              <svg width="14" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="23" y1="11" x2="23" y2="13" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+          </div>
+          <div class="insights-floating-widget">
+            <div class="insight-yellow-pill">
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                <svg class="inline-svg" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <strong>Distraction Intercepted</strong>
+              </div>
+              During your 25-minute deep work block, ambient audio was detected. Fire TV media playback was paused and Slack was set to "In focus until 11:30 AM" via verified capability adapter.
+            </div>
+            <div class="insight-action-button">
+              <svg class="inline-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Deep Work Bank: +12 points (Private to you)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Suggested to-dos (Sand) -->
+      <div class="feature-card card-sand">
+        <div class="feature-card-header">
+          <h3 class="feature-card-title">Consented Actions &amp; To-Dos</h3>
+        </div>
+        <div class="todo-list-container">
+          <!-- Item 1 -->
+          <div class="todo-item-card">
+            <div class="todo-main-row">
+              <div class="todo-checkbox checked">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span class="todo-label completed">Reviewed T-5 pre-brief for executive mentoring call</span>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="todo-item-card">
+            <div class="todo-main-row">
+              <div class="todo-checkbox">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span class="todo-label">Auto-sync Slack status: "In deep work until 14:30"</span>
+            </div>
+            <div class="todo-actions-row">
+              <button class="action-pill-btn" type="button">
+                <svg class="inline-svg" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span>Preview status</span>
+              </button>
+              <button class="action-pill-btn" type="button">
+                <svg class="inline-svg" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>
+                <span>Reversible undo</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="todo-item-card">
+            <div class="todo-main-row">
+              <div class="todo-checkbox">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span class="todo-label">Verify Alexa / Fire TV pause capability adapter grant</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Daily memories (Dark) -->
+      <div class="feature-card card-dark">
+        <div class="feature-card-header">
+          <h3 class="feature-card-title">Flow Timelines &amp; Focus Memory</h3>
+        </div>
+        <div class="phone-mockup-container">
+          <div class="phone-notch-bar">
+            <span>9:41</span>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><circle cx="12" cy="20" r="1"/></svg>
+              <svg width="14" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="23" y1="11" x2="23" y2="13" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+          </div>
+          <div class="map-timeline-preview">
+            <div class="map-pin-pulse">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+          </div>
+          <div class="timeline-event-card">
+            <div class="timeline-date-label">Today · Sprint #14</div>
+            <h4 class="timeline-event-title">Guarded 3 consecutive focus blocks with zero context-switching bleed</h4>
+            <div class="timeline-event-summary">
+              Defended 90 minutes of flow state. Intercepted 2 noise interruptions; immutable audit log recorded consent grant and verified capability outcome.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Section 3: Conversational Intelligence (Lilac Wide Card) -->
+    <section class="card-wide-lilac" aria-label="Search and Chat">
+      <div class="wide-card-header">
+        <h2 class="wide-card-title">Contextual Memory &amp; Focus Inquiries</h2>
+      </div>
+
+      <div class="chat-center-stage">
+        <!-- Floating Left Bubbles -->
+        <div class="chat-floating-bubble-col">
+          <div class="bubble-dark-user">
+            "What did we decide about DynamoDB TTL?"
+          </div>
+          <div class="chat-bubble-card">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+              <svg class="inline-svg" style="stroke:#6366F1;" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span class="bubble-label-tag" style="margin-bottom:0;">Verified Context Found</span>
+            </div>
+            <p><strong>Security Policy:</strong></p>
+            <p style="font-size:0.75rem; color:#555; margin-bottom:8px;">All ephemeral session records expire after 30 days via DynamoDB TTL. KMS keys partition tenant data.</p>
+            <p><strong>Idempotency:</strong></p>
+            <p style="font-size:0.75rem; color:#555;">EventBridge scheduler keys ensure no duplicate briefing triggers.</p>
+          </div>
+        </div>
+
+        <!-- Center Phone Viewport -->
+        <div class="chat-phone-viewport">
+          <div class="phone-notch-bar">
+            <span>9:41</span>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><circle cx="12" cy="20" r="1"/></svg>
+              <svg width="14" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="23" y1="11" x2="23" y2="13" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+          </div>
+          <div class="phone-ai-center">
+            <div class="phone-ai-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <h3 class="phone-ai-prompt">How can Aura help?</h3>
+            <p class="phone-ai-subprompt">Tap a quick query or hold the hardware action button</p>
+          </div>
+
+          <div class="phone-quick-suggestions">
+            <button class="suggestion-pill" type="button">What were yesterday's architecture decisions?</button>
+            <button class="suggestion-pill" type="button">Prepare me for the 10:00 AM platform review</button>
+            <button class="suggestion-pill" type="button">Check my Deep Work Bank &amp; focus stats</button>
+          </div>
+
+          <div class="phone-input-bar">
+            <span>Ask Aura anything...</span>
+            <svg class="inline-svg" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </div>
+        </div>
+
+        <!-- Floating Right Bubbles -->
+        <div class="chat-floating-bubble-col">
+          <div class="bubble-dark-user">
+            "What can I do to protect tomorrow's flow?"
+          </div>
+          <div class="chat-bubble-card">
+            <p><strong>Recommended Focus Plan</strong></p>
+            <p style="font-size:0.75rem; color:#555; margin-bottom:8px;" id="chat-ai-response-text">
+              • Schedule a 90-min deep work block before 11 AM<br>
+              • Enable Slack auto-expiry status for morning sprints<br>
+              • Authorize Fire TV pause adapter to silence living room TV
+            </p>
+            <p><strong>Policy Safeguard:</strong></p>
+            <p style="font-size:0.75rem; color:#6366F1;">Focus data is strictly personal. No employer or manager view exists.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Section 4: Trio (Templates, Integrations, Voice Notes) -->
+    <section class="bento-grid-trio" aria-label="Templates and Integrations">
+      <!-- Left Card: Conversation templates (Dark) -->
+      <div class="feature-card card-dark trio-left-col">
+        <div class="feature-card-header">
+          <h3 class="feature-card-title">Focus &amp; Briefing Profiles</h3>
+        </div>
+        <div class="template-list-mockup">
+          <div class="template-category-card">
+            <div class="template-cat-title">
+              <svg class="inline-svg" style="stroke:var(--brand-yellow);" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span>Deep Work Sprints</span>
+            </div>
+            <div class="template-pills-row">
+              <span class="template-pill">Code Sprint (45m)</span>
+              <span class="template-pill">Architecture Review</span>
+            </div>
+          </div>
+
+          <div class="template-category-card">
+            <div class="template-cat-title">
+              <svg class="inline-svg" style="stroke:var(--brand-yellow);" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Pre-Meeting Briefs</span>
+            </div>
+            <div class="template-pills-row">
+              <span class="template-pill">1:1 Mentoring (T-5)</span>
+              <span class="template-pill">Executive Sync</span>
+            </div>
+          </div>
+
+          <div class="template-category-card">
+            <div class="template-cat-title">
+              <svg class="inline-svg" style="stroke:var(--brand-yellow);" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <span>External Calls</span>
+            </div>
+            <div class="template-pills-row">
+              <span class="template-pill">Client Discovery</span>
+              <span class="template-pill">Incident Triage</span>
+            </div>
+          </div>
+
+          <div class="template-category-card">
+            <div class="template-cat-title">
+              <svg class="inline-svg" style="stroke:var(--brand-yellow);" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Privacy Presets</span>
+            </div>
+            <div class="template-pills-row">
+              <span class="template-pill">Strict Local Only</span>
+              <span class="template-pill">Selective Summary</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Integrations & Voice Notes -->
+      <div class="trio-right-col">
+        <!-- Top: Integrations and actions (Sand) -->
+        <div class="feature-card card-sand">
+          <div class="feature-card-header">
+            <h3 class="feature-card-title">Consented Capability Adapters</h3>
+          </div>
+          <div class="integration-mockup-wrapper">
+            <div class="integration-speech-bubble">
+              "Defend my focus: pause Alexa media playback and set Slack status"
+            </div>
+            <div class="integration-action-card">
+              <div class="integration-meta-header">
+                <span class="integration-badge" style="color:#0E100A; display:flex; align-items:center; gap:6px;">
+                  <svg class="inline-svg" style="stroke:#10B981;" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <span>Capability Gate Verified</span>
+                </span>
+                <span>Scope: Focus Session Only</span>
+              </div>
+              <p class="integration-draft-body">
+                <strong>Slack status:</strong> "In focus until 11:30 AM" (Expires automatically)<br>
+                <strong>Echo / Fire TV:</strong> Media session paused. Reversible capability verified.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom: Voice notes (Lilac) -->
+        <div class="feature-card card-lilac">
+          <div class="feature-card-header">
+            <h3 class="feature-card-title">Voice Notes &amp; Whisper Capture</h3>
+          </div>
+          <div class="voice-notes-mockup">
+            <div class="phone-notch-bar" style="padding:0 0 10px 0;">
+              <span>Local Whisper stream</span>
+              <svg class="inline-svg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div class="voice-note-entry">
+              <div class="voice-note-time">Today · 10:42 AM</div>
+              <p class="voice-note-text">"Bee remembers what you forgot. Aura remembers what you're about to forget, and stops the world from distracting you."</p>
+            </div>
+            <div style="font-size:0.75rem; color:#6B6E63; display:flex; justify-content:space-between; align-items:center;">
+              <span style="display:flex; align-items:center; gap:6px;">
+                <svg class="inline-svg" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Zero raw-audio cloud persistence</span>
+              </span>
+              <span>···</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hardware Showcase: "Aura Pioneer Companion Specification" -->
+    <section class="pioneer-section" id="hardware" aria-label="Hardware Showcase">
+      <div class="pioneer-card">
+        <div class="pioneer-badge-dev">Hardware Reference Specification</div>
+        <h2 class="pioneer-title">Aura Wearable Companion</h2>
+        <p class="pioneer-shipping-note">
+          Open companion reference hardware designed for real-time ambient awareness, instant focus tactile control, and local privacy filtering.
+        </p>
+
+        <div class="pioneer-cta-group">
+          <a href="control-plane.html" class="hero-cta-btn">
+            <span>Launch Live Control Plane</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"></line>
+              <polyline points="7 7 17 7 17 17"></polyline>
+            </svg>
+          </a>
+          <a href="#architecture" class="btn-dark-pioneer">
+            <span>Explore Technical Architecture</span>
+          </a>
+        </div>
+
+        <!-- Hardware Product Display Photo -->
+        <div class="pioneer-hardware-display">
+          <img src="assets/aura-pioneer.jpg" alt="Aura Pioneer smart wearable hardware reference band in matte black" loading="lazy">
+        </div>
+
+        <!-- Specs Box (4 Specs Grid) -->
+        <div class="pioneer-specs-box">
+          <div class="specs-grid">
+            <div class="spec-item">
+              <div class="spec-icon-wrapper">
+                <svg class="spec-icon-svg" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              </div>
+              <div>
+                <h4 class="spec-item-title">Dual Beamforming Microphones</h4>
+                <p class="spec-item-desc">Hardware-level noise suppression and real-time acoustic feature detection without streaming raw audio to the cloud.</p>
+              </div>
+            </div>
+
+            <div class="spec-item">
+              <div class="spec-icon-wrapper">
+                <svg class="spec-icon-svg" viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="11" x2="23" y2="13"/><polyline points="11 8 7 12 13 12 9 16"/></svg>
+              </div>
+              <div>
+                <h4 class="spec-item-title">160-Hour Power Architecture</h4>
+                <p class="spec-item-desc">Ultra-low-power Nordic nRF / BLE SoC design delivering up to 7 days of continuous ambient focus tracking.</p>
+              </div>
+            </div>
+
+            <div class="spec-item">
+              <div class="spec-icon-wrapper">
+                <svg class="spec-icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
+              </div>
+              <div>
+                <h4 class="spec-item-title">Tactile Haptic Button &amp; LED</h4>
+                <p class="spec-item-desc">Single press toggles deep work defense. Hardware LED signals focus mode (Amber: Active focus, Off: Private).</p>
+              </div>
+            </div>
+
+            <div class="spec-item">
+              <div class="spec-icon-wrapper">
+                <svg class="spec-icon-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div>
+                <h4 class="spec-item-title">Zero Raw-Audio Persistence</h4>
+                <p class="spec-item-desc">Local Whisper adapter extracts features and immediately discards the audio buffer. Privacy-first, purpose-bound context.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="specs-footer-btn-row">
+            <a href="control-plane.html" class="btn-dark-pioneer">Open Interactive Simulator</a>
+            <a href="https://github.com/adityashinde0/Project-AURA-Proactive-Memory-That-Fights-For-Your-Focus" target="_blank" rel="noopener" class="btn-pill-outline" style="color:#000; border-color: rgba(0,0,0,0.2);">View on GitHub</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture & Verified Engineering Stack Section -->
+    <section class="tech-stack-section" id="architecture" aria-label="Technical Architecture">
+      <div class="tech-stack-container">
+        <div class="tech-stack-header">
+          <span class="tech-stack-badge">Verified Engineering Stack</span>
+          <h2 class="tech-stack-title">Engineered on AWS &amp; Open Standards</h2>
+          <p class="tech-stack-subtitle">
+            AURA is built as an event-driven, privacy-minimized orchestration system. Every component enforces least privilege, tenant partitioning, and reversible capability paths.
+          </p>
+        </div>
+
+        <div class="tech-grid">
+          <!-- Card 1: Bedrock Claude 3.5 -->
+          <div class="tech-card">
+            <div class="tech-card-top">
+              <svg class="tech-icon-svg" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></svg>
+              <span class="tech-card-layer">AI Reasoning</span>
+            </div>
+            <h3 class="tech-card-name">AWS Bedrock &amp; Claude 3.5</h3>
+            <p class="tech-card-detail">
+              Generates concise T-5 briefings and structured distraction detections via Strands SDK and Bedrock AgentCore runtime.
+            </p>
+            <div class="tech-card-meta">anthropic.claude-3-5-sonnet · P95 &lt; 850ms</div>
+          </div>
+
+          <!-- Card 2: Bee CLI & SSE -->
+          <div class="tech-card">
+            <div class="tech-card-top">
+              <svg class="tech-icon-svg" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+              <span class="tech-card-layer">Context Ingestion</span>
+            </div>
+            <h3 class="tech-card-name">Bee CLI &amp; MCP Protocol</h3>
+            <p class="tech-card-detail">
+              Connects to the local Bee daemon via Server-Sent Events. Extracts purpose-bound context with client-side redaction.
+            </p>
+            <div class="tech-card-meta">Local Companion · SSE stream · mTLS</div>
+          </div>
+
+          <!-- Card 3: DynamoDB Single-Table -->
+          <div class="tech-card">
+            <div class="tech-card-top">
+              <svg class="tech-icon-svg" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+              <span class="tech-card-layer">State &amp; Graph</span>
+            </div>
+            <h3 class="tech-card-name">DynamoDB Knowledge Graph</h3>
+            <p class="tech-card-detail">
+              Adjacency model for commitments, meetings, and focus nodes. Partitioned by tenant KMS keys with automated 30-day TTL.
+            </p>
+            <div class="tech-card-meta">Single-Table · PITR enabled · KMS CMK</div>
+          </div>
+
+          <!-- Card 4: EventBridge & WebSockets -->
+          <div class="tech-card">
+            <div class="tech-card-top">
+              <svg class="tech-icon-svg" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span class="tech-card-layer">Event Router</span>
+            </div>
+            <h3 class="tech-card-name">EventBridge &amp; WebSocket API</h3>
+            <p class="tech-card-detail">
+              Sub-50ms fanout with SQS Dead Letter Queues. Schedules deterministic T-5 meeting prep via EventBridge Scheduler.
+            </p>
+            <div class="tech-card-meta">API Gateway WebSocket · SQS DLQ · Retry 3x</div>
+          </div>
+
+          <!-- Card 5: Policy & Consent Gate -->
+          <div class="tech-card">
+            <div class="tech-card-top">
+              <svg class="tech-icon-svg" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span class="tech-card-layer">Governance</span>
+            </div>
+            <h3 class="tech-card-name">Deterministic Consent Gate</h3>
+            <p class="tech-card-detail">
+              LLMs cannot invoke adapters directly. Every proposed ambient action must pass an immutable policy check with instant Undo.
+            </p>
+            <div class="tech-card-meta">Fail-Closed · Audit Trail · Idempotency</div>
+          </div>
+
+          <!-- Card 6: Ambient Adapters -->
+          <div class="tech-card">
+            <div class="tech-card-top">
+              <svg class="tech-icon-svg" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              <span class="tech-card-layer">Integrations</span>
+            </div>
+            <h3 class="tech-card-name">Consented Capability Adapters</h3>
+            <p class="tech-card-detail">
+              Alexa/Echo Media Session controls, Fire TV pause adapter, and Slack status sync with explicit auto-expiration.
+            </p>
+            <div class="tech-card-meta">OAuth 2.0 PKCE · Verified Scopes · Secrets Mgr</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Giant Footer -->
+    <footer class="site-footer" role="contentinfo">
+      <div class="footer-card">
+        <div class="footer-top-row">
+          <!-- Logo & Brand -->
+          <div class="footer-brand-logo">
+            <img src="assets/aura-logo.jpg" alt="AURA Logo" style="width:36px; height:36px; border-radius:10px; border:1px solid rgba(255,207,0,0.4);">
+          </div>
+
+          <!-- Col 1: Documentation -->
+          <div>
+            <div class="footer-col-title">Documentation</div>
+            <ul class="footer-nav-list">
+              <li><a href="control-plane.html">Interactive Control Plane</a></li>
+              <li><a href="#architecture">Architecture Overview</a></li>
+              <li><a href="#hardware">Hardware Specification</a></li>
+              <li><a href="https://github.com/adityashinde0/Project-AURA-Proactive-Memory-That-Fights-For-Your-Focus/blob/main/PRD.md" target="_blank" rel="noopener">Product Requirements (PRD)</a></li>
+              <li><a href="https://github.com/adityashinde0/Project-AURA-Proactive-Memory-That-Fights-For-Your-Focus/blob/main/FRICTION_LOG.md" target="_blank" rel="noopener">Friction Log</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 2: Engineering & Privacy -->
+          <div>
+            <div class="footer-col-title">Engineering &amp; Privacy</div>
+            <ul class="footer-nav-list">
+              <li><a href="#architecture">Zero Raw-Audio Policy</a></li>
+              <li><a href="#architecture">KMS Tenant Partitioning</a></li>
+              <li><a href="#architecture">Deterministic Consent Gate</a></li>
+              <li><a href="#architecture">Reversible Capability Paths</a></li>
+              <li><a href="control-plane.html">Audit Trail &amp; Kill Switches</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 3: Repositories & Community -->
+          <div>
+            <div class="footer-col-title">Project Source</div>
+            <ul class="footer-nav-list">
+              <li><a href="https://github.com/adityashinde0/Project-AURA-Proactive-Memory-That-Fights-For-Your-Focus" target="_blank" rel="noopener">GitHub Repository</a></li>
+              <li><a href="https://github.com/adityashinde0/Project-AURA-Proactive-Memory-That-Fights-For-Your-Focus/issues" target="_blank" rel="noopener">Issue Tracker</a></li>
+              <li><a href="https://docs.bee.computer/docs/cli" target="_blank" rel="noopener">Bee CLI Specification</a></li>
+              <li><a href="https://aws.amazon.com/bedrock/" target="_blank" rel="noopener">AWS Bedrock Documentation</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 4: Platform Badges -->
+          <div class="footer-app-links">
+            <a href="control-plane.html" class="app-badge-btn">
+              <svg class="inline-svg" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              <div>
+                <div style="font-size: 0.65rem; opacity: 0.8;">Open In Browser</div>
+                <strong>Web Control Plane</strong>
+              </div>
+            </a>
+            <a href="https://github.com/adityashinde0/Project-AURA-Proactive-Memory-That-Fights-For-Your-Focus" target="_blank" rel="noopener" class="app-badge-btn">
+              <svg class="inline-svg" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+              <div>
+                <div style="font-size: 0.65rem; opacity: 0.8;">Local Companion</div>
+                <strong>CLI Daemon (SSE)</strong>
+              </div>
+            </a>
+            <a href="control-plane.html" class="btn-pill-yellow" style="margin-top: 8px;">Launch Demo</a>
+          </div>
+        </div>
+
+        <!-- Giant Typographic Brand Wordmark -->
+        <div class="giant-aura-wordmark" aria-hidden="true">Aura</div>
+
+        <!-- Bottom Copyright -->
+        <div class="footer-bottom-bar">
+          <div>© 2026 Project AURA. Open-source proactive memory and focus guardian.</div>
+          <div>Strictly user-private. Zero raw audio stored. No employer surveillance.</div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Sticky Bottom Notification Banner -->
+  <aside class="sticky-bottom-banner" role="complementary" aria-label="Project Status">
+    <div class="banner-content">
+      <div class="banner-brand-tag">
+        <span class="aws-badge">AWS Bedrock</span>
+        <span>Project AURA: Proactive memory and focus guardian built on AWS Bedrock &amp; Claude 3.5.</span>
+      </div>
+      <a href="control-plane.html" class="banner-action-link">
+        <span>Launch Interactive Control Plane</span>
+        <span>→</span>
+      </a>
+    </div>
+  </aside>
+
+  <script src="landing.js"></script>
+</body>
+</html>

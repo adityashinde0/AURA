@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebSocketErrorResponse",
+  "description": "Structured error response returned over WebSocket",
+  "type": "object",
+  "required": ["error", "message", "timestamp"],
+  "properties": {
+    "error": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "details": {
+      "type": "array"
+    },
+    "timestamp": {
+      "type": "number"
+    }
+  },
+  "additionalProperties": false
+}

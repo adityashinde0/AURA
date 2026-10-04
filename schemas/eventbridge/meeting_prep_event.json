@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuraMeetingPrepEvent",
+  "description": "EventBridge event emitted by scheduler at T-5 minutes for opted-in calendar events",
+  "type": "object",
+  "required": ["source", "detail-type", "detail"],
+  "properties": {
+    "source": {
+      "type": "string",
+      "const": "aura.scheduler"
+    },
+    "detail-type": {
+      "type": "string",
+      "const": "MeetingPrepTriggered"
+    },
+    "detail": {
+      "type": "object",
+      "required": ["calendar_event_id", "user_id", "start_epoch", "idempotency_key"],
+      "properties": {
+        "calendar_event_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "start_epoch": { "type": "integer" },
+        "idempotency_key": { "type": "string" },
+        "meeting_title_hash": { "type": "string" },
+        "evidence_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

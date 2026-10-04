@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuraMobileNotificationFallback",
+  "description": "Mobile notification payload when Bee Watch integration is unavailable or disconnected",
+  "type": "object",
+  "required": [
+    "notification_id",
+    "user_id",
+    "calendar_event_id",
+    "title",
+    "subtitle",
+    "body",
+    "deep_link",
+    "action_categories",
+    "sound_enabled",
+    "created_at"
+  ],
+  "properties": {
+    "notification_id": { "type": "string" },
+    "user_id": { "type": "string" },
+    "calendar_event_id": { "type": "string" },
+    "title": { "type": "string" },
+    "subtitle": { "type": "string" },
+    "body": { "type": "string" },
+    "deep_link": { "type": "string" },
+    "action_categories": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "sound_enabled": { "type": "boolean" },
+    "created_at": { "type": "number" },
+    "is_quiet_hours": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": false
+}

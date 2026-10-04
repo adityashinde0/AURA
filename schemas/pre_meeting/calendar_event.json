@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuraCalendarEvent",
+  "description": "Normalized calendar event ingested from Google Calendar, Outlook, or AURA webhook",
+  "type": "object",
+  "required": [
+    "calendar_event_id",
+    "user_id",
+    "title",
+    "start_epoch",
+    "end_epoch",
+    "is_opted_in",
+    "status"
+  ],
+  "properties": {
+    "calendar_event_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "user_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "start_epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "end_epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "participants": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "is_opted_in": {
+      "type": "boolean",
+      "default": true
+    },
+    "status": {
+      "type": "string",
+      "enum": ["confirmed", "tentative", "cancelled"],
+      "default": "confirmed"
+    },
+    "timezone": {
+      "type": "string",
+      "default": "UTC"
+    },
+    "recurrence_id": {
+      "type": ["string", "null"]
+    },
+    "series_id": {
+      "type": ["string", "null"]
+    },
+    "location": {
+      "type": ["string", "null"]
+    }
+  },
+  "additionalProperties": false
+}

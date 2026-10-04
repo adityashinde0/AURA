@@ -1,0 +1,544 @@
+openapi: 3.1.0
+info:
+  title: Project AURA — Cloud Intake & Control Plane API
+  version: 1.0.0
+  description: >
+    Production Cloud Intake and Control Plane API for Project AURA.
+    Provides authenticated, purpose-bound ingress for minimized focus signals,
+    calendar preparation, consent grant lifecycle, and audit/undo controls.
+servers:
+  - url: https://api.aura.internal/v1
+    description: Production Regional Cell
+  - url: https://api-dev.aura.internal/v1
+    description: Development Environment
+
+paths:
+  /api/v1/focus/signal:
+    post:
+      summary: Intake minimized focus signal
+      operationId: intakeFocusSignal
+      description: >
+        Receives an explicit or consented focus signal. Strictly rejects raw transcript text,
+        evaluates against policy boundaries, and returns a proposed action with citations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FocusSignalRequest'
+      responses:
+        '200':
+          description: Proposal evaluated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FocusSignalResponse'
+        '400':
+          description: Malformed or non-minimized payload rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Missing or revoked consent grant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/focus/session:
+    post:
+      summary: Start or terminate a focus session
+      operationId: manageFocusSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FocusSessionRequest'
+      responses:
+        '200':
+          description: Session state updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FocusSessionResponse'
+        '400':
+          description: Invalid session parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/consent/grants:
+    get:
+      summary: List user consent grants
+      operationId: listConsentGrants
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of active consent grants
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - user_id
+                  - grants
+                properties:
+                  user_id:
+                    type: string
+                  grants:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConsentGrant'
+    post:
+      summary: Create or update a consent grant
+      operationId: createConsentGrant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConsentGrantRequest'
+      responses:
+        '201':
+          description: Consent grant created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentGrant'
+        '400':
+          description: Invalid grant parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/consent/grants/{grantId}:
+    delete:
+      summary: Revoke consent grant immediately
+      operationId: revokeConsentGrant
+      description: Invalidate consent grant and clear cached grants in <60 seconds.
+      parameters:
+        - name: grantId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Grant revoked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - revoked
+                  - grant_id
+                  - revoked_at
+                properties:
+                  revoked:
+                    type: boolean
+                    enum: [true]
+                  grant_id:
+                    type: string
+                  revoked_at:
+                    type: number
+
+  /api/v1/audit/actions:
+    get:
+      summary: Query action audit log
+      operationId: queryAuditLog
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Audit log records
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - user_id
+                  - records
+                properties:
+                  user_id:
+                    type: string
+                  records:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditRecord'
+
+  /api/v1/actions/undo:
+    post:
+      summary: Execute action reversal using undo token
+      operationId: executeUndo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - undo_token
+                - user_id
+              properties:
+                undo_token:
+                  type: string
+                user_id:
+                  type: string
+      responses:
+        '200':
+          description: Action reversed
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - undo_token
+                  - message
+                properties:
+                  success:
+                    type: boolean
+                  undo_token:
+                    type: string
+                  message:
+                    type: string
+
+  /api/v1/calendar/events:
+    post:
+      summary: Intake and normalize calendar events for T-5 preparation
+      operationId: intakeCalendarEvent
+      description: >
+        Receives calendar event payloads from Google Calendar, Outlook, or AURA webhooks.
+        Normalizes into canonical CalendarEvent, evaluates quiet hours and opt-in,
+        and schedules EventBridge T-5 MeetingPrepTriggered events.
+      parameters:
+        - name: x-calendar-source
+          in: header
+          required: false
+          schema:
+            type: string
+            enum: [google, outlook, aura]
+            default: aura
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - calendar_event_id
+                - user_id
+                - title
+                - start_epoch
+                - end_epoch
+              properties:
+                calendar_event_id:
+                  type: string
+                user_id:
+                  type: string
+                title:
+                  type: string
+                start_epoch:
+                  type: integer
+                end_epoch:
+                  type: integer
+                participants:
+                  type: array
+                  items:
+                    type: string
+                is_opted_in:
+                  type: boolean
+                  default: true
+                status:
+                  type: string
+                  enum: [confirmed, tentative, cancelled]
+      responses:
+        '200':
+          description: Event processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - result
+                properties:
+                  message:
+                    type: string
+                  result:
+                    type: object
+        '400':
+          description: Malformed calendar event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    FocusSignalRequest:
+      type: object
+      required:
+        - user_id
+        - session_id
+        - purpose
+        - explicit_signal
+      properties:
+        user_id:
+          type: string
+          minLength: 3
+          maxLength: 128
+        session_id:
+          type: string
+          minLength: 8
+          maxLength: 128
+        purpose:
+          type: string
+          enum: [pre_meeting, focus_guardian]
+        explicit_signal:
+          type: string
+          enum: [none, self_report_distracted, focus_started]
+        evidence:
+          type: array
+          maxItems: 5
+          items:
+            type: object
+            required:
+              - id
+              - snippet
+            properties:
+              id:
+                type: string
+              snippet:
+                type: string
+                maxLength: 200
+        consented_signal_score:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+          default: 0.0
+
+    FocusProposal:
+      type: object
+      required:
+        - prep_summary
+        - 3_questions
+        - emotion_tone
+        - is_distracted
+        - distraction_score
+        - deep_work_bank_delta
+        - evidence_ids
+        - recommended_action
+        - reason
+      properties:
+        prep_summary:
+          type: string
+          maxLength: 500
+        3_questions:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items:
+            type: string
+        emotion_tone:
+          type: string
+          enum: [calm, confident, supportive, neutral, cautious]
+        is_distracted:
+          type: boolean
+        distraction_score:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        deep_work_bank_delta:
+          type: integer
+          minimum: -10
+          maximum: 10
+        evidence_ids:
+          type: array
+          maxItems: 5
+          items:
+            type: string
+        recommended_action:
+          type: string
+          enum: [none, nudge, request_dnd, request_pause]
+        reason:
+          type: string
+          maxLength: 280
+
+    FocusSignalResponse:
+      type: object
+      required:
+        - proposal
+        - policy_required
+      properties:
+        proposal:
+          $ref: '#/components/schemas/FocusProposal'
+        policy_required:
+          type: boolean
+
+    FocusSessionRequest:
+      type: object
+      required:
+        - user_id
+        - action
+      properties:
+        user_id:
+          type: string
+        action:
+          type: string
+          enum: [start, stop]
+        duration_minutes:
+          type: integer
+          minimum: 5
+          maximum: 240
+          default: 45
+        session_id:
+          type: string
+
+    FocusSessionResponse:
+      type: object
+      required:
+        - session_id
+        - user_id
+        - status
+        - started_at
+      properties:
+        session_id:
+          type: string
+        user_id:
+          type: string
+        status:
+          type: string
+          enum: [active, completed, cancelled]
+        started_at:
+          type: number
+        expires_at:
+          type: number
+
+    ConsentGrant:
+      type: object
+      required:
+        - grant_id
+        - user_id
+        - action_type
+        - scope
+        - target_allowlist
+        - active
+        - created_at
+      properties:
+        grant_id:
+          type: string
+        user_id:
+          type: string
+        tenant_id:
+          type: string
+          default: tenant_default
+        action_type:
+          type: string
+          enum: [nudge, request_dnd, request_pause, slack_status]
+        scope:
+          type: string
+          enum: [ask_every_time, allow_session, allow_always, never]
+        target_allowlist:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+        created_at:
+          type: number
+        expires_at:
+          type: number
+
+    CreateConsentGrantRequest:
+      type: object
+      required:
+        - user_id
+        - action_type
+        - scope
+      properties:
+        user_id:
+          type: string
+        tenant_id:
+          type: string
+          default: tenant_default
+        action_type:
+          type: string
+          enum: [nudge, request_dnd, request_pause, slack_status]
+        scope:
+          type: string
+          enum: [ask_every_time, allow_session, allow_always, never]
+        target_allowlist:
+          type: array
+          items:
+            type: string
+          default: []
+        ttl_seconds:
+          type: integer
+          default: 86400
+
+    AuditRecord:
+      type: object
+      required:
+        - action_id
+        - user_id
+        - action_type
+        - status
+        - timestamp
+      properties:
+        action_id:
+          type: string
+        user_id:
+          type: string
+        action_type:
+          type: string
+        target_device:
+          type: string
+        status:
+          type: string
+          enum: [executed, blocked, suggested, undone]
+        reason:
+          type: string
+        undo_token:
+          type: string
+        timestamp:
+          type: number
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object

@@ -1,15 +1,46 @@
 # Python build and runtime artifacts
 __pycache__/
 *.py[cod]
+*$py.class
 
 # Local environments and secrets
 .venv/
 venv/
+env/
 .env
 .env.*
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.token
+*.secret
+credentials.json
+client_secret*.json
+aws_credentials
 
 # Editor and operating-system files
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.log
+
+# Node and CDK artifacts
+node_modules/
+cdk.out/
+infra/cdk.out/
+infra/dist/
+infra/bin/*.js
+infra/bin/*.d.ts
+infra/lib/*.js
+infra/lib/*.d.ts
