@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import time
 import uuid
 from typing import Any
@@ -28,30 +29,83 @@ EVENT_BUS_NAME = os.getenv("AURA_EVENT_BUS", "aura-event-bus")
 PROHIBITED_RAW_KEYS = {"raw_audio", "full_transcript", "audio_blob", "unredacted_speech"}
 
 
+# ---------------------------------------------------------------------------
+# Structured logger
+# ---------------------------------------------------------------------------
+
+def _log(level: str, event: str, **fields: Any) -> None:
+    """Emit a single structured JSON log line to stdout.
+
+    Fields are kept to a minimum necessary set — no raw user content.
+    ``correlation_id`` is always included when present in *fields*.
+    """
+    record = {
+        "timestamp": time.time(),
+        "level": level,
+        "service": "aura.websocket_handler",
+        "event": event,
+        **fields,
+    }
+    print(json.dumps(record, default=str), file=sys.stdout, flush=True)
+
+
+# ---------------------------------------------------------------------------
+# Token validation
+# ---------------------------------------------------------------------------
+
 def validate_connect_token(token: str | None) -> tuple[bool, dict[str, str]]:
     """Validate bearer token format and extract subject claims.
-    
-    In production, this validates OIDC/JWT signatures.
-    Rejects tokens shorter than 16 characters or missing bearer prefix.
+
+    In production this validates OIDC/JWT signatures against a JWKS endpoint.
+    For backward compatibility the stub path is preserved: tokens ≥ 16 chars
+    that do not contain the literal word "expired" are accepted, and
+    ``user_id`` is derived from the first 8 characters of the stripped token.
+
+    Hardening applied on top of the original implementation:
+    - ``None`` / empty / whitespace-only tokens are rejected immediately.
+    - The "Bearer " prefix is stripped before length checks.
+    - Any token containing the case-insensitive substring "expired" is rejected.
+    - Tokens shorter than 16 characters after prefix-stripping are rejected.
     """
     if not token or not token.strip():
+        _log("WARNING", "token_validation_rejected", reason="empty_token")
         return False, {}
     token_str = token.strip()
     if token_str.startswith("Bearer "):
         token_str = token_str[7:]
-    if len(token_str) < 16 or "expired" in token_str.lower():
+    if len(token_str) < 16:
+        _log("WARNING", "token_validation_rejected", reason="token_too_short",
+             token_length=len(token_str))
         return False, {}
-    return True, {"user_id": f"usr_{token_str[:8]}", "tenant_id": "tenant_default"}
+    if "expired" in token_str.lower():
+        _log("WARNING", "token_validation_rejected", reason="token_expired")
+        return False, {}
+    claims = {"user_id": f"usr_{token_str[:8]}", "tenant_id": "tenant_default"}
+    _log("INFO", "token_validation_accepted", user_id=claims["user_id"])
+    return True, claims
 
 
 def handle_connect(event: dict[str, Any], table: Any = None) -> dict[str, Any]:
     connection_id = event.get("requestContext", {}).get("connectionId")
     query_params = event.get("queryStringParameters") or {}
     headers = event.get("headers") or {}
-    token = query_params.get("auth_token") or headers.get("Authorization") or headers.get("authorization")
+    # Accept token from Authorization header only; query-string fallback retained
+    # for backward compatibility but flagged as the less-secure path.
+    header_token = headers.get("Authorization") or headers.get("authorization")
+    qs_token = query_params.get("auth_token")
+    token = header_token or qs_token
+    if qs_token and not header_token:
+        _log("WARNING", "connect_token_from_querystring",
+             connection_id=connection_id,
+             note="token in querystring appears in access logs; prefer Authorization header")
 
+    correlation_id = str(uuid.uuid4())
     valid, claims = validate_connect_token(token)
     if not valid or not connection_id:
+        _log("WARNING", "connect_rejected",
+             correlation_id=correlation_id,
+             connection_id=connection_id,
+             reason="invalid_token_or_missing_connection_id")
         return {"statusCode": 403, "body": json.dumps({"error": "unauthorized", "message": "Valid token required"})}
 
     user_id = query_params.get("user_id") or claims.get("user_id", "usr_unknown")
@@ -71,8 +125,18 @@ def handle_connect(event: dict[str, Any], table: Any = None) -> dict[str, Any]:
         try:
             table.put_item(Item=item)
         except Exception as exc:
+            _log("ERROR", "connect_state_write_failed",
+                 correlation_id=correlation_id,
+                 connection_id=connection_id,
+                 error=str(exc))
             return {"statusCode": 500, "body": json.dumps({"error": "state_error", "message": str(exc)})}
 
+    _log("INFO", "connect_accepted",
+         correlation_id=correlation_id,
+         connection_id=connection_id,
+         user_id=user_id,
+         tenant_id=tenant_id,
+         ttl=ttl)
     return {"statusCode": 200, "body": json.dumps({"connected": True, "connectionId": connection_id})}
 
 
@@ -83,6 +147,7 @@ def handle_disconnect(event: dict[str, Any], table: Any = None) -> dict[str, Any
             table.delete_item(Key={"connectionId": connection_id})
         except Exception:
             pass
+    _log("INFO", "disconnect_complete", connection_id=connection_id)
     return {"statusCode": 200, "body": json.dumps({"disconnected": True})}
 
 
@@ -96,9 +161,14 @@ def handle_relay(
     event_type = body.get("event_type")
     user_id = body.get("user_id")
     timestamp = body.get("timestamp") or time.time()
+    correlation_id = str(uuid.uuid4())
 
     # Schema validation
     if not event_id or not event_type or not user_id:
+        _log("WARNING", "relay_envelope_invalid",
+             correlation_id=correlation_id,
+             reason="missing_required_fields",
+             present_fields=list(body.keys()))
         return {
             "statusCode": 400,
             "body": {
@@ -111,6 +181,11 @@ def handle_relay(
     # Oversized payload protection: max 32KB
     payload_size = len(json.dumps(body))
     if payload_size > 32768:
+        _log("WARNING", "relay_payload_oversized",
+             correlation_id=correlation_id,
+             event_id=event_id,
+             payload_size=payload_size,
+             limit=32768)
         return {
             "statusCode": 400,
             "body": {
@@ -124,6 +199,10 @@ def handle_relay(
     # Strict privacy check: zero raw audio / prohibited persistence
     for prohibited in PROHIBITED_RAW_KEYS:
         if prohibited in body:
+            _log("ERROR", "relay_privacy_violation",
+                 correlation_id=correlation_id,
+                 event_id=event_id,
+                 prohibited_field=prohibited)
             return {
                 "statusCode": 400,
                 "body": {
@@ -134,9 +213,14 @@ def handle_relay(
                 },
             }
 
-    # Evidence bounds check: at most 5 items, max 300 chars each
+    # Evidence bounds check: at most 5 items
     evidence = body.get("evidence", [])
     if len(evidence) > 5:
+        _log("WARNING", "relay_evidence_overflow",
+             correlation_id=correlation_id,
+             event_id=event_id,
+             evidence_count=len(evidence),
+             limit=5)
         return {
             "statusCode": 400,
             "body": {
@@ -168,6 +252,7 @@ def handle_relay(
                                 "consented_signal_score": body.get("signal_payload", {}).get("consented_signal_score", 0.0),
                                 "evidence": evidence,
                                 "idempotency_key": f"{user_id}:{event_id}",
+                                "correlation_id": correlation_id,
                             }
                         ),
                         "EventBusName": bus_name,
@@ -175,6 +260,10 @@ def handle_relay(
                 ]
             )
         except Exception as exc:
+            _log("ERROR", "relay_eventbridge_failed",
+                 correlation_id=correlation_id,
+                 event_id=event_id,
+                 error=str(exc))
             return {
                 "statusCode": 500,
                 "body": {
@@ -185,6 +274,13 @@ def handle_relay(
                 },
             }
 
+    _log("INFO", "relay_accepted",
+         correlation_id=correlation_id,
+         event_id=event_id,
+         event_type=event_type,
+         ack_id=ack_id,
+         bus_message_id=bus_message_id,
+         evidence_count=len(evidence))
     return {
         "statusCode": 200,
         "body": {
@@ -208,6 +304,8 @@ def lambda_handler(
     table = table_override or (_dynamodb.Table(CONNECTIONS_TABLE_NAME) if _dynamodb else None)
     bus = bus_override or _eventbridge
 
+    _log("DEBUG", "lambda_handler_invoked", route_key=route_key)
+
     if route_key == "$connect":
         return handle_connect(event, table=table)
 
@@ -219,6 +317,7 @@ def lambda_handler(
         try:
             raw_body = json.loads(raw_body)
         except json.JSONDecodeError:
+            _log("WARNING", "lambda_handler_malformed_json", route_key=route_key)
             return {
                 "statusCode": 400,
                 "body": json.dumps({"error": "invalid_json", "message": "Malformed JSON in body"}),
@@ -232,6 +331,7 @@ def lambda_handler(
             "body": json.dumps(res["body"]),
         }
 
+    _log("WARNING", "lambda_handler_unknown_route", route_key=route_key, action=action)
     return {
         "statusCode": 400,
         "body": json.dumps(
