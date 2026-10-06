@@ -44,3 +44,7 @@ infra/bin/*.js
 infra/bin/*.d.ts
 infra/lib/*.js
 infra/lib/*.d.ts
+
+# Vercel deployment artifacts
+.vercel/
+
