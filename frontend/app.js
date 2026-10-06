@@ -399,19 +399,6 @@ const DOM = {
   btnRefreshAudit: document.getElementById('btn-refresh-audit'),
 };
 
-// Initialize App
-function initApp() {
-  setupTheme();
-  setupNavigation();
-  startTimer();
-  renderMeeting(state.activeMeetingId);
-  renderGrants();
-  renderAuditTimeline();
-  setupEventListeners();
-  updateScoreUI(0.0, 'Focus session running uninterrupted. Score decays automatically over time.');
-  startT5Countdown();
-}
-
 // Theme Management
 function setupTheme() {
   function updateThemeUI(theme) {
@@ -445,7 +432,7 @@ function setupNavigation() {
       });
       DOM.panels.forEach((p) => {
         p.classList.remove('active');
-        p.hidden = true;
+        p.removeAttribute('hidden');
       });
 
       tab.classList.add('active');
@@ -456,7 +443,19 @@ function setupNavigation() {
       const targetPanel = document.getElementById(targetId);
       if (targetPanel) {
         targetPanel.classList.add('active');
-        targetPanel.hidden = false;
+        targetPanel.removeAttribute('hidden');
+      }
+
+      // Dynamic surface refresh on tab activation
+      if (targetId === 'view-permissions') renderGrants();
+      if (targetId === 'view-audit') renderAuditTimeline();
+      if (targetId === 'view-integrations') {
+        renderDevicesRegistry();
+        renderGuardrailMetrics();
+        updateSlackPreview();
+      }
+      if (targetId === 'view-focus') {
+        updateTimerUI();
       }
     });
   });
@@ -1513,6 +1512,8 @@ function setupPhase6Slack() {
 }
 
 function initApp() {
+  setupTheme();
+  setupNavigation();
   setupEventListeners();
   setupPhase5EventListeners();
   setupPhase6Slack();
@@ -1522,6 +1523,7 @@ function initApp() {
   renderGuardrailMetrics();
   renderDevicesRegistry();
   startTimer();
+  updateScoreUI(0.0, 'Focus session running uninterrupted. Score decays automatically over time.');
   startT5Countdown();
 }
 
