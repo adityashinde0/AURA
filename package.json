@@ -1,0 +1,17 @@
+{
+  "name": "project-aura",
+  "version": "1.0.0",
+  "description": "Project AURA — Proactive Memory That Fights For Your Focus",
+  "scripts": {
+    "dev": "npx serve frontend -l 3000",
+    "start": "npx serve frontend -l 3000"
+  },
+  "keywords": [
+    "aura",
+    "focus-guardian",
+    "aws-bedrock",
+    "control-plane"
+  ],
+  "author": "Aditya Shinde",
+  "license": "MIT"
+}
