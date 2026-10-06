@@ -50,3 +50,6 @@ infra/lib/*.d.ts
 # Vercel deployment artifacts
 .vercel/
 
+# Temporary scratch files
+scratch/
+
