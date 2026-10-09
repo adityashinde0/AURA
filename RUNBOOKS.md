@@ -233,3 +233,8 @@ This operational handbook provides tier-1 and tier-2 on-call engineers with pres
      -d '{"rollout_percentage": 10, "global_switches": {"request_pause": true, "request_dnd": true, "slack_post": true}}'
    ```
 3. Monitor CloudWatch for 30 minutes; ensure undo rate stays `< 1.0%` before lifting cohort restriction to 100%.
+
+---
+
+**Author / Architect:** Aditya Shinde  
+*Project AURA · All Rights Reserved*

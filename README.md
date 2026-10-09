@@ -180,3 +180,8 @@ Or import directly into the [Vercel Dashboard](https://vercel.com/new) with zero
 ## 📄 License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Author / Architect:** Aditya Shinde  
+*Project AURA · All Rights Reserved*

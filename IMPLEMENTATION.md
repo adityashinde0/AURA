@@ -182,4 +182,7 @@ The phase is done when:
 12. Full interactive Control Plane UI surface renders the Slack Ambient Status & OAuth PKCE Control Center with live preview, channel allowlist selector, expiry picker, and zero-leakage simulation.
 (Verified: `test_slack_production_e2e.py`, `test_slack_adapter.py`, `test_production_readiness.py`, `test_slack_contract.py`, and full 157-test pytest suite pass all criteria with 100% success).
 
+---
 
+**Author / Architect:** Aditya Shinde  
+*Project AURA · All Rights Reserved*

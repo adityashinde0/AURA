@@ -26,10 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 1. Yellow Bento Card Tab Switcher
+  // 1. Yellow Bento Card Tab Switcher with 5s Auto-Rotation
   const tabItems = document.querySelectorAll('.yellow-tab-item');
   const focusTitle = document.getElementById('yellow-focus-title');
   const focusDesc = document.getElementById('yellow-focus-desc');
+  const yellowCounterBadge = document.getElementById('yellow-tab-counter');
+  const yellowCard = document.getElementById('card-yellow-container');
 
   const yellowTabContent = [
     {
@@ -46,13 +48,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   ];
 
-  function selectYellowTab(index) {
+  let currentYellowTabIndex = 0;
+  let yellowTabTimer = null;
+  let isYellowHovered = false;
+
+  function selectYellowTab(index, restartTimer = false) {
     if (!yellowTabContent[index]) return;
+    currentYellowTabIndex = index;
+
     tabItems.forEach((t, i) => {
       const isSelected = i === index;
       t.classList.toggle('active', isSelected);
       t.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      
+      // Reset animation on active progress line
+      if (isSelected) {
+        const line = t.querySelector('.tab-progress-line');
+        if (line) {
+          line.style.animation = 'none';
+          void t.offsetHeight; // trigger reflow
+          line.style.animation = '';
+        }
+      }
     });
+
+    if (yellowCounterBadge) {
+      yellowCounterBadge.textContent = `${index + 1} of ${yellowTabContent.length} · Auto Rotating`;
+    }
 
     if (focusTitle && focusDesc) {
       focusTitle.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
@@ -71,17 +93,43 @@ document.addEventListener('DOMContentLoaded', () => {
         focusDesc.style.transform = 'translateY(0)';
       }, 150);
     }
+
+    if (restartTimer) {
+      startYellowTabTimer();
+    }
+  }
+
+  function startYellowTabTimer() {
+    clearInterval(yellowTabTimer);
+    yellowTabTimer = setInterval(() => {
+      if (!isYellowHovered) {
+        const nextIndex = (currentYellowTabIndex + 1) % yellowTabContent.length;
+        selectYellowTab(nextIndex, false);
+      }
+    }, 5000);
   }
 
   tabItems.forEach((tab, index) => {
-    tab.addEventListener('click', () => selectYellowTab(index));
+    tab.addEventListener('click', () => selectYellowTab(index, true));
     tab.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        selectYellowTab(index);
+        selectYellowTab(index, true);
       }
     });
   });
+
+  if (yellowCard) {
+    yellowCard.addEventListener('mouseenter', () => {
+      isYellowHovered = true;
+    });
+    yellowCard.addEventListener('mouseleave', () => {
+      isYellowHovered = false;
+    });
+  }
+
+  // Initialize yellow tab auto rotation
+  startYellowTabTimer();
 
   // 2. Interactive To-Dos / Focus Actions
   const todoItems = document.querySelectorAll('.todo-main-row');
@@ -130,4 +178,100 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // 4. Aesthetic Card Image Toggle & 5s Auto-Rotation
+  const btnShowPackets = document.getElementById('btn-show-packets');
+  const btnShowFleet = document.getElementById('btn-show-fleet');
+  const aestheticCardImg = document.getElementById('aesthetic-card-img');
+  const imageCaptionTag = document.getElementById('image-caption-tag');
+  const imageSubCaption = document.getElementById('image-sub-caption');
+  const darkCard = document.getElementById('card-dark-aesthetic-container');
+
+  const imageData = [
+    {
+      src: 'assets/aura-bedroom-sync.jpg',
+      alt: 'Aura smart watch transmitting smooth ambient focus packets to bedroom TV and Echo speaker',
+      tag: 'BEDROOM AMBIENT MESH',
+      sub: 'Watch · Echo Dot · Fire TV Sync'
+    },
+    {
+      src: 'assets/aura-device-fleet.jpg',
+      alt: 'Project AURA certified 5-device hardware fleet lineup',
+      tag: '5-DEVICE ECOSYSTEM',
+      sub: 'Wearable Band · Watch · Fire TV · Echo · Laptop'
+    }
+  ];
+
+  let currentImageIndex = 0;
+  let imageTimer = null;
+  let isImageHovered = false;
+
+  function switchAestheticImage(index, restartTimer = false) {
+    if (!imageData[index]) return;
+    currentImageIndex = index;
+    const isPackets = index === 0;
+
+    if (btnShowPackets && btnShowFleet) {
+      btnShowPackets.classList.toggle('active', isPackets);
+      btnShowPackets.setAttribute('aria-pressed', isPackets ? 'true' : 'false');
+      btnShowFleet.classList.toggle('active', !isPackets);
+      btnShowFleet.setAttribute('aria-pressed', !isPackets ? 'true' : 'false');
+
+      // Trigger restart on the progress bar inside the active pill
+      const activeBtn = isPackets ? btnShowPackets : btnShowFleet;
+      const bar = activeBtn.querySelector('.pill-progress-bar');
+      if (bar) {
+        bar.style.animation = 'none';
+        void activeBtn.offsetHeight; // trigger reflow
+        bar.style.animation = '';
+      }
+    }
+
+    if (aestheticCardImg) {
+      aestheticCardImg.style.opacity = '0';
+      aestheticCardImg.style.transform = 'scale(0.99)';
+      setTimeout(() => {
+        aestheticCardImg.src = imageData[index].src;
+        aestheticCardImg.alt = imageData[index].alt;
+        if (imageCaptionTag) imageCaptionTag.textContent = imageData[index].tag;
+        if (imageSubCaption) imageSubCaption.textContent = imageData[index].sub;
+        aestheticCardImg.style.opacity = '1';
+        aestheticCardImg.style.transform = 'scale(1)';
+      }, 150);
+    }
+
+    if (restartTimer) {
+      startImageTimer();
+    }
+  }
+
+  function startImageTimer() {
+    clearInterval(imageTimer);
+    imageTimer = setInterval(() => {
+      if (!isImageHovered) {
+        const nextIndex = (currentImageIndex + 1) % imageData.length;
+        switchAestheticImage(nextIndex, false);
+      }
+    }, 5000);
+  }
+
+  if (btnShowPackets) {
+    btnShowPackets.addEventListener('click', () => switchAestheticImage(0, true));
+  }
+
+  if (btnShowFleet) {
+    btnShowFleet.addEventListener('click', () => switchAestheticImage(1, true));
+  }
+
+  if (darkCard) {
+    darkCard.addEventListener('mouseenter', () => {
+      isImageHovered = true;
+    });
+    darkCard.addEventListener('mouseleave', () => {
+      isImageHovered = false;
+    });
+  }
+
+  // Initialize image auto rotation
+  startImageTimer();
 });

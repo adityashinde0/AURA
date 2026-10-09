@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA Orbit Edition — Privacy-First Focus Wearable Architecture</title>
+  <meta name="description" content="AURA Orbit is an original, privacy-first focus wearable companion. Featuring glanceable T-5 meeting prep, hardware-gated amber privacy indicator, and zero ambient recording.">
+  <link rel="icon" type="image/jpeg" href="assets/aura-logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="orbit.css">
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('aura-color-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- Sticky Header -->
+  <header class="orbit-header" role="banner">
+    <div class="orbit-nav-wrapper">
+      <a href="index.html" class="orbit-brand" aria-label="AURA Orbit Home" title="Return to Overview">
+        <div class="orbit-brand-mark" aria-hidden="true">
+          <div class="orbit-brand-ring"></div>
+        </div>
+        <span class="brand-name">aura orbit</span>
+        <span class="orbit-brand-badge">Hardware</span>
+      </a>
+
+      <div class="orbit-nav-actions">
+        <button id="theme-toggle-btn" class="theme-pill-btn" aria-label="Toggle display theme" title="Toggle theme">
+          <span id="theme-icon" class="theme-icon">
+            <!-- Icon injected by JS -->
+          </span>
+          <span id="theme-label" class="theme-label-text">Dark</span>
+        </button>
+
+        <a href="control-plane.html" class="btn-graphite-ghost" title="Open the Live Connected Control Plane">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M14 9h7"/><path d="M14 15h7"/></svg>
+          <span>Control Plane</span>
+        </a>
+
+        <a href="#contact-to-buy" class="btn-sand-primary">Contact Us to Buy</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- =====================================================================
+         ORBIT EDITION BENTO SHOWCASE (Vibrant DTC Hardware Experience)
+         ===================================================================== -->
+    <section class="pioneer-experience-section" id="pioneer-showcase" aria-label="AURA Orbit Edition">
+      <div class="pioneer-container">
+        
+        <!-- 1. HERO TOP CARD: AURA Orbit Edition -->
+        <article class="pioneer-hero-card">
+          <h1 class="pioneer-hero-title">AURA Orbit Edition</h1>
+          
+          <div class="pioneer-hero-visual-wrap">
+            <img src="assets/orbit-hero.jpg" alt="AURA Orbit Edition original focus wearable in 45-degree studio perspective" class="pioneer-hero-img" fetchpriority="high" width="680" height="620">
+          </div>
+
+          <div class="pioneer-hero-footer-bar">
+            <div class="pioneer-price-tag">$70</div>
+            
+            <div class="pioneer-stock-status">
+              <span class="pioneer-status-pill in-stock">
+                <span class="status-pulse-dot" aria-hidden="true"></span>
+                Available to Order
+              </span>
+              <span class="pioneer-shipping-sub">AURA ships worldwide · Express Delivery</span>
+            </div>
+            
+            <a href="#contact-to-buy" class="pioneer-order-btn" title="Order AURA Orbit Edition">
+              Order Now
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </a>
+          </div>
+        </article>
+
+        <!-- 2. FOUR BENTO CARDS (2x2 Grid) -->
+        <div class="pioneer-bento-grid">
+          
+          <!-- Card 1: Dual Microphones (Dark Olive Card) -->
+          <article class="bento-card bento-card-mic">
+            <div class="bento-card-header">
+              <div class="bento-icon-wrap amber-wave" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="22"/><line x1="8" y1="6" x2="8" y2="18"/><line x1="4" y1="10" x2="4" y2="14"/><line x1="16" y1="6" x2="16" y2="18"/><line x1="20" y1="10" x2="20" y2="14"/></svg>
+              </div>
+              <h2 class="bento-title bento-title-gold">Dual microphones with advanced noise filtering</h2>
+            </div>
+            <div class="bento-visual-stage bento-stage-mic">
+              <div class="sonic-ripple-container" aria-hidden="true">
+                <span class="sonic-ring ring-1"></span>
+                <span class="sonic-ring ring-2"></span>
+                <span class="sonic-ring ring-3"></span>
+              </div>
+              <img src="assets/orbit-mic.jpg" alt="AURA Orbit dual microphones with illuminated amber privacy ring and acoustic mesh" class="bento-img bento-img-mic" loading="lazy" width="460" height="320">
+            </div>
+          </article>
+
+          <!-- Card 2: Button Press (Vibrant Canary Yellow Card) -->
+          <article class="bento-card bento-card-button">
+            <div class="bento-card-header">
+              <div class="bento-icon-wrap icon-dark" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+              </div>
+              <h2 class="bento-title bento-title-dark">Easily start and stop with a button press</h2>
+            </div>
+            <div class="bento-visual-stage bento-stage-button">
+              <img src="assets/orbit-right.jpg" alt="AURA Orbit raised tactile crescent control button macro" class="bento-img bento-img-button" loading="lazy" width="460" height="320">
+            </div>
+          </article>
+
+          <!-- Card 3: Battery Life (Soft Pastel Lavender Card) -->
+          <article class="bento-card bento-card-battery">
+            <div class="bento-card-header">
+              <div class="bento-icon-wrap icon-purple" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2" ry="2"/><line x1="22" y1="11" x2="22" y2="13"/><line x1="6" y1="11" x2="6" y2="13"/><line x1="10" y1="11" x2="10" y2="13"/></svg>
+              </div>
+              <h2 class="bento-title bento-title-purple">7 days of battery life per charge</h2>
+            </div>
+            <div class="bento-visual-stage bento-stage-battery">
+              <img src="assets/orbit-left.jpg" alt="AURA Orbit upright ergonomic profile with Nordic PMIC power efficiency" class="bento-img bento-img-battery" loading="lazy" width="420" height="360">
+            </div>
+          </article>
+
+          <!-- Card 4: Languages (Deep Midnight Navy Card) -->
+          <article class="bento-card bento-card-lang">
+            <div class="bento-card-header">
+              <div class="bento-icon-wrap icon-lavender" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              </div>
+              <h2 class="bento-title bento-title-lavender">Understands up to 40 different languages</h2>
+            </div>
+            <div class="bento-visual-stage bento-stage-lang">
+              <div class="lang-floating-pills" aria-hidden="true">
+                <span class="lang-pill pill-1">Hi!</span>
+                <span class="lang-pill pill-2">नमस्ते</span>
+                <span class="lang-pill pill-3">Salut!</span>
+                <span class="lang-pill pill-4">Hola!</span>
+                <span class="lang-pill pill-5">Ciao!</span>
+                <span class="lang-pill pill-6">21V!</span>
+                <span class="lang-pill pill-7">日本語</span>
+              </div>
+              <img src="assets/orbit-front-left.jpg" alt="AURA Orbit with multilingual AWS Bedrock context understanding" class="bento-img bento-img-lang" loading="lazy" width="420" height="320">
+            </div>
+          </article>
+
+        </div>
+
+        <!-- 3. WIDE FULL-WIDTH CARD: CUSTOMIZE THE ACTION BUTTON (Canary Yellow) -->
+        <article class="pioneer-wide-banner-card">
+          <div class="wide-card-col wide-col-left">
+            <span class="action-btn-kicker">CUSTOMIZE THE ACTION BUTTON</span>
+            <h3 class="action-btn-title">Hold and speak to talk to AURA or leave a note for later</h3>
+          </div>
+
+          <div class="wide-card-col wide-col-center">
+            <div class="center-watch-wrap">
+              <img src="assets/orbit-front.jpg" alt="AURA Orbit vertical watch face showing crescent control key" class="wide-center-watch-img" loading="lazy" width="280" height="320">
+            </div>
+          </div>
+
+          <div class="wide-card-col wide-col-right">
+            <span class="action-btn-kicker">CUSTOMIZE THE ACTION BUTTON</span>
+            <h3 class="action-btn-title">Double-press to process or bookmark a conversation</h3>
+          </div>
+        </article>
+
+        <!-- 4. DEVICE SPECIFICATIONS CARD (Warm Stone Cream) -->
+        <article class="pioneer-specs-card" id="device-specs">
+          <h2 class="pioneer-specs-title">Device specifications</h2>
+          
+          <div class="specs-interactive-stage">
+            <div class="specs-diagram-canvas">
+              <img src="assets/orbit-rear.jpg" alt="AURA Orbit device specifications and hardware component callouts" class="specs-diagram-img" id="specs-diagram-img" width="500" height="500">
+              
+              <!-- SVG Leader Lines for pixel-perfect annotations -->
+              <svg class="specs-leader-svg" viewBox="0 0 600 500" preserveAspectRatio="none" aria-hidden="true">
+                <!-- Line 1: Microphone (left to mic) -->
+                <line x1="80" y1="130" x2="195" y2="130" class="leader-line line-mic-seg" />
+                <line x1="195" y1="130" x2="216" y2="164" class="leader-line line-mic-seg" />
+
+                <!-- Line 2: Rear USB-C / Pogo Port (left to lower pogo) -->
+                <line x1="80" y1="340" x2="310" y2="340" class="leader-line line-pogo-seg" />
+                <line x1="310" y1="340" x2="368" y2="320" class="leader-line line-pogo-seg" />
+
+                <!-- Line 3: LED indicator (right to amber ring) -->
+                <line x1="520" y1="170" x2="260" y2="170" class="leader-line leader-amber line-led-seg" />
+
+                <!-- Line 4: Action Button (right to crescent button) -->
+                <line x1="520" y1="260" x2="210" y2="260" class="leader-line line-btn-seg" />
+              </svg>
+
+              <!-- Annotation Label 1: Microphone 1 (Top Left) -->
+              <div class="diagram-callout callout-top-left" data-spec="spec-mic">
+                <span class="callout-title">Microphone 1</span>
+                <span class="callout-desc">Dual PDM MEMS with acoustic mesh</span>
+              </div>
+
+              <!-- Annotation Label 2: Rear Pogo / USB-C (Bottom Left) -->
+              <div class="diagram-callout callout-bottom-left" data-spec="spec-pogo">
+                <span class="callout-title">Rear Magnetic Dock</span>
+                <span class="callout-desc">Sealed 4-pin quick charging</span>
+              </div>
+
+              <!-- Annotation Label 3: LED indicator (Top Right) -->
+              <div class="diagram-callout callout-top-right" data-spec="spec-led">
+                <span class="callout-title">LED indicator</span>
+                <span class="callout-desc">Hardware-gated amber privacy ring</span>
+              </div>
+
+              <!-- Annotation Label 4: Action Button (Bottom Right) -->
+              <div class="diagram-callout callout-bottom-right" data-spec="spec-button">
+                <span class="callout-title">Action Button</span>
+                <span class="callout-desc">Start and stop recording / focus</span>
+              </div>
+
+              <!-- Interactive Pins on the watch -->
+              <div class="spec-pin-hotspot pin-mic" style="top: 33%; left: 35.8%;" data-spec="spec-mic" tabindex="0" role="button" aria-label="Microphone pin">
+                <span class="pin-dot"></span>
+              </div>
+
+              <div class="spec-pin-hotspot pin-led" style="top: 34%; left: 38.5%;" data-spec="spec-led" tabindex="0" role="button" aria-label="LED indicator pin">
+                <span class="pin-dot pin-dot-amber"></span>
+              </div>
+
+              <div class="spec-pin-hotspot pin-button" style="top: 52%; left: 34.5%;" data-spec="spec-button" tabindex="0" role="button" aria-label="Action button pin">
+                <span class="pin-dot"></span>
+              </div>
+
+              <div class="spec-pin-hotspot pin-pogo" style="top: 64%; left: 61.5%;" data-spec="spec-pogo" tabindex="0" role="button" aria-label="Magnetic charging pins">
+                <span class="pin-dot"></span>
+              </div>
+
+              <div class="spec-pin-hotspot pin-sensor" style="top: 50%; left: 51%;" data-spec="spec-sensor" tabindex="0" role="button" aria-label="Optical wellness sensor">
+                <span class="pin-dot"></span>
+              </div>
+            </div>
+
+            <!-- Interactive Spec Detail Chips below diagram -->
+            <div class="specs-quick-chips">
+              <button class="quick-chip active" data-spec="spec-mic">
+                <strong>Dual Microphones</strong>
+                <span>Hardware power-gated acoustic ports</span>
+              </button>
+              <button class="quick-chip" data-spec="spec-led">
+                <strong>Amber Privacy Ring</strong>
+                <span>Zero background listening bypass</span>
+              </button>
+              <button class="quick-chip" data-spec="spec-button">
+                <strong>Crescent Key</strong>
+                <span>1-press ack · Long-press deep work</span>
+              </button>
+              <button class="quick-chip" data-spec="spec-pogo">
+                <strong>Magnetic Pogo Dock</strong>
+                <span>80% charge in 42 minutes</span>
+              </button>
+              <button class="quick-chip" data-spec="spec-sensor">
+                <strong>Nordic nRF5340 SoC</strong>
+                <span>Dual-core ARM Cortex-M33 + BLE 5.3</span>
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Deep Dive Transition Banner -->
+        <div class="pioneer-deep-dive-bar">
+          <div class="deep-dive-lead">
+            <span class="lead-icon">❖</span>
+            <span>Explore AURA Orbit deep-dive engineering modules:</span>
+          </div>
+          <div class="deep-dive-links">
+            <a href="#product-stories" class="deep-dive-link">Architecture Pillars ↓</a>
+            <a href="#gallery" class="deep-dive-link">10 Perspective Gallery ↓</a>
+            <a href="#specifications" class="deep-dive-link">Engineering Blueprint ↓</a>
+            <a href="#haptic-demo" class="deep-dive-link">Haptic Lab ↓</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+
+    <!-- PRODUCT STORY CARDS (The 5 Core Pillars) -->
+    <section class="orbit-story-section" id="product-stories" aria-label="AURA Orbit Product Architecture Pillars">
+      <div class="orbit-container">
+        <div class="orbit-section-header">
+          <span class="section-eyebrow">Product Architecture</span>
+          <h2 class="section-headline">Engineered for Quiet Agency</h2>
+          <p class="section-lead">Five deliberate interaction principles designed to protect cognitive bandwidth and eliminate ambient surveillance.</p>
+        </div>
+
+        <div class="story-bento-grid">
+          <!-- 1. Pre-Meeting Whisper (Span 7) -->
+          <article class="story-card span-7">
+            <div class="story-card-header">
+              <div class="story-card-tag tag-whisper">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span>Pillar 01 · Pre-Meeting Whisper</span>
+              </div>
+              <h3 class="story-title">Arrive prepared without unlocking your phone.</h3>
+              <p class="story-desc">
+                Five minutes before your scheduled calendar event, Orbit delivers a subtle, localized dual-pulse haptic tap. A downward glance shows the primary agenda item and key stakeholders, pre-summarized through AWS Bedrock. A single crescent key press acknowledges readiness.
+              </p>
+            </div>
+
+            <div class="story-media-box">
+              <img src="assets/orbit-front.jpg" alt="AURA Orbit front display showing Next meeting in 5 min and View Prep action button" loading="lazy">
+            </div>
+
+            <div class="story-specs-pillstrip">
+              <span class="spec-badge">T-5 Minute Cue</span>
+              <span class="spec-badge">TI DRV2605 Quiet LRA</span>
+              <span class="spec-badge">No Screen Waking Sound</span>
+            </div>
+          </article>
+
+          <!-- 2. Focus Guardian (Span 5) -->
+          <article class="story-card span-5">
+            <div class="story-card-header">
+              <div class="story-card-tag tag-guardian">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Pillar 02 · Focus Guardian</span>
+              </div>
+              <h3 class="story-title">Physical boundary against ambient noise.</h3>
+              <p class="story-desc">
+                Press and hold the crescent key to engage a deep work sprint. Orbit broadcasts encrypted local telemetry: smart speakers silence notifications, peripheral displays enter quiet mode, and calendar availability flags as focused.
+              </p>
+            </div>
+
+            <div class="story-media-box">
+              <img src="assets/orbit-flatlay.jpg" alt="AURA Orbit top down flat lay on studio table showing focus session active ring" loading="lazy">
+            </div>
+
+            <div class="story-specs-pillstrip">
+              <span class="spec-badge">Local Telemetry Relay</span>
+              <span class="spec-badge">Tactile Distraction Logger</span>
+              <span class="spec-badge">Autonomous Operation</span>
+            </div>
+          </article>
+
+          <!-- 3. Privacy-Visible Voice Notes (Span 5) -->
+          <article class="story-card span-5">
+            <div class="story-card-header">
+              <div class="story-card-tag tag-amber">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg>
+                <span>Pillar 03 · Privacy-Visible Voice</span>
+              </div>
+              <h3 class="story-title">Hardware-enforced microphone privacy.</h3>
+              <p class="story-desc">
+                Zero continuous background audio capture. The microphone is electrically isolated by default. The amber indicator ring is physically tied to the microphone power rail: firmware cannot activate audio capture without illuminating the ring.
+              </p>
+            </div>
+
+            <div class="story-media-box">
+              <img src="assets/orbit-mic.jpg" alt="Macro detail of AURA Orbit acoustic microphone mesh surrounded by glowing amber LED privacy ring" loading="lazy">
+            </div>
+
+            <div class="story-specs-pillstrip">
+              <span class="spec-badge">Hardware Power Gate</span>
+              <span class="spec-badge">Dual Digital MEMS Mics</span>
+              <span class="spec-badge">Zero Ambient Buffering</span>
+            </div>
+          </article>
+
+          <!-- 4. Deep Work Bank (Span 7) -->
+          <article class="story-card span-7">
+            <div class="story-card-header">
+              <div class="story-card-tag tag-whisper">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>Pillar 04 · Deep Work Ledger</span>
+              </div>
+              <h3 class="story-title">An encrypted log of your focus hours.</h3>
+              <p class="story-desc">
+                Record uninterrupted blocks of high-intent focus directly to encrypted on-device storage. No employer tracking dashboards, no manager productivity scores, and no third-party data broker monetization. Your attention remains your private property.
+              </p>
+            </div>
+
+            <div class="story-media-box">
+              <img src="assets/orbit-lifestyle.jpg" alt="Professional wearing AURA Orbit at desk while writing notes in journal with laptop in background" loading="lazy">
+            </div>
+
+            <div class="story-specs-pillstrip">
+              <span class="spec-badge">Local NOR Flash Storage</span>
+              <span class="spec-badge">No Workplace Monitoring</span>
+              <span class="spec-badge">Hardware Cryptographic Keys</span>
+            </div>
+          </article>
+
+          <!-- 5. Optional Safety Check-in (Span 12) -->
+          <article class="story-card span-12 story-card-safety">
+            <div class="safety-grid-wrap">
+              <div class="safety-text-group">
+                <div class="story-card-tag tag-safety">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span>Pillar 05 · Safety Check-in</span>
+                </div>
+                <h3 class="story-title">Quiet reassurance during solo work sessions.</h3>
+                <p class="story-desc">
+                  An opt-in motion check-in system for late evening or remote hours. If sudden inactivity or unusual shock signatures occur, Orbit emits a progressive tactile cue asking for confirmation. A single crescent tap confirms safety; unacknowledged events hand off cleanly to paired smartphone SOS.
+                </p>
+                <div class="story-specs-pillstrip">
+                  <span class="spec-badge">Bosch BMI270 6-Axis IMU</span>
+                  <span class="spec-badge">Optical Sensor Array</span>
+                  <span class="spec-badge">Paired Emergency Relay</span>
+                  <span class="spec-badge">Strictly Opt-In</span>
+                </div>
+              </div>
+
+              <div class="story-media-box safety-media-box">
+                <img src="assets/orbit-rear.jpg" alt="AURA Orbit rear view showing hypoallergenic contact shell, optical wellness window, and 4-contact magnetic pogo pins" loading="lazy">
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- WATCH ANGLES & VISUAL GALLERY (10 High-Detail Renders) -->
+    <section class="orbit-visual-gallery-section" id="gallery" aria-label="AURA Orbit Visual Angle Gallery">
+      <div class="orbit-container">
+        <div class="orbit-section-header">
+          <span class="section-eyebrow">Studio Imagery &amp; CAD</span>
+          <h2 class="section-headline">Industrial Design Perspectives</h2>
+          <p class="section-lead">Inspect all 10 perspectives of the AURA Orbit hardware architecture. Click any render to inspect full-resolution details.</p>
+        </div>
+
+        <div class="gallery-grid-masonry">
+          <!-- 1. Hero Three-Quarter View -->
+          <div class="gallery-tile" tabindex="0" role="button" aria-label="View Hero Studio Perspective">
+            <img class="gallery-tile-img" src="assets/orbit-hero.jpg" alt="AURA Orbit hero three-quarter studio perspective" loading="lazy">
+            <div class="gallery-tile-overlay">
+              <span class="gallery-tile-number">Angle 01</span>
+              <h4 class="gallery-tile-title">Hero Studio Perspective</h4>
+              <p class="gallery-tile-sub">38 mm asymmetric soft-square pebble casing with hybrid band.</p>
+            </div>
+          </div>
+
+          <!-- 2. Front Display Close-Up -->
+          <div class="gallery-tile" tabindex="0" role="button" aria-label="View Front Display Close-Up">
+            <img class="gallery-tile-img" src="assets/orbit-front.jpg" alt="AURA Orbit front display close-up" loading="lazy">
+            <div class="gallery-tile-overlay">
+              <span class="gallery-tile-number">Angle 02</span>
+              <h4 class="gallery-tile-title">Sunlight MIP Display</h4>
+              <p class="gallery-tile-sub">Glanceable T-5 meeting prep countdown and single-action prompt.</p>
+            </div>
+          </div>
+
+          <!-- 3. Right-Side Interaction View -->
+          <div class="gallery-tile" tabindex="0" role="button" aria-label="View Right-Side Interaction View">
+            <img class="gallery-tile-img" src="assets/orbit-right.jpg" alt="AURA Orbit right side interaction view" loading="lazy">
+            <div class="gallery-tile-overlay">
+              <span class="gallery-tile-number">Angle 03</span>
+              <h4 class="gallery-tile-title">Right Control Macro</h4>
+              <p class="gallery-tile-sub">Raised crescent control key, amber privacy ring, and graphite chassis.</p>
+            </div>
+          </div>
+
+          <!-- 4. Left-Side Profile View -->
+          <div class="gallery-tile" tabindex="0" role="button" aria-label="View Left-Side Profile View">
+            <img class="gallery-tile-img" src="assets/orbit-left.jpg" alt="AURA Orbit left profile view" loading="lazy">
+            <div class="gallery-tile-overlay">
+              <span class="gallery-tile-number">Angle 04</span>
+              <h4 class="gallery-tile-title">Left Profile Ergonomics</h4>
+              <p class="gallery-tile-sub">Curved pebble contours engineered for continuous wrist comfort.</p>
+            </div>
+          </div>
+
+          <!-- 5. Rear Sensor and Charging View -->
+          <div class="gallery-tile" tabindex="0" role="button" aria-label="View Rear Sensor and Charging View">
+            <img class="gallery-tile-img" src="assets/orbit-rear.jpg" alt="AURA Orbit rear sensors and charging view" loading="lazy">
+            <div class="gallery-tile-overlay">
+              <span class="gallery-tile-number">Angle 05</span>
+              <h4 class="gallery-tile-title">Rear Underside &amp; Charging</h4>
+              <p class="gallery-tile-sub">Hypoallergenic matte housing, 4-pin magnetic charging, and sensor window.</p>
+            </div>
+          </div>
+
+          <!-- 6. Privacy Microphone Detail -->
+          <div class="gallery-tile" tabindex="0" role="button" aria-label="View Privacy Microphone Detail">
+            <img class="gallery-tile-img" src="assets/orbit-mic.jpg" alt="AURA Orbit privacy microphone macro detail" loading="lazy">
+            <div class="gallery-tile-overlay">
+              <span class="gallery-tile-number">Angle 06</span>
+              <h4 class="gallery-tile-title">Amber Privacy Ring Macro</h4>
+              <p class="gallery-tile-sub">Acoustic water-resistant mesh framed by hardware-gated indicator.</p>
+            </div>
+          </div>
+
+          <!-- 7. Strap Comfort View -->
+          <div class="gallery-tile" tabindex="0" role="button" aria-label="View Strap Comfort View">
+            <img class="gallery-tile-img" src="assets/orbit-strap.jpg" alt="AURA Orbit strap comfort view" loading="lazy">
+            <div class="gallery-tile-overlay">
+              <span class="gallery-tile-number">Angle 07</span>
+              <h4 class="gallery-tile-title">Hybrid Woven Band</h4>
+              <p class="gallery-tile-sub">Breathable interior textile with durable silicone perimeter rails.</p>
+            </div>
+          </div>
+
+          <!-- 8. Top-Down Flat Lay -->
+          <div class="gallery-tile" tabindex="0" role="button" aria-label="View Top-Down Flat Lay">
+            <img class="gallery-tile-img" src="assets/orbit-flatlay.jpg" alt="AURA Orbit top down flat lay view" loading="lazy">
+            <div class="gallery-tile-overlay">
+              <span class="gallery-tile-number">Angle 08</span>
+              <h4 class="gallery-tile-title">Desk Flat Lay</h4>
+              <p class="gallery-tile-sub">Calm desk presence displaying active focus session countdown.</p>
+            </div>
+          </div>
+
+          <!-- 9. Exploded Component Concept -->
+          <div class="gallery-tile" tabindex="0" role="button" aria-label="View Exploded Component Concept">
+            <img class="gallery-tile-img" src="assets/orbit-exploded.jpg" alt="AURA Orbit exploded component engineering CAD render" loading="lazy">
+            <div class="gallery-tile-overlay">
+              <span class="gallery-tile-number">Angle 09</span>
+              <h4 class="gallery-tile-title">Exploded CAD Schematics</h4>
+              <p class="gallery-tile-sub">9-layer breakdown showing Nordic SoC, battery, LRA motor, and housing.</p>
+            </div>
+          </div>
+
+          <!-- 10. Daily-Work Lifestyle Image -->
+          <div class="gallery-tile" tabindex="0" role="button" aria-label="View Daily-Work Lifestyle Image">
+            <img class="gallery-tile-img" src="assets/orbit-lifestyle.jpg" alt="AURA Orbit worn during deep work at desk" loading="lazy">
+            <div class="gallery-tile-overlay">
+              <span class="gallery-tile-number">Angle 10</span>
+              <h4 class="gallery-tile-title">Focus Workflow Context</h4>
+              <p class="gallery-tile-sub">Discreet companion presence while programming and drafting documentation.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FULL FUNCTIONAL HARDWARE ARCHITECTURE (Engineering Blueprint) -->
+    <section class="orbit-hardware-arch-section" id="specifications" aria-label="Hardware Architecture and Specifications">
+      <div class="orbit-container">
+        <div class="orbit-section-header">
+          <span class="section-eyebrow">Engineering Blueprint</span>
+          <h2 class="section-headline">Functional Hardware Architecture</h2>
+          <p class="section-lead">Reference component specification engineered for 2–4 day battery autonomy, authenticated Bluetooth LE Secure Connections, and hardware privacy isolation.</p>
+        </div>
+
+        <div class="arch-layout-2col">
+          <!-- Left: Sticky Exploded View Card -->
+          <div class="exploded-cad-card">
+            <img src="assets/orbit-exploded.jpg" alt="Technical exploded layer breakdown of AURA Orbit" loading="lazy">
+            <div class="cad-caption-bar">
+              <span class="cad-badge">CAD Architecture v1.4</span>
+              <span class="cad-specs-hint">9 Modular Subsystems</span>
+            </div>
+
+            <div class="cad-subsystems-list">
+              <p>Every internal subsystem is mechanically and electrically bounded to ensure user privacy:</p>
+              <ul>
+                <li><strong>Layers 1–2:</strong> Protective curved cover glass + transflective MIP display panel.</li>
+                <li><strong>Layers 3–5:</strong> Graphite PC/ABS casing, Nordic nRF5340 dual-core PCB, 240 mAh Li-Po pouch.</li>
+                <li><strong>Layers 6–9:</strong> LRA vibration actuator, hardware-coupled amber mic circuit, optical window, sealed magnetic pogo dock.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Right: Technical Spec Tables -->
+          <div class="specs-table-wrap">
+            <!-- Processing & Radio -->
+            <div class="spec-category-card">
+              <div class="spec-cat-header">
+                <div class="spec-cat-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                </div>
+                <h3 class="spec-cat-title">Processing &amp; Connectivity</h3>
+              </div>
+              <div class="spec-rows-list">
+                <div class="spec-row-item">
+                  <span class="spec-label">Primary SoC</span>
+                  <span class="spec-value"><strong>Nordic nRF5340</strong> dual-core Arm Cortex-M33 (128 MHz app + 64 MHz network)</span>
+                </div>
+                <div class="spec-row-item">
+                  <span class="spec-label">Radio &amp; Security</span>
+                  <span class="spec-value">Bluetooth LE 5.3 Secure Connections, AES-CCM bonding, ECDH P-256 key exchange</span>
+                </div>
+                <div class="spec-row-item">
+                  <span class="spec-label">Secure Element</span>
+                  <span class="spec-value">Hardware Cryptographic Root-of-Trust for device attestation</span>
+                </div>
+                <div class="spec-row-item">
+                  <span class="spec-label">Antenna System</span>
+                  <span class="spec-value">2.4 GHz custom ceramic antenna with body-decoupling matching network</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Power & Battery -->
+            <div class="spec-category-card">
+              <div class="spec-cat-header">
+                <div class="spec-cat-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="10" x2="23" y2="14"/></svg>
+                </div>
+                <h3 class="spec-cat-title">Power Architecture</h3>
+              </div>
+              <div class="spec-rows-list">
+                <div class="spec-row-item">
+                  <span class="spec-label">PMIC</span>
+                  <span class="spec-value"><strong>Nordic nPM1300</strong> with integrated buck regulators and ship-mode hibernate</span>
+                </div>
+                <div class="spec-row-item">
+                  <span class="spec-label">Battery Capacity</span>
+                  <span class="spec-value"><strong>240 mAh</strong> single-cell Li-Po with PCM thermal protection</span>
+                </div>
+                <div class="spec-row-item">
+                  <span class="spec-label">Battery Autonomy</span>
+                  <span class="spec-value"><strong>2 to 4 days</strong> typical focus routine with continuous BLE link</span>
+                </div>
+                <div class="spec-row-item">
+                  <span class="spec-label">Charging Dock</span>
+                  <span class="spec-value">Sealed 4-pin magnetic pogo interface (80% charge in 42 minutes)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Display & Audio/Haptic -->
+            <div class="spec-category-card">
+              <div class="spec-cat-header">
+                <div class="spec-cat-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                </div>
+                <h3 class="spec-cat-title">Interface &amp; Sensors</h3>
+              </div>
+              <div class="spec-rows-list">
+                <div class="spec-row-item">
+                  <span class="spec-label">Display Panel</span>
+                  <span class="spec-value">1.15-inch ultra-low-power Transflective Memory-in-Pixel (MIP), sunlight-readable</span>
+                </div>
+                <div class="spec-row-item">
+                  <span class="spec-label">Haptic Driver</span>
+                  <span class="spec-value"><strong>TI DRV2605</strong> driving quiet Linear Resonant Actuator (LRA)</span>
+                </div>
+                <div class="spec-row-item">
+                  <span class="spec-label">Acoustic Input</span>
+                  <span class="spec-value">Dual digital PDM MEMS microphones with acoustic water-resistant mesh</span>
+                </div>
+                <div class="spec-row-item">
+                  <span class="spec-label">Privacy Beacon</span>
+                  <span class="spec-value">Electrically hard-wired amber micro-LED ring. Hardware power-gated.</span>
+                </div>
+                <div class="spec-row-item">
+                  <span class="spec-label">Motion Sensing</span>
+                  <span class="spec-value"><strong>Bosch BMI270</strong> 6-axis ultra-low-power IMU for glance wake detection</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Architectural Boundaries by Design -->
+        <div class="excluded-specs-box">
+          <div class="excluded-specs-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            <h4>Architectural Boundaries by Design</h4>
+          </div>
+          <p class="excluded-specs-lead">
+            To preserve battery autonomy, eliminate ambient surveillance, and maintain distraction-free focus, Orbit intentionally omits:
+          </p>
+
+          <div class="excluded-grid">
+            <div class="excluded-item">
+              <span class="excluded-item-title">No Optical Camera</span>
+              <span class="excluded-item-desc">Eliminates workplace surveillance concerns and ensures security in confidential meeting rooms.</span>
+            </div>
+            <div class="excluded-item">
+              <span class="excluded-item-title">No Continuous Ambient Listening</span>
+              <span class="excluded-item-desc">Audio is captured exclusively during intentional user requests; never continuously recorded in the background.</span>
+            </div>
+            <div class="excluded-item">
+              <span class="excluded-item-title">No Cellular Modem or eSIM</span>
+              <span class="excluded-item-desc">Tethering via authenticated Bluetooth LE avoids secondary monthly data plans and parasitic battery drain.</span>
+            </div>
+            <div class="excluded-item">
+              <span class="excluded-item-title">No Third-Party App Store</span>
+              <span class="excluded-item-desc">A single-purpose focus instrument designed for cognitive clarity, not an entertainment screen.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE HAPTIC & PRIVACY SIMULATOR -->
+    <section class="orbit-interactive-demo-section" id="haptic-demo" aria-label="Interactive Haptic and Privacy Lab">
+      <div class="orbit-container">
+        <div class="orbit-section-header">
+          <span class="section-eyebrow">Tactile Lab</span>
+          <h2 class="section-headline">Experience Quiet Interaction Design</h2>
+          <p class="section-lead">Explore how Orbit communicates non-intrusively through calibrated haptic patterns and physical privacy isolation.</p>
+        </div>
+
+        <div class="interactive-demo-grid">
+          <!-- Haptic Waveform Simulator -->
+          <div class="demo-tool-card">
+            <div class="demo-tool-header">
+              <h3 class="demo-tool-title">LRA Haptic Waveform Simulator</h3>
+              <span class="demo-chip-tag">TI DRV2605</span>
+            </div>
+            <p class="demo-tool-desc">
+              Orbit uses localized, resonant tactile pulses that remain inaudible to colleagues yet clearly distinct on your wrist.
+            </p>
+
+            <div class="demo-haptic-canvas">
+              <div class="haptic-wave-bar">
+                <span class="wave-segment"></span>
+                <span class="wave-segment"></span>
+                <span class="wave-segment"></span>
+                <span class="wave-segment"></span>
+                <span class="wave-segment"></span>
+                <span class="wave-segment"></span>
+                <span class="wave-segment"></span>
+                <span class="wave-segment"></span>
+                <span class="wave-segment"></span>
+                <span class="wave-segment"></span>
+              </div>
+            </div>
+
+            <div class="haptic-status-text" id="haptic-status-label">
+              Ready — Select a waveform pattern to test
+            </div>
+
+            <div class="haptic-btn-strip">
+              <button class="haptic-trigger-btn" data-haptic="whisper">
+                Pre-Meeting Double Tap
+              </button>
+              <button class="haptic-trigger-btn" data-haptic="guardian">
+                Focus Ramp-Up
+              </button>
+              <button class="haptic-trigger-btn" data-haptic="safety">
+                Safety Pulse
+              </button>
+            </div>
+          </div>
+
+          <!-- Privacy Architecture Circuit Comparison -->
+          <div class="demo-tool-card">
+            <div class="demo-tool-header">
+              <h3 class="demo-tool-title">Hardware vs Software Privacy</h3>
+              <span class="demo-chip-tag amber">Zero Software Bypass</span>
+            </div>
+            <p class="demo-tool-desc">
+              Conventional voice wearables rely on operating system software flags that can be overridden by background services. AURA Orbit enforces physical decoupling:
+            </p>
+
+            <div class="circuit-compare-table">
+              <div class="circuit-row">
+                <div>
+                  <strong class="circuit-label-warn">Standard Smartwatch</strong>
+                  <div class="circuit-sub-text">Microphone remains continuously energized in standby</div>
+                </div>
+                <div class="circuit-state-text">
+                  Software controls LED indicator (vulnerable to silent hot-mic exploits)
+                </div>
+              </div>
+
+              <div class="circuit-row aura-row">
+                <div>
+                  <strong class="circuit-label-aura">AURA Orbit Design</strong>
+                  <div class="circuit-sub-text">Physical load-switch cuts microphone power rail by default</div>
+                </div>
+                <div class="circuit-state-aura">
+                  Amber LED is wired in-series with mic power rail. Mic cannot power on without light.
+                </div>
+              </div>
+            </div>
+
+            <div class="demo-panel-footer">
+              <span>Verified in Hardware Schematics</span>
+              <a href="control-plane.html" class="spec-jump-link">Inspect Live Audit Trail →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT TO BUY / ORDER SECTION -->
+    <section class="orbit-disclaimer-banner" id="contact-to-buy" aria-label="Contact Us to Buy Watch">
+      <div class="orbit-container">
+        <div class="disclaimer-card-full" id="beta-waitlist">
+          <div class="disclaimer-icon-wrap">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          </div>
+          <div class="disclaimer-text-group">
+            <h3>Contact Us to Buy AURA Orbit Edition</h3>
+            <p>
+              Direct hardware inquiry for the AURA Orbit Edition ($70). Enter your email to reserve your unit, receive invoice details, and connect directly with our fulfillment team.
+            </p>
+            <form id="beta-waitlist-form" class="beta-form-container">
+              <input type="email" placeholder="Enter your email to buy or inquire..." required class="beta-email-input">
+              <button type="submit" class="btn-sand-primary">Contact to Buy</button>
+            </form>
+            <div id="beta-form-feedback" class="beta-form-feedback"></div>
+          </div>
+        </div>
+
+        <!-- Medical Disclaimer -->
+        <div class="regulatory-notice">
+          <strong>Notice:</strong> AURA Orbit is an exploratory concept hardware architecture and industrial design study. It is not a medical device and is not intended for the diagnosis, cure, mitigation, treatment, or prevention of any medical condition or cardiac disorder. All physiological telemetry signals are wellness indicators only.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Product Detail Footer -->
+  <footer class="orbit-footer" role="contentinfo">
+    <div class="orbit-container">
+      <div class="footer-nav-grid">
+        <div class="footer-brand-summary">
+          <div class="footer-brand-header">
+            <div class="orbit-brand-mark" style="width:24px; height:24px;">
+              <div class="orbit-brand-ring" style="width:11px; height:11px;"></div>
+            </div>
+            <span>aura orbit</span>
+          </div>
+          <p>
+            Proactive cognitive clarity and privacy-visible hardware companions engineered for the future of distraction-free work.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Orbit Hardware</h4>
+          <ul class="footer-links-list">
+            <li><a href="#gallery" class="footer-link">10 Perspective Gallery</a></li>
+            <li><a href="#specifications" class="footer-link">Hardware Blueprint</a></li>
+            <li><a href="#haptic-demo" class="footer-link">Haptic Waveform Lab</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Platform &amp; Cloud</h4>
+          <ul class="footer-links-list">
+            <li><a href="index.html" class="footer-link">Platform Overview</a></li>
+            <li><a href="control-plane.html" class="footer-link">Web Control Plane</a></li>
+            <li><a href="index.html#architecture" class="footer-link">AWS Bedrock Engine</a></li>
+            <li><a href="control-plane.html#privacy" class="footer-link">Policy Audit Vault</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Principles</h4>
+          <ul class="footer-links-list">
+            <li><a href="#product-stories" class="footer-link">Pre-Meeting Whisper</a></li>
+            <li><a href="#product-stories" class="footer-link">Privacy-Visible Voice</a></li>
+            <li><a href="#product-stories" class="footer-link">Deep Work Bank</a></li>
+            <li><a href="#product-stories" class="footer-link">Safety Check-in</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Giant Typographic Brand Wordmark -->
+      <div class="giant-aura-wordmark" aria-hidden="true">Aura</div>
+
+      <div class="footer-bottom-bar">
+        <span>© 2026 Project AURA. Concept Hardware Architecture. All rights reserved.</span>
+        <span>Graphite · Warm Sand · Physical Privacy Isolation</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Lightbox Modal for Gallery -->
+  <div class="orbit-lightbox-modal" id="orbit-lightbox-modal" role="dialog" aria-modal="true" aria-label="Expanded Hardware Photograph">
+    <div class="lightbox-content-box">
+      <button class="lightbox-close-btn" id="lightbox-close-btn" aria-label="Close photo preview">✕</button>
+      <div class="lightbox-img-wrap">
+        <img id="lightbox-modal-img" src="" alt="High resolution hardware photo">
+      </div>
+      <div class="lightbox-caption-bar">
+        <div class="lightbox-caption-title" id="lightbox-modal-title"></div>
+        <div class="lightbox-caption-text" id="lightbox-modal-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="orbit.js"></script>
+</body>
+</html>

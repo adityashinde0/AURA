@@ -132,3 +132,7 @@ Sources: [Plaud shop & plans](https://www.plaud.ai/pages/shop-plaud), [Limitless
 
 **Not MVP:** covert phone-unlock telemetry, automatic DND changing, team analytics, transcription ingestion, manager dashboards, health/wellness inference, or an unverified Bee Watch SDK integration.
 
+---
+
+**Author / Architect:** Aditya Shinde  
+*Project AURA · All Rights Reserved*

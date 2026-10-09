@@ -145,3 +145,8 @@ The Phase 5 security and certification guarantees are verified by automated test
 - [x] **Credential Hygiene:** AWS Secrets Manager ARN references required; zero plaintext tokens.
 - [x] **Zero Raw Transcripts:** Audit trail and device payloads contain zero raw text or media streams.
 - [x] **Automated Test Suite:** 100% test pass rate across 131 unit, contract, and e2e tests.
+
+---
+
+**Author / Architect:** Aditya Shinde  
+*Project AURA · All Rights Reserved*

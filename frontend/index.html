@@ -29,6 +29,7 @@
       </a>
 
       <div class="header-links">
+        <a href="orbit.html" class="nav-link nav-orbit-link" title="Explore AURA Orbit 360° Watch Experience">Explore Watch</a>
         <a href="#architecture" class="nav-link">Architecture</a>
         <a href="#hardware" class="nav-link">Hardware Spec</a>
         
@@ -97,23 +98,27 @@
     <!-- Bento Section 1: Yellow Value Statement + "A NEW WAY" -->
     <section class="bento-grid-2col" aria-label="Aura Philosophy">
       <!-- Yellow Bento Card -->
-      <div class="card-yellow">
+      <div class="card-yellow" id="card-yellow-container">
         <div class="yellow-tab-list" role="tablist">
           <div class="yellow-tab-item active" role="tab" tabindex="0" aria-selected="true" data-tab-index="0">
-            <span>Aura turns moments into focus</span>
+            <span class="yellow-tab-title-text">Aura turns moments into focus</span>
             <span class="tab-arrow">→</span>
+            <div class="tab-progress-line"></div>
           </div>
           <div class="yellow-tab-item" role="tab" tabindex="0" aria-selected="false" data-tab-index="1">
-            <span>Aura prepares you before the moment</span>
+            <span class="yellow-tab-title-text">Aura prepares you before the moment</span>
             <span class="tab-arrow">→</span>
+            <div class="tab-progress-line"></div>
           </div>
           <div class="yellow-tab-item" role="tab" tabindex="0" aria-selected="false" data-tab-index="2">
-            <span>Aura is ready when you need it</span>
+            <span class="yellow-tab-title-text">Aura is ready when you need it</span>
             <span class="tab-arrow">→</span>
+            <div class="tab-progress-line"></div>
           </div>
         </div>
 
         <div class="yellow-focus-content">
+          <div class="yellow-counter-badge" id="yellow-tab-counter">1 of 3 · Auto Rotating</div>
           <h2 class="yellow-focus-title" id="yellow-focus-title">Aura turns moments into focus</h2>
           <p class="yellow-focus-desc" id="yellow-focus-desc">
             Bee remembers what you forgot. AURA anticipates what you're about to forget, and stops the world from distracting your deep work flow.
@@ -122,27 +127,58 @@
       </div>
 
       <!-- "A NEW WAY" Dark Aesthetic Card -->
-      <div class="card-dark-aesthetic">
+      <div class="card-dark-aesthetic" id="card-dark-aesthetic-container">
         <div class="aesthetic-header-group">
-          <div class="aesthetic-kicker-pill">
-            <span class="pulsing-amber-dot" aria-hidden="true"></span>
-            <span>TACTILE AMBIENT INTERFACE</span>
+          <div class="aesthetic-top-meta">
+            <div class="aesthetic-kicker-pill">
+              <span class="pulsing-amber-dot" aria-hidden="true"></span>
+              <span>TACTILE AMBIENT INTERFACE</span>
+            </div>
+            <div class="aesthetic-auto-badge" title="Auto-rotating every 5 seconds">
+              <span class="auto-pulse-dot"></span>
+              <span>AUTO 5S</span>
+            </div>
           </div>
-          <h2 class="giant-watermark-text" aria-label="A New Way">
-            <span>A NEW</span>
-            <span class="text-accent-gold">WAY</span>
-          </h2>
-          <p class="aesthetic-card-caption">
-            Zero screens during flow. Subtle haptic pulses whisper context before you enter the room.
-          </p>
-          <div class="aesthetic-spec-chips">
-            <span class="aesthetic-spec-pill">18g Featherweight</span>
-            <span class="aesthetic-spec-pill">Haptic Engine</span>
-            <span class="aesthetic-spec-pill">7-Day Battery</span>
+
+          <div class="aesthetic-headline-wrap">
+            <h2 class="giant-watermark-text" aria-label="A New Way">
+              <span>A NEW</span>
+              <span class="text-accent-gold">WAY</span>
+            </h2>
+            <p class="aesthetic-card-caption">
+              Zero screens during flow. Smooth ambient packets whisper focus signals directly to your bedroom Fire TV and Echo devices to pause distractions instantly.
+            </p>
+          </div>
+
+          <!-- Controls Bar: Chips and Switcher -->
+          <div class="aesthetic-chips-and-switch">
+            <div class="dark-card-image-toggle" role="group" aria-label="Device visual views">
+              <button class="image-toggle-pill active" id="btn-show-packets" type="button" aria-pressed="true" data-image-index="0">
+                <span>Smooth Room Sync</span>
+                <span class="pill-progress-bar"></span>
+              </button>
+              <button class="image-toggle-pill" id="btn-show-fleet" type="button" aria-pressed="false" data-image-index="1">
+                <span>All 5 Devices</span>
+                <span class="pill-progress-bar"></span>
+              </button>
+            </div>
+            <div class="aesthetic-spec-chips">
+              <span class="aesthetic-spec-pill">5 Devices Defended</span>
+              <span class="aesthetic-spec-pill">180ms Interception</span>
+              <span class="aesthetic-spec-pill">Zero Audio Saved</span>
+            </div>
           </div>
         </div>
+
+        <!-- Full Widescreen Showcase Frame with 100% Uncropped 16:9 Display -->
         <div class="dark-card-image-wrapper">
-          <img src="assets/aura-macro.jpg" alt="Aura sleek wearable smart band and dark mobile focus application" loading="lazy">
+          <div class="dark-card-image-container">
+            <img id="aesthetic-card-img" src="assets/aura-bedroom-sync.jpg" alt="Aura smart watch transmitting smooth ambient focus packets to bedroom TV and Echo speaker" loading="lazy">
+          </div>
+          <div class="dark-card-image-meta">
+            <span class="image-caption-tag" id="image-caption-tag">BEDROOM AMBIENT MESH</span>
+            <span class="image-sub-caption" id="image-sub-caption">Watch · Echo Dot · Fire TV Sync</span>
+          </div>
         </div>
       </div>
     </section>
@@ -478,7 +514,7 @@
       </div>
     </section>
 
-    <!-- Hardware Showcase: "Aura Pioneer Companion Specification" -->
+    <!-- Hardware Showcase: "Aura Wearable Companion" -->
     <section class="pioneer-section" id="hardware" aria-label="Hardware Showcase">
       <div class="pioneer-card">
         <div class="pioneer-badge-dev">Hardware Reference Specification</div>
@@ -487,71 +523,83 @@
           Open companion reference hardware designed for real-time ambient awareness, instant focus tactile control, and local privacy filtering.
         </p>
 
+        <!-- Clean, Focused Action Buttons -->
         <div class="pioneer-cta-group">
-          <a href="control-plane.html" class="hero-cta-btn">
-            <span>Launch Live Control Plane</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <a href="orbit.html" class="btn-orbit-explore" title="Open AURA Orbit Watch Experience">
+            <span>Explore Watch</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="7" y1="17" x2="17" y2="7"></line>
               <polyline points="7 7 17 7 17 17"></polyline>
             </svg>
           </a>
-          <a href="#architecture" class="btn-dark-pioneer">
-            <span>Explore Technical Architecture</span>
+          <a href="control-plane.html" class="btn-pioneer-secondary" title="Open Live Connected Control Plane">
+            <span>Launch Live Control Plane</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"></line>
+              <polyline points="7 7 17 7 17 17"></polyline>
+            </svg>
           </a>
         </div>
 
-        <!-- Hardware Product Display Photo -->
+        <!-- Hardware Product Display Frame -->
         <div class="pioneer-hardware-display">
-          <img src="assets/aura-pioneer.jpg" alt="Aura Pioneer smart wearable hardware reference band in matte black" loading="lazy">
+          <a href="orbit.html" title="Explore full AURA Orbit 360° interactive experience" class="pioneer-display-link">
+            <img src="assets/orbit-hero.jpg" alt="AURA Orbit original focus wearable companion in matte graphite" loading="lazy">
+            <div class="pioneer-overlay-pill">
+              <span>Explore Watch</span>
+            </div>
+          </a>
         </div>
 
-        <!-- Specs Box (4 Specs Grid) -->
+        <!-- Essential Hardware Highlights (Organized 4-Pillar Grid) -->
         <div class="pioneer-specs-box">
           <div class="specs-grid">
             <div class="spec-item">
-              <div class="spec-icon-wrapper">
+              <div class="spec-icon-wrapper" aria-hidden="true">
                 <svg class="spec-icon-svg" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
               </div>
-              <div>
+              <div class="spec-item-content">
                 <h4 class="spec-item-title">Dual Beamforming Microphones</h4>
                 <p class="spec-item-desc">Hardware-level noise suppression and real-time acoustic feature detection without streaming raw audio to the cloud.</p>
               </div>
             </div>
 
             <div class="spec-item">
-              <div class="spec-icon-wrapper">
+              <div class="spec-icon-wrapper" aria-hidden="true">
                 <svg class="spec-icon-svg" viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="11" x2="23" y2="13"/><polyline points="11 8 7 12 13 12 9 16"/></svg>
               </div>
-              <div>
+              <div class="spec-item-content">
                 <h4 class="spec-item-title">160-Hour Power Architecture</h4>
                 <p class="spec-item-desc">Ultra-low-power Nordic nRF / BLE SoC design delivering up to 7 days of continuous ambient focus tracking.</p>
               </div>
             </div>
 
             <div class="spec-item">
-              <div class="spec-icon-wrapper">
+              <div class="spec-icon-wrapper" aria-hidden="true">
                 <svg class="spec-icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
               </div>
-              <div>
+              <div class="spec-item-content">
                 <h4 class="spec-item-title">Tactile Haptic Button &amp; LED</h4>
                 <p class="spec-item-desc">Single press toggles deep work defense. Hardware LED signals focus mode (Amber: Active focus, Off: Private).</p>
               </div>
             </div>
 
             <div class="spec-item">
-              <div class="spec-icon-wrapper">
+              <div class="spec-icon-wrapper" aria-hidden="true">
                 <svg class="spec-icon-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
-              <div>
+              <div class="spec-item-content">
                 <h4 class="spec-item-title">Zero Raw-Audio Persistence</h4>
                 <p class="spec-item-desc">Local Whisper adapter extracts features and immediately discards the audio buffer. Privacy-first, purpose-bound context.</p>
               </div>
             </div>
           </div>
 
-          <div class="specs-footer-btn-row">
-            <a href="control-plane.html" class="btn-dark-pioneer">Open Interactive Simulator</a>
-            <a href="https://github.com/adityashinde0/Project-AURA-Proactive-Memory-That-Fights-For-Your-Focus" target="_blank" rel="noopener" class="btn-pill-outline" style="color:#000; border-color: rgba(0,0,0,0.2);">View on GitHub</a>
+          <div class="specs-footer-meta">
+            <a href="https://github.com/adityashinde0/Project-AURA-Proactive-Memory-That-Fights-For-Your-Focus" target="_blank" rel="noopener" class="specs-github-link">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              <span>View Hardware Reference &amp; Schematics on GitHub ↗</span>
+            </a>
           </div>
         </div>
       </div>

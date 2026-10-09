@@ -175,3 +175,8 @@ This report was authored by Bob in a single pass after reading the full source f
 - [x] **Code quality:** All changes are minimal and targeted; no unrelated cleanup; no speculative abstractions
 - [x] **Observability:** CloudWatch Insights queryable on `correlation_id`, `fallback_reason`, `level`, `service` fields
 - [x] **Privacy:** No raw user content, evidence text, or tokens appear in any log record
+
+---
+
+**Author / Architect:** Aditya Shinde  
+*Project AURA · All Rights Reserved*

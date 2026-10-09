@@ -407,6 +407,36 @@ function setupTheme() {
     if (DOM.themeToggleLabel) {
       DOM.themeToggleLabel.textContent = theme === 'light' ? 'Dark' : 'Light';
     }
+
+    // High-contrast SVG adjustments for light and dark modes
+    const strokePath = document.getElementById('chart-stroke-path');
+    const stop0 = document.getElementById('chart-grad-stop-0');
+    const stop1 = document.getElementById('chart-grad-stop-1');
+    const ringBg = document.querySelector('.progress-ring-bg');
+
+    if (theme === 'light') {
+      if (strokePath) strokePath.setAttribute('stroke', '#0F172A');
+      if (stop0) {
+        stop0.setAttribute('stop-color', '#0F172A');
+        stop0.setAttribute('stop-opacity', '0.22');
+      }
+      if (stop1) {
+        stop1.setAttribute('stop-color', '#0F172A');
+        stop1.setAttribute('stop-opacity', '0.04');
+      }
+      if (ringBg) ringBg.setAttribute('stroke', '#E2E8F0');
+    } else {
+      if (strokePath) strokePath.setAttribute('stroke', '#FFFFFF');
+      if (stop0) {
+        stop0.setAttribute('stop-color', '#FFFFFF');
+        stop0.setAttribute('stop-opacity', '0.30');
+      }
+      if (stop1) {
+        stop1.setAttribute('stop-color', '#FFFFFF');
+        stop1.setAttribute('stop-opacity', '0.05');
+      }
+      if (ringBg) ringBg.setAttribute('stroke', '#1F232B');
+    }
   }
 
   const currentTheme = localStorage.getItem('aura-color-theme') || 'dark';
@@ -417,22 +447,27 @@ function setupTheme() {
       const activeTheme = document.documentElement.getAttribute('data-theme') || 'dark';
       const newTheme = activeTheme === 'light' ? 'dark' : 'light';
       updateThemeUI(newTheme);
+      if (document.documentElement) document.documentElement.scrollLeft = 0;
+      if (document.body) document.body.scrollLeft = 0;
     });
   }
 }
 
 // Navigation Tab Management
 function setupNavigation() {
-  DOM.tabs.forEach((tab) => {
+  const tabs = document.querySelectorAll('.nav-tab');
+  const panels = document.querySelectorAll('.view-panel');
+
+  tabs.forEach((tab) => {
     tab.addEventListener('click', () => {
-      DOM.tabs.forEach((t) => {
+      tabs.forEach((t) => {
         t.classList.remove('active');
         t.setAttribute('aria-selected', 'false');
         t.setAttribute('tabindex', '-1');
       });
-      DOM.panels.forEach((p) => {
+      panels.forEach((p) => {
         p.classList.remove('active');
-        p.removeAttribute('hidden');
+        p.setAttribute('hidden', '');
       });
 
       tab.classList.add('active');
@@ -446,18 +481,76 @@ function setupNavigation() {
         targetPanel.removeAttribute('hidden');
       }
 
+      // Close mobile sidebar if open
+      const sidebar = document.getElementById('app-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      if (sidebar && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+      }
+      if (backdrop && backdrop.classList.contains('active')) {
+        backdrop.classList.remove('active');
+      }
+
       // Dynamic surface refresh on tab activation
-      if (targetId === 'view-permissions') renderGrants();
+      if (targetId === 'view-permissions' || targetId === 'view-settings') {
+        renderGrants();
+        renderGuardrailMetrics();
+      }
       if (targetId === 'view-audit') renderAuditTimeline();
-      if (targetId === 'view-integrations') {
+      if (targetId === 'view-integrations' || targetId === 'view-products') {
         renderDevicesRegistry();
         renderGuardrailMetrics();
         updateSlackPreview();
       }
-      if (targetId === 'view-focus') {
+      if (targetId === 'view-focus' || targetId === 'view-status') {
         updateTimerUI();
+        renderMeeting(state.activeMeetingId);
       }
     });
+  });
+
+  // Mobile Sidebar Toggle and Backdrop Handlers
+  const mobileToggleBtn = document.getElementById('btn-mobile-sidebar');
+  const closeSidebarBtn = document.getElementById('btn-close-sidebar');
+  const sidebar = document.getElementById('app-sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+
+  function openMobileSidebar() {
+    if (sidebar) sidebar.classList.add('open');
+    if (backdrop) backdrop.classList.add('active');
+  }
+
+  function closeMobileSidebar() {
+    if (sidebar) sidebar.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('active');
+  }
+
+  if (mobileToggleBtn) {
+    mobileToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (sidebar && sidebar.classList.contains('open')) {
+        closeMobileSidebar();
+      } else {
+        openMobileSidebar();
+      }
+    });
+  }
+
+  if (closeSidebarBtn) {
+    closeSidebarBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeMobileSidebar();
+    });
+  }
+
+  if (backdrop) {
+    backdrop.addEventListener('click', closeMobileSidebar);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) {
+      closeMobileSidebar();
+    }
   });
 }
 
@@ -711,12 +804,21 @@ function executeDevicePause() {
 
   // Update Fire TV state
   state.devices.firetv.state = 'paused';
-  DOM.firetvBadge.textContent = 'Paused';
-  DOM.firetvBadge.className = 'badge badge-status';
+  if (DOM.firetvBadge) {
+    DOM.firetvBadge.textContent = 'Paused';
+    DOM.firetvBadge.className = 'badge badge-status';
+  }
 
-  DOM.actionStatusBadge.textContent = 'Executed (Paused)';
-  DOM.actionStatusBadge.className = 'badge badge-status';
-  DOM.btnImmediateUndo.disabled = false;
+  if (DOM.actionStatusBadge) {
+    DOM.actionStatusBadge.textContent = 'Executed (Paused)';
+    DOM.actionStatusBadge.className = 'badge badge-status';
+  }
+  if (DOM.btnImmediateUndo) DOM.btnImmediateUndo.disabled = false;
+
+  const btnHomeUndo = document.getElementById('btn-home-undo');
+  if (btnHomeUndo) btnHomeUndo.disabled = false;
+
+  addRecentActivity('TV paused (MediaSession)', 'Just now', true);
 
   addAuditRecord(
     'request_pause',
@@ -732,12 +834,21 @@ function executeUndo() {
 
   // Restore Fire TV playback
   state.devices.firetv.state = 'playing';
-  DOM.firetvBadge.textContent = 'Playing';
-  DOM.firetvBadge.className = 'badge badge-success';
+  if (DOM.firetvBadge) {
+    DOM.firetvBadge.textContent = 'Playing';
+    DOM.firetvBadge.className = 'badge badge-success';
+  }
 
-  DOM.actionStatusBadge.textContent = 'Restored (Playing)';
-  DOM.actionStatusBadge.className = 'badge badge-success';
-  DOM.btnImmediateUndo.disabled = true;
+  if (DOM.actionStatusBadge) {
+    DOM.actionStatusBadge.textContent = 'Restored (Playing)';
+    DOM.actionStatusBadge.className = 'badge badge-success';
+  }
+  if (DOM.btnImmediateUndo) DOM.btnImmediateUndo.disabled = true;
+
+  const btnHomeUndo = document.getElementById('btn-home-undo');
+  if (btnHomeUndo) btnHomeUndo.disabled = true;
+
+  addRecentActivity('TV playback restored (Undo)', 'Just now', true);
 
   // Mark audit undone
   const record = state.audit.find((r) => r.undo_token === state.activeUndoToken);
@@ -1511,12 +1622,196 @@ function setupPhase6Slack() {
   updateSlackPreview();
 }
 
+// ==========================================================================
+// Home Dashboard & Live Telemetry Feed
+// ==========================================================================
+
+function addRecentActivity(text, timeStr = 'Just now', isGreen = true) {
+  const list = document.getElementById('recent-activity-list');
+  if (!list) return;
+
+  const item = document.createElement('div');
+  item.className = 'activity-feed-row';
+  item.innerHTML = `
+    <span class="status-indicator-dot ${isGreen ? 'dot-green' : 'dot-grey'}" aria-hidden="true"></span>
+    <span class="activity-feed-desc">${text}</span>
+    <span class="activity-feed-time">${timeStr}</span>
+  `;
+  list.insertBefore(item, list.firstChild);
+
+  // Keep top 6 items
+  while (list.children.length > 6) {
+    list.removeChild(list.lastChild);
+  }
+}
+
+function setupHomeDashboard() {
+  // Mobile sidebar toggle
+  const btnMobileSidebar = document.getElementById('btn-mobile-sidebar');
+  const sidebar = document.getElementById('app-sidebar');
+  if (btnMobileSidebar && sidebar) {
+    btnMobileSidebar.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+  }
+
+  // User Profile Dropdown
+  const userBtn = document.getElementById('user-profile-btn');
+  const userMenu = document.getElementById('user-dropdown-menu');
+  if (userBtn && userMenu) {
+    userBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userMenu.classList.toggle('show');
+    });
+    document.addEventListener('click', () => {
+      userMenu.classList.remove('show');
+    });
+  }
+
+  // User dropdown action links
+  const btnUserBank = document.getElementById('btn-user-open-bank');
+  if (btnUserBank && DOM.modalBank) {
+    btnUserBank.addEventListener('click', () => {
+      if (DOM.modalBankBalance) DOM.modalBankBalance.textContent = state.bank.balance;
+      DOM.modalBank.showModal();
+    });
+  }
+
+  const btnUserPurge = document.getElementById('btn-user-purge');
+  if (btnUserPurge && DOM.btnPurgeData) {
+    btnUserPurge.addEventListener('click', () => {
+      DOM.btnPurgeData.click();
+    });
+  }
+
+  // "View All >" link on Recent Activity Card -> switches to Audit tab
+  const linkViewAll = document.getElementById('link-view-all-activity');
+  if (linkViewAll) {
+    linkViewAll.addEventListener('click', () => {
+      const auditTab = document.getElementById('tab-audit');
+      if (auditTab) auditTab.click();
+    });
+  }
+
+  // 4 Device Tiles on Home
+  const tileWearable = document.getElementById('tile-device-wearable');
+  if (tileWearable) {
+    tileWearable.addEventListener('click', () => {
+      toggleWhisperAudio();
+      addRecentActivity('Wearable briefing triggered', 'Just now', true);
+    });
+  }
+
+  const tileHub = document.getElementById('tile-device-hub');
+  if (tileHub) {
+    tileHub.addEventListener('click', () => {
+      showToast('📡 Local Hub: Telemetry synced with 4 connected devices.');
+      addRecentActivity('Hub synced telemetry', 'Just now', true);
+      addAuditRecord('hub_sync', 'Local Hardware Hub', 'executed', 'Manual telemetry sync dispatched to 4 certified endpoints');
+    });
+  }
+
+  const tileTv = document.getElementById('tile-device-tv');
+  if (tileTv) {
+    tileTv.addEventListener('click', () => {
+      if (state.devices.firetv.state === 'paused') {
+        executeUndo();
+      } else {
+        executeDevicePause();
+      }
+    });
+  }
+
+  const tileAudio = document.getElementById('tile-device-audio');
+  if (tileAudio) {
+    tileAudio.addEventListener('click', () => {
+      const isDnd = state.devices.echo.state === 'dnd_active';
+      state.devices.echo.state = isDnd ? 'dnd_inactive' : 'dnd_active';
+      const label = isDnd ? 'Echo DND Cleared' : 'Echo DND Activated';
+      showToast(`🔊 ${label} for active focus session.`);
+      addRecentActivity(label, 'Just now', true);
+      addAuditRecord('request_dnd', 'Office Echo Dot', 'executed', `Manual DND toggled to ${state.devices.echo.state}`);
+    });
+  }
+
+  // Home Quick Action Bar Buttons
+  const btnHomeSimT5 = document.getElementById('btn-home-sim-t5');
+  if (btnHomeSimT5 && DOM.btnSimulateT5) {
+    btnHomeSimT5.addEventListener('click', () => {
+      DOM.btnSimulateT5.click();
+      addRecentActivity('T-5 Pre-Meeting evaluated', 'Just now', true);
+    });
+  }
+
+  const btnHomeDistracted = document.getElementById('btn-home-distracted');
+  if (btnHomeDistracted) {
+    btnHomeDistracted.addEventListener('click', () => {
+      triggerDistraction();
+    });
+  }
+
+  const btnHomePauseTv = document.getElementById('btn-home-pause-tv');
+  if (btnHomePauseTv) {
+    btnHomePauseTv.addEventListener('click', () => {
+      if (state.devices.firetv.state === 'paused') {
+        executeUndo();
+      } else {
+        executeDevicePause();
+      }
+    });
+  }
+
+  const btnHomeUndo = document.getElementById('btn-home-undo');
+  if (btnHomeUndo) {
+    btnHomeUndo.addEventListener('click', () => {
+      executeUndo();
+    });
+  }
+
+  // Chart range selector filter
+  const chartRangeSelect = document.getElementById('chart-range-select');
+  const chartStrokePath = document.getElementById('chart-stroke-path');
+  const chartAreaPath = document.getElementById('chart-area-path');
+
+  if (chartRangeSelect && chartStrokePath && chartAreaPath) {
+    const chartDataVariants = {
+      '7d': {
+        stroke: 'M 38 168 C 65 168, 75 142, 105 142 C 125 142, 135 158, 155 152 C 175 146, 185 138, 205 138 C 220 138, 230 152, 245 150 C 265 146, 275 110, 295 110 C 310 110, 318 132, 332 142 C 342 150, 350 162, 362 162 C 372 162, 380 135, 395 135 C 410 135, 420 40, 442 40 C 465 40, 475 125, 495 125 C 508 125, 518 165, 532 165 C 545 165, 555 130, 570 120',
+        area: 'M 38 170 L 38 168 C 65 168, 75 142, 105 142 C 125 142, 135 158, 155 152 C 175 146, 185 138, 205 138 C 220 138, 230 152, 245 150 C 265 146, 275 110, 295 110 C 310 110, 318 132, 332 142 C 342 150, 350 162, 362 162 C 372 162, 380 135, 395 135 C 410 135, 420 40, 442 40 C 465 40, 475 125, 495 125 C 508 125, 518 165, 532 165 C 545 165, 555 130, 570 120 L 570 170 Z',
+        label: 'Showing last 7 days telemetry'
+      },
+      '30d': {
+        stroke: 'M 38 150 C 80 140, 110 110, 150 120 C 190 130, 220 90, 260 85 C 300 80, 340 130, 380 100 C 420 70, 460 30, 500 55 C 530 75, 550 100, 570 95',
+        area: 'M 38 170 L 38 150 C 80 140, 110 110, 150 120 C 190 130, 220 90, 260 85 C 300 80, 340 130, 380 100 C 420 70, 460 30, 500 55 C 530 75, 550 100, 570 95 L 570 170 Z',
+        label: 'Showing 30 days telemetry'
+      },
+      '24h': {
+        stroke: 'M 38 160 C 100 160, 150 150, 200 130 C 250 110, 300 120, 350 90 C 400 60, 450 50, 500 70 C 535 85, 550 110, 570 105',
+        area: 'M 38 170 L 38 160 C 100 160, 150 150, 200 130 C 250 110, 300 120, 350 90 C 400 60, 450 50, 500 70 C 535 85, 550 110, 570 105 L 570 170 Z',
+        label: 'Showing last 24 hours telemetry'
+      }
+    };
+
+    chartRangeSelect.addEventListener('change', (e) => {
+      const variant = chartDataVariants[e.target.value];
+      if (variant) {
+        chartStrokePath.setAttribute('d', variant.stroke);
+        chartAreaPath.setAttribute('d', variant.area);
+        showToast(`📊 Updated chart view: ${variant.label}`);
+      }
+    });
+  }
+}
+
 function initApp() {
+  if (document.documentElement) document.documentElement.scrollLeft = 0;
+  if (document.body) document.body.scrollLeft = 0;
   setupTheme();
   setupNavigation();
   setupEventListeners();
   setupPhase5EventListeners();
   setupPhase6Slack();
+  setupHomeDashboard();
   renderMeeting(state.activeMeetingId);
   renderGrants();
   renderAuditTimeline();

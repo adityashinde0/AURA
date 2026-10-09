@@ -107,3 +107,7 @@ The requested `armcbride12/beemcp` URL was unavailable at research time. Do not 
 - SQS DLQ, CloudWatch alarms, X-Ray traces, OpenTelemetry correlation IDs, and synthetic canaries cover trigger-to-delivery.
 - Feature flags progressively enable adapters and model versions; every action capability has a tenant, user, and global kill switch.
 
+---
+
+**Author / Architect:** Aditya Shinde  
+*Project AURA · All Rights Reserved*

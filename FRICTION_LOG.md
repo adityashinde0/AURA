@@ -23,3 +23,8 @@ This is a living engineering artifact, not a retroactive success story. Update i
 - [Limitless customer status](https://www.limitless.ai/)
 - [Plaud pricing](https://www.plaud.ai/pages/shop-plaud)
 - [Omi pricing](https://www.omi.me/pages/pricing)
+
+---
+
+**Author / Architect:** Aditya Shinde  
+*Project AURA · All Rights Reserved*
