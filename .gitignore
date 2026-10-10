@@ -54,10 +54,18 @@ infra/lib/*.d.ts
 scratch/
 
 
-# React Native / Expo
+# React Native / Expo / Android Build Artifacts
 .expo/
 *.tsbuildinfo
 dist/
+build/
+mobile/build/
+android/build/
+.gradle/
+*.apk
+*.aab
+*.keystore
+*.jks
 
 # Zephyr / Embedded firmware
 firmware/build/
@@ -66,8 +74,17 @@ firmware/build/
 *.bin
 *.elf
 
-# Apple / Swift
+# Apple / Swift / iOS / watchOS
 .build/
 DerivedData/
 *.xcworkspace/xcuserdata/
 *.xcuserdatad/
+xcuserdata/
+*.xcuserstate
+*.ipa
+*.dSYM/
+*.dSYM.zip
+
+# Large binary documentation exports
+AURA_ORBIT_HARDWARE_SPECIFICATION.pdf
+
