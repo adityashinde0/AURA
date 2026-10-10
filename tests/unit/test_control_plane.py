@@ -126,7 +126,7 @@ def test_lambda_handler_http_routes(store: InMemoryDataStore) -> None:
 
 def test_wearable_registration_and_single_active_binding(store: InMemoryDataStore) -> None:
     """First registration succeeds; re-registration with a new device_id revokes the old
-    binding (Single Active Watch Binding rule, apple_implementation_plan.md §7.1)."""
+    binding (Single Active Watch Binding rule, docs/plans/apple_implementation_plan.md §7.1)."""
 
     # --- First registration ---
     body_first = {

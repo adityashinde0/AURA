@@ -2,15 +2,15 @@
 
 <div align="center">
 
-![AURA Orbit Hero View](frontend/assets/orbit-hero.jpg)
+![AURA Orbit Hero View](../../frontend/assets/orbit-hero.jpg)
 
 **A calm, privacy-visible focus wearable companion engineered for distraction-free deep work, glanceable pre-meeting preparation, and reversible context actions.**
 
 [![Bluetooth LE](https://img.shields.io/badge/BLE-5.4_Secure_Bonding-blue?logo=bluetooth)](https://www.bluetooth.com/)
 [![Nordic nRF5340](https://img.shields.io/badge/SoC-Nordic_nRF5340_Dual_Core-00A9CE)](https://www.nordicsemi.com/Products/nRF5340)
 [![Nordic nPM1300](https://img.shields.io/badge/PMIC-Nordic_nPM1300-00A9CE)](https://www.nordicsemi.com/Products/nPM1300)
-[![Privacy Certified](https://img.shields.io/badge/Privacy-Hardware_Gated_Mic-success)](SECURITY_REVIEW_CERTIFICATION.md)
-[![Zero Surveillance](https://img.shields.io/badge/Audio_Storage-Zero_Ambient_Store-orange)](PRD.md)
+[![Privacy Certified](https://img.shields.io/badge/Privacy-Hardware_Gated_Mic-success)](../SECURITY_REVIEW_CERTIFICATION.md)
+[![Zero Surveillance](https://img.shields.io/badge/Audio_Storage-Zero_Ambient_Store-orange)](../PRD.md)
 [![Form Factor](https://img.shields.io/badge/Dimensions-38mm_Pebble_·_8.2mm-gray)](#2-industrial-design-visual-language--visual-catalog)
 
 </div>
@@ -110,7 +110,7 @@ AURA Orbit departs completely from both generic rectangular smartwatches and thi
 ### 2.2 Visual Hardware Catalog & Perspectives
 
 #### Perspective 1: Hero Studio Three-Quarter View
-![AURA Orbit Hero View](frontend/assets/orbit-hero.jpg)
+![AURA Orbit Hero View](../../frontend/assets/orbit-hero.jpg)
 *Figure 1: AURA Orbit 38 mm soft-square focus pebble in matte graphite finish, showing the asymmetric crescent button, transflective display with T-5 briefing cue, and dark charcoal woven hybrid strap.*
 
 * **Chassis Finish:** Matte graphite with low-specular bead-blasted texture (Ra 0.8 µm), resisting fingerprint oils.
@@ -120,7 +120,7 @@ AURA Orbit departs completely from both generic rectangular smartwatches and thi
 ---
 
 #### Perspective 2: Glanceable Front Display & Interaction State
-![AURA Orbit Front Display](frontend/assets/orbit-front.jpg)
+![AURA Orbit Front Display](../../frontend/assets/orbit-front.jpg)
 *Figure 2: Direct front view illustrating the 1.15-inch high-contrast transflective MIP display rendering a $T-5$ meeting prep alert with a single-click "View Prep" call-to-action.*
 
 * **Display Type:** 1.15-inch Transflective Memory-in-Pixel (144 × 168 px, 180 ppi).
@@ -130,7 +130,7 @@ AURA Orbit departs completely from both generic rectangular smartwatches and thi
 ---
 
 #### Perspective 3: Asymmetric Crescent Tactile Button (Right Profile)
-![AURA Orbit Right Profile Button](frontend/assets/orbit-right.jpg)
+![AURA Orbit Right Profile Button](../../frontend/assets/orbit-right.jpg)
 *Figure 3: Macro view of the raised crescent physical button on the right edge, engineered for blind tactile navigation and positive mechanical detent.*
 
 * **Tactile Design:** Sculpted concave thumb groove with 0.35 mm key travel and 180 g actuation force.
@@ -140,7 +140,7 @@ AURA Orbit departs completely from both generic rectangular smartwatches and thi
 ---
 
 #### Perspective 4: Ergonomic Left Profile & Thermal Enclosure
-![AURA Orbit Left Profile](frontend/assets/orbit-left.jpg)
+![AURA Orbit Left Profile](../../frontend/assets/orbit-left.jpg)
 *Figure 4: Left profile showcasing the 8.2 mm slim curved enclosure, continuous wrist-contour curvature, and Nordic PMIC thermal dissipation surfaces.*
 
 * **Total Thickness:** 8.2 mm at center apex; tapering to 6.8 mm at strap lugs.
@@ -150,7 +150,7 @@ AURA Orbit departs completely from both generic rectangular smartwatches and thi
 ---
 
 #### Perspective 5: Rear Biosensors & Magnetic Pogo Charging Dock
-![AURA Orbit Rear View](frontend/assets/orbit-rear.jpg)
+![AURA Orbit Rear View](../../frontend/assets/orbit-rear.jpg)
 *Figure 5: Underside showing the hypoallergenic biocompatible rear shell, central optical sensor window (PPG), and 4-contact magnetic pogo docking pins.*
 
 * **Materials:** Biocompatible bio-ceramic composite (ISO 10993-5 cytotoxicity compliant, nickel-free).
@@ -160,7 +160,7 @@ AURA Orbit departs completely from both generic rectangular smartwatches and thi
 ---
 
 #### Perspective 6: Hardware-Gated Amber Privacy Ring & Acoustic Port
-![AURA Orbit Privacy Microphone Detail](frontend/assets/orbit-mic.jpg)
+![AURA Orbit Privacy Microphone Detail](../../frontend/assets/orbit-mic.jpg)
 *Figure 6: High-detail macro capture of the dual PDM MEMS acoustic microphone port surrounded by the illuminated hardwired amber privacy LED ring.*
 
 * **Acoustic Port:** Laser-drilled 0.6 mm micro-apertures with hydrophobic ePTFE acoustic membrane (IP67 liquid barrier).
@@ -170,7 +170,7 @@ AURA Orbit departs completely from both generic rectangular smartwatches and thi
 ---
 
 #### Perspective 7: Hybrid Breathable Textile-Silicone Strap
-![AURA Orbit Strap Comfort](frontend/assets/orbit-strap.jpg)
+![AURA Orbit Strap Comfort](../../frontend/assets/orbit-strap.jpg)
 *Figure 7: 20 mm quick-release hybrid strap combining a sweat-wicking knit interior with an outer protective liquid-silicone rubber rail.*
 
 * **Strap Geometry:** 20 mm standard lug width with quick-release toolless spring pins.
@@ -180,7 +180,7 @@ AURA Orbit departs completely from both generic rectangular smartwatches and thi
 ---
 
 #### Perspective 8: Workspace Flat-Lay & Focus Halo Footprint
-![AURA Orbit Flat-Lay](frontend/assets/orbit-flatlay.jpg)
+![AURA Orbit Flat-Lay](../../frontend/assets/orbit-flatlay.jpg)
 *Figure 8: Studio flat-lay view illustrating the minimalist desk footprint of AURA Orbit beside daily cognitive tools.*
 
 * **Desk Presence:** Compact, non-intrusive aesthetic that rests flat on charging or workspace pads.
@@ -189,7 +189,7 @@ AURA Orbit departs completely from both generic rectangular smartwatches and thi
 ---
 
 #### Perspective 9: Contextual Workspace Lifestyle
-![AURA Orbit Lifestyle View](frontend/assets/orbit-lifestyle.jpg)
+![AURA Orbit Lifestyle View](../../frontend/assets/orbit-lifestyle.jpg)
 *Figure 9: User in deep focus work at a workstation with AURA Orbit delivering quiet haptic cues without screen distraction.*
 
 * **Daily Ritual:** Gentle LRA vibration alerts user 5 minutes before scheduled meetings, allowing seamless mental task-switching without phone pickups.
@@ -199,7 +199,7 @@ AURA Orbit departs completely from both generic rectangular smartwatches and thi
 
 ## 3. Exploded Assembly & Mechanical Architecture
 
-![AURA Orbit Exploded CAD Breakdown](frontend/assets/orbit-exploded.jpg)
+![AURA Orbit Exploded CAD Breakdown](../../frontend/assets/orbit-exploded.jpg)
 *Figure 10: Technical exploded layer engineering breakdown illustrating the precision mechanical stacking of AURA Orbit.*
 
 ### 3.1 Layer-by-Layer Engineering Stack
@@ -354,7 +354,7 @@ This section details the precise engineering justification, physical mechanical 
 #### 1. Main Processor & Bluetooth LE SoC: Nordic Semiconductor nRF5340
 <div align="center">
 
-![Nordic nRF5340 Dual-Core SoC](frontend/assets/part-nrf5340-soc.jpg)
+![Nordic nRF5340 Dual-Core SoC](../../frontend/assets/part-nrf5340-soc.jpg)
 *Figure 11: Nordic nRF5340 dual-core ARM Cortex-M33 SoC on high-density matte black rigid-flex PCB with gold ENIG traces and adjacent RF shield can.*
 
 </div>
@@ -375,7 +375,7 @@ This section details the precise engineering justification, physical mechanical 
 #### 2. Ultra-Efficient Power Management IC (PMIC): Nordic Semiconductor nPM1300
 <div align="center">
 
-![Nordic nPM1300 Wearable PMIC](frontend/assets/part-npm1300-pmic.jpg)
+![Nordic nPM1300 Wearable PMIC](../../frontend/assets/part-npm1300-pmic.jpg)
 *Figure 12: Nordic nPM1300 wearable PMIC surrounded by high-efficiency miniature power inductors, precision ceramic decoupling capacitors, and gold test points.*
 
 </div>
@@ -395,7 +395,7 @@ This section details the precise engineering justification, physical mechanical 
 #### 3. Cryptographic Hardware Root of Trust: Microchip ATECC608B
 <div align="center">
 
-![Microchip ATECC608B Hardware Security Element](frontend/assets/part-atecc608b-security.jpg)
+![Microchip ATECC608B Hardware Security Element](../../frontend/assets/part-atecc608b-security.jpg)
 *Figure 13: Microchip ATECC608B secure element chip with hardware cryptographic accelerator, tamper-detection circuitry, and gold bus traces.*
 
 </div>
@@ -415,7 +415,7 @@ This section details the precise engineering justification, physical mechanical 
 #### 4. Ultra-Low-Power 6-Axis Motion Sensor (IMU): Bosch Sensortec BMI270
 <div align="center">
 
-![Bosch Sensortec BMI270 6-Axis IMU](frontend/assets/part-bmi270-imu.jpg)
+![Bosch Sensortec BMI270 6-Axis IMU](../../frontend/assets/part-bmi270-imu.jpg)
 *Figure 14: Bosch Sensortec BMI270 ultra-low-power 6-axis IMU accelerometer and gyroscope chip on wearable flexible printed circuit.*
 
 </div>
@@ -434,7 +434,7 @@ This section details the precise engineering justification, physical mechanical 
 #### 5. Tactile Feedback Subsystem: TI DRV2605L & Linear Resonant Actuator (LRA)
 <div align="center">
 
-![TI DRV2605L Haptic Driver and LRA Motor](frontend/assets/part-drv2605-haptic.jpg)
+![TI DRV2605L Haptic Driver and LRA Motor](../../frontend/assets/part-drv2605-haptic.jpg)
 *Figure 15: Texas Instruments DRV2605L haptic driver IC alongside an 8 mm coin-type 170 Hz Linear Resonant Actuator (LRA) motor with silicone dampening gasket.*
 
 </div>
@@ -454,7 +454,7 @@ This section details the precise engineering justification, physical mechanical 
 #### 6. Optical Wellness Sensor (Optional): Analog Devices MAX86141
 <div align="center">
 
-![Analog Devices MAX86141 Optical PPG Sensor](frontend/assets/part-max86141-ppg.jpg)
+![Analog Devices MAX86141 Optical PPG Sensor](../../frontend/assets/part-max86141-ppg.jpg)
 *Figure 16: Analog Devices MAX86141 dual-channel optical PPG analog front-end module showing green and infrared emitter LEDs and central photodiode aperture.*
 
 </div>
@@ -474,7 +474,7 @@ This section details the precise engineering justification, physical mechanical 
 #### 7. Hardware-Gated Audio Subsystem: Knowles Dual PDM MEMS Mics & Amber Ring
 <div align="center">
 
-![Knowles PDM MEMS Microphones and Amber Privacy Ring](frontend/assets/orbit-mic.jpg)
+![Knowles PDM MEMS Microphones and Amber Privacy Ring](../../frontend/assets/orbit-mic.jpg)
 *Figure 17: Macro view of the top acoustic port with hydrophobic ePTFE mesh surrounded by the circular amber LED privacy ring hardwired to microphone power.*
 
 </div>
@@ -494,7 +494,7 @@ This section details the precise engineering justification, physical mechanical 
 #### 8. Sunlight-Readable Calm Display: 1.15-inch Transflective Memory-in-Pixel Module
 <div align="center">
 
-![1.15-Inch Transflective Memory-in-Pixel Display](frontend/assets/part-transflective-display.jpg)
+![1.15-Inch Transflective Memory-in-Pixel Display](../../frontend/assets/part-transflective-display.jpg)
 *Figure 18: 1.15-inch Transflective Memory-in-Pixel (MIP) display module with high-contrast monochrome typography and flexible ribbon cable.*
 
 </div>
@@ -514,7 +514,7 @@ This section details the precise engineering justification, physical mechanical 
 #### 9. High-Density Lithium-Polymer Battery: 260 mAh Pouch Cell + Safety PCM
 <div align="center">
 
-![260 mAh Li-Po Battery Cell with Protection Board](frontend/assets/part-lipo-battery.jpg)
+![260 mAh Li-Po Battery Cell with Protection Board](../../frontend/assets/part-lipo-battery.jpg)
 *Figure 19: High-density 260 mAh 3.85V Li-Po pouch battery cell with integrated gold-contact PCM protection board and 10k NTC thermistor.*
 
 </div>
@@ -534,7 +534,7 @@ This section details the precise engineering justification, physical mechanical 
 #### 10. Sealed Charging & Debug Dock: 4-Pin Magnetic Pogo Interface
 <div align="center">
 
-![Sealed Magnetic Pogo Charging Dock](frontend/assets/part-magnetic-dock.jpg)
+![Sealed Magnetic Pogo Charging Dock](../../frontend/assets/part-magnetic-dock.jpg)
 *Figure 20: Sealed circular magnetic charging dock with 4 gold-plated spring-loaded pogo pins, dual Neodymium alignment magnets, and braided USB-C cable.*
 
 </div>
@@ -558,7 +558,7 @@ This section details the precise engineering justification, physical mechanical 
 #### 11. Sculpted Tactile Interaction Switch: Asymmetric Crescent Dome Key
 <div align="center">
 
-![Asymmetric Crescent Tactile Button](frontend/assets/orbit-right.jpg)
+![Asymmetric Crescent Tactile Button](../../frontend/assets/orbit-right.jpg)
 *Figure 21: Macro view of the raised crescent physical button on the right edge, engineered for blind tactile indexing and positive mechanical detent.*
 
 </div>
@@ -956,7 +956,7 @@ Before consumer commercialization, AURA Orbit must satisfy international regulat
 - [x] Material Biocompatibility: ISO 10993-5 (cytotoxicity) and ISO 10993-10 (skin sensitization) approved medical-grade silicone strap specification documented.
 - [x] Ingress Protection: Design tolerances and silicone o-ring compression modeled for IP54 splash / IP67 temporary immersion seals.
 - [x] Cryptographic & Security Audit: Third-party penetration testing baseline passed; BLE LESC ECDH pairing, passkey display, and ATECC608B hardware root-of-trust verified.
-- [x] Privacy Impact Assessment (DPIA): Certified compliance with GDPR, CCPA, and Zero-Surveillance guarantees signed off in SECURITY_REVIEW_CERTIFICATION.md.
+- [x] Privacy Impact Assessment (DPIA): Certified compliance with GDPR, CCPA, and Zero-Surveillance guarantees signed off in [SECURITY_REVIEW_CERTIFICATION.md](../SECURITY_REVIEW_CERTIFICATION.md).
 ```
 
 ---
@@ -1001,8 +1001,8 @@ AURA Orbit is an original, privacy-visible focus wearable reference architecture
 
 ### 15.2 Reference Implementation Files
 * Hardware Engineering Specification: [`AURA_ORBIT_HARDWARE_DOCS.md`](AURA_ORBIT_HARDWARE_DOCS.md)
-* Interactive Web Control Plane Simulation: [`frontend/control-plane.html`](frontend/control-plane.html)
-* Interactive 360° Industrial Showcase: [`frontend/orbit.html`](frontend/orbit.html)
+* Interactive Web Control Plane Simulation: [`frontend/control-plane.html`](../../frontend/control-plane.html)
+* Interactive 360° Industrial Showcase: [`frontend/orbit.html`](../../frontend/orbit.html)
 * Production Reference PDF Dossier: [`AURA_ORBIT_HARDWARE_SPECIFICATION.pdf`](AURA_ORBIT_HARDWARE_SPECIFICATION.pdf)
 
 ---

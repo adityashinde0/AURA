@@ -203,7 +203,7 @@ def calculate_trigger_epoch(event: CalendarEvent, offset_seconds: int = 300) -> 
 
 
 def generate_idempotency_key(user_id: str, calendar_event_id: str, start_epoch: int) -> str:
-    """Generate canonical idempotency key as per ARCHITECTURE.md: {user}:{calendarEventId}:{startEpoch}."""
+    """Generate canonical idempotency key as per docs/ARCHITECTURE.md: {user}:{calendarEventId}:{startEpoch}."""
     return f"{user_id}:{calendar_event_id}:{start_epoch}"
 
 

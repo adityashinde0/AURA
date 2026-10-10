@@ -1053,7 +1053,7 @@ _ESCALATION_RATE_LIMIT_SECONDS = 60
 def handle_register_wearable(body: dict[str, Any], store: InMemoryDataStore = default_store) -> dict[str, Any]:
     """Register a wearable push token (APNs/FCM).
 
-    Enforces the Single Active Watch Binding rule (apple_implementation_plan.md §7.1):
+    Enforces the Single Active Watch Binding rule (docs/plans/apple_implementation_plan.md §7.1):
     a new binding for the same user but a different device_id revokes the old binding
     and appends a security audit record.
     """

@@ -11,11 +11,12 @@
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/Tests-301_Passing-brightgreen?logo=pytest&logoColor=white)](tests/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Privacy](https://img.shields.io/badge/Privacy-Zero--Surveillance_Certified-9cf)](SECURITY_REVIEW_CERTIFICATION.md)
+[![Privacy](https://img.shields.io/badge/Privacy-Zero--Surveillance_Certified-9cf)](docs/SECURITY_REVIEW_CERTIFICATION.md)
+[![Hardware Dossier PDF](https://img.shields.io/badge/Hardware_Dossier-PDF_Spec_6.3MB-red?logo=adobe-acrobat-reader&logoColor=white)](docs/hardware/AURA_ORBIT_HARDWARE_SPECIFICATION.pdf)
 
 **Bee remembers what you forgot. AURA remembers what you're about to forget, and orchestrates your physical and digital world to defend your focus.**
 
-[🌐 Live Web Control Plane & Simulator](#-live-web-control-plane--hardware-simulator) • [⌚ Multi-Device Ecosystem](#-multi-device-hardware--software-ecosystem) • [🏠 Ambient Smart Home Integrations](#-ambient-smart-home--iot-integrations) • [🏗️ System Architecture](#-end-to-end-system-architecture) • [📊 Multi-LLM Benchmarks](#-multi-llm-resilience-gateway--benchmarks) • [☁️ AWS Cloud (11 Services)](#-aws-cloud-architecture-11-enterprise-services)
+[🌐 Live Web Control Plane & Simulator](#-live-web-control-plane--hardware-simulator) • [⌚ Multi-Device Ecosystem](#-multi-device-hardware--software-ecosystem) • [📄 Hardware PDF Dossier](docs/hardware/AURA_ORBIT_HARDWARE_SPECIFICATION.pdf) • [🏠 Ambient Smart Home Integrations](#-ambient-smart-home--iot-integrations) • [🏗️ System Architecture](#-end-to-end-system-architecture) • [📊 Multi-LLM Benchmarks](#-multi-llm-resilience-gateway--benchmarks) • [☁️ AWS Cloud (11 Services)](#-aws-cloud-architecture-11-enterprise-services) • [📚 Documentation Hub](#-documentation-hub--system-specifications)
 
 </div>
 
@@ -61,6 +62,7 @@ Project AURA provides first-class support for physical wearables, smart watches,
 * **Hardware Privacy Interlock:** The amber privacy ring LED is physically wired in series with the MEMS microphone bias rail. Audio recording is physically impossible without visible illumination.
 * **Display:** Sharp 1.1-inch Memory-in-Pixel (MIP) transflective display (always-on with sub-15 µW static power consumption).
 * **Firmware:** Built on Zephyr RTOS with custom BLE GATT services for bi-directional focus session control and haptic pattern dispatch (DRV2605L).
+* **📄 Engineering Dossier & PDF:** Complete mechanical, electrical, and PMIC documentation is published in [`docs/hardware/AURA_ORBIT_HARDWARE_DOCS.md`](docs/hardware/AURA_ORBIT_HARDWARE_DOCS.md) and available as an official publication in [`docs/hardware/AURA_ORBIT_HARDWARE_SPECIFICATION.pdf`](docs/hardware/AURA_ORBIT_HARDWARE_SPECIFICATION.pdf).
 
 ### 2. Apple Watch & iOS Suite (`apple/`)
 * **Biometric Telemetry:** Leverages Apple HealthKit to continuously sample heart rate, resting heart rate, and heart-rate variability (HRV) standard deviation (SDNN) to infer cognitive load and stress spikes.
@@ -333,6 +335,28 @@ cd firmware
 west build -b nrf5340dk_nrf5340_cpuapp
 west flash
 ```
+
+---
+
+## 📚 Documentation Hub & System Specifications
+
+All comprehensive technical specifications, architecture blueprints, operational runbooks, and compliance reviews are maintained in the [`docs/`](docs/) directory:
+
+| Specification / Artifact | Description | Direct Link |
+|---|---|---|
+| **System Architecture** | Full production event-driven architecture, personal device trust boundaries, and AWS integration matrix | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
+| **Product Requirements (PRD)** | Core product thesis, competitive baseline (Plaud, Limitless, Omi), user flows, and privacy boundaries | [`docs/PRD.md`](docs/PRD.md) |
+| **Hardware Engineering Docs** | 1,000+ line engineering specification: BOM, exploded assembly, PMIC nPM1300 power budget, Zephyr drivers | [`docs/hardware/AURA_ORBIT_HARDWARE_DOCS.md`](docs/hardware/AURA_ORBIT_HARDWARE_DOCS.md) |
+| **Hardware Dossier (PDF)** | **Official 6.35 MB production engineering reference publication & industrial design dossier** | [`docs/hardware/AURA_ORBIT_HARDWARE_SPECIFICATION.pdf`](docs/hardware/AURA_ORBIT_HARDWARE_SPECIFICATION.pdf) |
+| **Wearable Concept Design** | Original exploratory industrial design rationale and calm wearable philosophy | [`docs/hardware/aura_wearable_hardware_design.md`](docs/hardware/aura_wearable_hardware_design.md) |
+| **Security & Certification** | Fire TV `MediaSession`, Alexa DND, STRIDE threat model, and zero-raw-media boundary certification | [`docs/SECURITY_REVIEW_CERTIFICATION.md`](docs/SECURITY_REVIEW_CERTIFICATION.md) |
+| **Production Runbooks** | Prescriptive tier-1 & tier-2 operational recovery procedures for all 7 outage scenarios | [`docs/RUNBOOKS.md`](docs/RUNBOOKS.md) |
+| **Developer Friction Log** | Real engineering friction log with actionable suggestions for AWS and Amazon development teams | [`docs/FRICTION_LOG.md`](docs/FRICTION_LOG.md) |
+| **Implementation Plan** | Phased milestone tracking (Phases 1–6) and verified test contract definitions | [`docs/IMPLEMENTATION.md`](docs/IMPLEMENTATION.md) |
+| **Modernization Report** | IBM Bob / AWS Modernize What Matters Hackathon submission report and contract tests | [`docs/MODERNIZATION_REPORT.md`](docs/MODERNIZATION_REPORT.md) |
+| **Apple Implementation Plan** | Native watchOS + iOS implementation plan, state machines, and HealthKit safety guardrails | [`docs/plans/apple_implementation_plan.md`](docs/plans/apple_implementation_plan.md) |
+| **Notification Pipeline Plan** | End-to-end APNs/FCM delivery Lambda, EventBridge rules, and feedback API roadmap | [`docs/plans/aura_notification_system_plan.md`](docs/plans/aura_notification_system_plan.md) |
+| **AI Agent Guidelines** | Non-negotiable coding rules, `lambda` import pattern, and test invariants | [`AGENTS.md`](AGENTS.md) |
 
 ---
 

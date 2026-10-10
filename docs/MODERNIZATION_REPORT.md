@@ -28,16 +28,16 @@ Before the modernization sprint the two critical Lambda handlers had the followi
 ### 2.2 Refactoring Applied to `lambda/websocket_handler.py`
 
 **Structured JSON logging (`_log` helper)**  
-All `print()` calls were replaced with a dedicated [`_log()`](lambda/websocket_handler.py:36) function that emits a single JSON object per line. Every record carries a fixed envelope (`timestamp`, `level`, `service`, `event`) plus call-specific keyword fields. No raw user content, auth tokens, or evidence text is ever included.
+All `print()` calls were replaced with a dedicated [`_log()`](../lambda/websocket_handler.py#L36) function that emits a single JSON object per line. Every record carries a fixed envelope (`timestamp`, `level`, `service`, `event`) plus call-specific keyword fields. No raw user content, auth tokens, or evidence text is ever included.
 
-**Strict token validation ([`validate_connect_token()`](lambda/websocket_handler.py:56))**  
+**Strict token validation ([`validate_connect_token()`](../lambda/websocket_handler.py#L56))**  
 The following hardening layers were added on top of the existing length check:
 - `None`, empty, and whitespace-only tokens are rejected before any further processing.
 - The `Bearer ` prefix is stripped before the 16-character minimum-length check, closing a bypass that allowed short real tokens with the prefix to pass.
 - The case-insensitive substring `"expired"` is matched anywhere in the stripped token string.
 - Each rejection path emits a distinct `reason` field (`empty_token`, `token_too_short`, `token_expired`) for CloudWatch alerting.
 
-**Query-string token warning ([`handle_connect()`](lambda/websocket_handler.py:88))**  
+**Query-string token warning ([`handle_connect()`](../lambda/websocket_handler.py#L88))**  
 When a token arrives via `?auth_token=` rather than the `Authorization` header, the handler emits a `WARNING` log with `event: connect_token_from_querystring` and a human-readable note. This surfaces credential hygiene issues in CloudWatch without breaking backward compatibility for existing clients.
 
 **Correlation ID propagation**  
@@ -49,13 +49,13 @@ Every relay request generates a UUID `correlation_id` at ingress. The ID travels
 
 ### 2.3 Refactoring Applied to `lambda/focus_guardian.py`
 
-**Structured JSON logging ([`_log()`](lambda/focus_guardian.py:22))**  
+**Structured JSON logging ([`_log()`](../lambda/focus_guardian.py#L22))**  
 Identical pattern to `websocket_handler`. The service field is `"aura.focus_guardian"`. Logs never include evidence text, prompt bodies, or model outputs — only IDs and counts.
 
-**Pydantic-enforced input schema ([`FocusRequest`](lambda/focus_guardian.py:37), [`FocusProposal`](lambda/focus_guardian.py:46))**  
+**Pydantic-enforced input schema ([`FocusRequest`](../lambda/focus_guardian.py#L37), [`FocusProposal`](../lambda/focus_guardian.py#L46))**  
 All inbound event fields are validated through Pydantic `BaseModel` classes with explicit `Field` constraints (`min_length`, `max_length`, `ge`, `le`). Any malformed request returns a structured `400` before reaching the model invocation path.
 
-**Fallback tagging ([`safe_fallback()`](lambda/focus_guardian.py:87))**  
+**Fallback tagging ([`safe_fallback()`](../lambda/focus_guardian.py#L87))**  
 The `fallback_reason` parameter was added with a default of `""` for backward compatibility. All call sites now pass a machine-readable tag:
 
 | Trigger | `fallback_reason` tag |
@@ -66,7 +66,7 @@ The `fallback_reason` parameter was added with a default of `""` for backward co
 | Unexpected `TypeError` from the invoker | `type_error` |
 
 **Evidence hallucination guard**  
-After a successful model parse, [`lambda_handler`](lambda/focus_guardian.py:130) verifies that every ID in `proposal.evidence_ids` is a subset of the IDs present in the original request envelope. Any out-of-bounds reference raises a `ValueError` that routes to the `hallucinated_evidence` fallback path without surfacing the fabricated ID to the caller.
+After a successful model parse, [`lambda_handler`](../lambda/focus_guardian.py#L130) verifies that every ID in `proposal.evidence_ids` is a subset of the IDs present in the original request envelope. Any out-of-bounds reference raises a `ValueError` that routes to the `hallucinated_evidence` fallback path without surfacing the fabricated ID to the caller.
 
 ---
 
@@ -138,7 +138,7 @@ The shift from free-form `print()` strings to structured JSON logging has a dire
 IBM Bob's agentic capabilities provided a qualitatively different development experience compared to single-file IDE assistance. The concrete accelerations achieved during this sprint:
 
 **Parallel cross-file context**  
-Bob held [`lambda/websocket_handler.py`](lambda/websocket_handler.py), [`lambda/focus_guardian.py`](lambda/focus_guardian.py), and [`tests/contract/test_modernization_contract.py`](tests/contract/test_modernization_contract.py) in context simultaneously. This allowed it to identify that the same `_log()` pattern needed to be applied consistently across both Lambda modules and that the contract tests needed to capture log output at the `builtins.print` level rather than module-level monkey-patching alone — a cross-file insight that a single-file assistant cannot deliver.
+Bob held [`lambda/websocket_handler.py`](../lambda/websocket_handler.py), [`lambda/focus_guardian.py`](../lambda/focus_guardian.py), and [`tests/contract/test_modernization_contract.py`](../tests/contract/test_modernization_contract.py) in context simultaneously. This allowed it to identify that the same `_log()` pattern needed to be applied consistently across both Lambda modules and that the contract tests needed to capture log output at the `builtins.print` level rather than module-level monkey-patching alone — a cross-file insight that a single-file assistant cannot deliver.
 
 **Refactor-then-verify loop**  
 Bob ran `pytest tests/contract/test_modernization_contract.py` immediately after each structural change, surfacing the `pydantic` import failure and the `Bearer ` prefix bug in the token validator before a commit was made. The loop — read, refactor, test, confirm — ran in the same session without context loss.
@@ -158,11 +158,11 @@ This report was authored by Bob in a single pass after reading the full source f
 
 | File | Change type | Description |
 |---|---|---|
-| [`lambda/websocket_handler.py`](lambda/websocket_handler.py) | Modified | Structured logging, strict token validation, QS-token warning, correlation IDs, payload/evidence bounds |
-| [`lambda/focus_guardian.py`](lambda/focus_guardian.py) | Modified | Structured logging, `fallback_reason` tags on all fallback paths, evidence hallucination guard |
-| [`tests/contract/test_modernization_contract.py`](tests/contract/test_modernization_contract.py) | New | 10 contract tests locking observable behaviour of both refactored handlers |
+| [`lambda/websocket_handler.py`](../lambda/websocket_handler.py) | Modified | Structured logging, strict token validation, QS-token warning, correlation IDs, payload/evidence bounds |
+| [`lambda/focus_guardian.py`](../lambda/focus_guardian.py) | Modified | Structured logging, `fallback_reason` tags on all fallback paths, evidence hallucination guard |
+| [`tests/contract/test_modernization_contract.py`](../tests/contract/test_modernization_contract.py) | New | 10 contract tests locking observable behaviour of both refactored handlers |
 | [`MODERNIZATION_REPORT.md`](MODERNIZATION_REPORT.md) | New | This document |
-| [`README.md`](README.md) | Modified | IBM Bob Modernization section added |
+| [`README.md`](../README.md) | Modified | IBM Bob Modernization section added |
 
 ---
 

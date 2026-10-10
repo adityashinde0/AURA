@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-Project AURA's connected device subsystem enables privacy-first, reversible physical-environment interventions during focused work sessions. In accordance with AURA's Core Product Requirements ([`PRD.md`](file:///c:/Users/Shind/OneDrive/Desktop/AURA/PRD.md)) and Production Architecture ([`ARCHITECTURE.md`](file:///c:/Users/Shind/OneDrive/Desktop/AURA/ARCHITECTURE.md)), **no device command is ever executed without deterministic policy validation, verified certification contracts, household boundary checks, multi-tier kill switches, and cryptographic undo tokens.**
+Project AURA's connected device subsystem enables privacy-first, reversible physical-environment interventions during focused work sessions. In accordance with AURA's Core Product Requirements ([`PRD.md`](PRD.md)) and Production Architecture ([`ARCHITECTURE.md`](ARCHITECTURE.md)), **no device command is ever executed without deterministic policy validation, verified certification contracts, household boundary checks, multi-tier kill switches, and cryptographic undo tokens.**
 
 This document provides the formal security architecture review and Amazon certification compliance specification for:
 1. **Amazon Fire TV MediaSession API Integration** (Certified transport control for media pause/resume)

@@ -84,7 +84,3 @@ xcuserdata/
 *.ipa
 *.dSYM/
 *.dSYM.zip
-
-# Large binary documentation exports
-AURA_ORBIT_HARDWARE_SPECIFICATION.pdf
-

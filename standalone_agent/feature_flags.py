@@ -1,6 +1,6 @@
 """Feature flags and multi-tier kill switches for Project AURA.
 
-Enforces architecture requirements (ARCHITECTURE.md line 108):
+Enforces architecture requirements (docs/ARCHITECTURE.md line 108):
 - Global kill switch: System-wide instant disable of any action capability.
 - Tenant kill switch: Per-tenant action capability gates.
 - User feature flags & cohort rollouts: Progressive user enablement.

@@ -1,4 +1,4 @@
-"""Contract tests verifying the strict Agent Contract defined in IMPLEMENTATION.md."""
+"""Contract tests verifying the strict Agent Contract defined in docs/IMPLEMENTATION.md."""
 import importlib
 import json
 import pytest
