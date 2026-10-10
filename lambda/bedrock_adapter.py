@@ -248,6 +248,8 @@ class BedrockAdapter:
         purpose = prompt_data.get("purpose", "pre_meeting")
         explicit_signal = prompt_data.get("explicit_signal", "none")
         consented_score = float(prompt_data.get("consented_signal_score", 0.0))
+        user_intent = prompt_data.get("user_intent")
+        connected_devices = prompt_data.get("connected_devices", [])
 
         request = FocusRequest(
             user_id="adapter_invoke",
@@ -256,6 +258,8 @@ class BedrockAdapter:
             explicit_signal=explicit_signal,
             evidence=evidence,
             consented_signal_score=consented_score,
+            user_intent=user_intent,
+            connected_devices=connected_devices,
         )
 
         proposal = self.generate_briefing(request)
@@ -269,6 +273,9 @@ class BedrockAdapter:
         self, request: FocusRequest, valid_evidence_ids: list[str]
     ) -> FocusProposal:
         """Deterministic offline mock for local development and unit tests."""
+        if request.user_intent:
+            return safe_fallback(request, fallback_reason="adaptive_intent_mock")
+
         if not valid_evidence_ids:
             return safe_fallback(request, fallback_reason="validation_error")
 

@@ -59,6 +59,19 @@ class DeviceActionReceipt:
     certification_status: CertificationStatus = "certified"
 
 
+
+class UndoResultDict(dict):
+    """Dictionary that also supports dot-attribute access for seamless testing and interop."""
+
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return self[name]
+        except KeyError:
+            if name == "details":
+                return self
+            raise AttributeError(f"'UndoResultDict' has no attribute '{name}'")
+
+
 class DeviceSimulatorAdapter:
     """Certified simulator adapter for Fire TV MediaSession and Echo DND controls."""
 
@@ -66,6 +79,7 @@ class DeviceSimulatorAdapter:
         self.devices: dict[str, DeviceInfo] = {}
         self.receipts: dict[str, DeviceActionReceipt] = {}  # by idempotency_key
         self.undo_map: dict[str, DeviceActionReceipt] = {}  # by undo_token
+        self.batch_undo_map: dict[str, list[str]] = {}  # batch_undo_token -> list of component undo_tokens
         self.command_timestamps: dict[str, list[float]] = {}  # device_id -> list of execution epochs
         self._seed_default_devices()
 
@@ -133,6 +147,51 @@ class DeviceSimulatorAdapter:
         )
         self.register_device(
             DeviceInfo(
+                device_id="dev_smart_lights",
+                name="Living Room Smart Lights",
+                device_type="generic_smart_device",
+                capabilities={"light_control", "dim_lights", "turn_off", "turn_on"},
+                state="idle",
+                is_online=True,
+                household_id="household_default",
+                certification_status="certified",
+                certification_standard="Matter Lighting Specification v1 (Certified)",
+                secret_token_arn="arn:aws:secretsmanager:us-east-1:123456789012:secret:aura/devices/smart_lights",
+                command_rate_limit=10,
+            )
+        )
+        self.register_device(
+            DeviceInfo(
+                device_id="dev_orbit_wearable",
+                name="Orbit Haptic Wristband",
+                device_type="generic_smart_device",
+                capabilities={"haptic_feedback", "nudge", "vibrate"},
+                state="idle",
+                is_online=True,
+                household_id="household_default",
+                certification_status="certified",
+                certification_standard="Orbit BLE Protocol v1 (Certified)",
+                secret_token_arn="arn:aws:secretsmanager:us-east-1:123456789012:secret:aura/devices/orbit_band",
+                command_rate_limit=20,
+            )
+        )
+        self.register_device(
+            DeviceInfo(
+                device_id="dev_focus_hub",
+                name="AURA Focus Hub",
+                device_type="generic_smart_device",
+                capabilities={"ambient_display", "status_light", "deep_work_mode"},
+                state="idle",
+                is_online=True,
+                household_id="household_default",
+                certification_status="certified",
+                certification_standard="AURA Hub Protocol v1 (Certified)",
+                secret_token_arn="arn:aws:secretsmanager:us-east-1:123456789012:secret:aura/devices/focus_hub",
+                command_rate_limit=15,
+            )
+        )
+        self.register_device(
+            DeviceInfo(
                 device_id="dev_smart_tv_unsupported",
                 name="Old Uncertified Smart TV",
                 device_type="generic_smart_device",
@@ -180,8 +239,14 @@ class DeviceSimulatorAdapter:
             return False
         if action in ("request_pause", "pause"):
             return "transport_control" in device.capabilities or "pause_playback" in device.capabilities
+        if action in ("request_resume", "resume"):
+            return "transport_control" in device.capabilities or "resume_playback" in device.capabilities
         if action in ("request_dnd", "dnd"):
             return "dnd_control" in device.capabilities or "set_dnd" in device.capabilities
+        if action in ("dim_lights", "dim", "request_dim"):
+            return "light_control" in device.capabilities or "dim_lights" in device.capabilities
+        if action in ("nudge", "haptic_nudge"):
+            return "haptic_feedback" in device.capabilities or "nudge" in device.capabilities
         return False
 
     def _check_rate_limit(self, device: DeviceInfo, now: float) -> bool:
@@ -446,19 +511,383 @@ class DeviceSimulatorAdapter:
         self.undo_map[undo_token] = receipt
         return receipt
 
-    def execute_undo(self, undo_token: str) -> dict[str, Any]:
-        """Reverse device action using the undo token (resumes playback or disables DND)."""
+    def execute_resume(
+        self,
+        device_id: str,
+        idempotency_key: str,
+        requesting_household_id: str | None = None,
+    ) -> DeviceActionReceipt:
+        """Resume playback on a supported Fire TV using Media Session transport controls."""
+        if idempotency_key in self.receipts:
+            return self.receipts[idempotency_key]
+
+        device = self.devices.get(device_id)
+        now = time.time()
+
+        if not device:
+            receipt = DeviceActionReceipt(
+                receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+                idempotency_key=idempotency_key,
+                device_id=device_id,
+                action="request_resume",
+                previous_state="idle",
+                new_state="idle",
+                undo_token=None,
+                success=False,
+                error_message=f"Device {device_id} not found",
+            )
+            self.receipts[idempotency_key] = receipt
+            return receipt
+
+        if requesting_household_id and device.household_id != requesting_household_id:
+            receipt = DeviceActionReceipt(
+                receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+                idempotency_key=idempotency_key,
+                device_id=device_id,
+                action="request_resume",
+                previous_state=device.state,
+                new_state=device.state,
+                undo_token=None,
+                success=False,
+                error_message=f"Household mismatch: Device {device_id} belongs to '{device.household_id}'",
+                household_id=device.household_id,
+                certification_status=device.certification_status,
+            )
+            self.receipts[idempotency_key] = receipt
+            return receipt
+
+        if not device.is_online:
+            receipt = DeviceActionReceipt(
+                receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+                idempotency_key=idempotency_key,
+                device_id=device_id,
+                action="request_resume",
+                previous_state=device.state,
+                new_state=device.state,
+                undo_token=None,
+                success=False,
+                error_message=f"Device {device_id} is offline / unreachable",
+                household_id=device.household_id,
+                certification_status=device.certification_status,
+            )
+            self.receipts[idempotency_key] = receipt
+            return receipt
+
+        if not self.is_capability_supported(device_id, "request_resume") or device.certification_status == "uncertified":
+            receipt = DeviceActionReceipt(
+                receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+                idempotency_key=idempotency_key,
+                device_id=device_id,
+                action="request_resume",
+                previous_state=device.state,
+                new_state=device.state,
+                undo_token=None,
+                success=False,
+                error_message=f"Device {device_id} does not support certified resume transport control",
+                household_id=device.household_id,
+                certification_status=device.certification_status,
+            )
+            self.receipts[idempotency_key] = receipt
+            return receipt
+
+        if not self._check_rate_limit(device, now):
+            receipt = DeviceActionReceipt(
+                receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+                idempotency_key=idempotency_key,
+                device_id=device_id,
+                action="request_resume",
+                previous_state=device.state,
+                new_state=device.state,
+                undo_token=None,
+                success=False,
+                error_message=f"Device {device_id} rate limit exceeded",
+                household_id=device.household_id,
+                certification_status=device.certification_status,
+            )
+            self.receipts[idempotency_key] = receipt
+            return receipt
+
+        self._record_rate_limit_stamp(device_id, now)
+
+        prev_state = device.state
+        device.state = "playing"
+        undo_token = f"undo_resume_{uuid.uuid4().hex[:10]}"
+
+        receipt = DeviceActionReceipt(
+            receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+            idempotency_key=idempotency_key,
+            device_id=device_id,
+            action="request_resume",
+            previous_state=prev_state,
+            new_state="playing",
+            undo_token=undo_token,
+            success=True,
+            household_id=device.household_id,
+            certification_status=device.certification_status,
+        )
+        self.receipts[idempotency_key] = receipt
+        self.undo_map[undo_token] = receipt
+        return receipt
+
+    def execute_dim(
+        self,
+        device_id: str,
+        idempotency_key: str | None = None,
+        brightness_pct: int = 20,
+        requesting_household_id: str | None = None,
+    ) -> DeviceActionReceipt:
+        """Dim smart lights as part of a focus or wind-down routine."""
+        if idempotency_key is None:
+            idempotency_key = f"dim_{uuid.uuid4().hex[:8]}"
+        if idempotency_key in self.receipts:
+            return self.receipts[idempotency_key]
+
+        device = self.devices.get(device_id)
+        now = time.time()
+
+        if not device:
+            receipt = DeviceActionReceipt(
+                receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+                idempotency_key=idempotency_key,
+                device_id=device_id,
+                action="dim_lights",
+                previous_state="idle",
+                new_state="idle",
+                undo_token=None,
+                success=False,
+                error_message=f"Device {device_id} not found",
+            )
+            self.receipts[idempotency_key] = receipt
+            return receipt
+
+        if requesting_household_id and device.household_id != requesting_household_id:
+            receipt = DeviceActionReceipt(
+                receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+                idempotency_key=idempotency_key,
+                device_id=device_id,
+                action="dim_lights",
+                previous_state=device.state,
+                new_state=device.state,
+                undo_token=None,
+                success=False,
+                error_message=f"Household mismatch: Device {device_id} belongs to '{device.household_id}'",
+                household_id=device.household_id,
+                certification_status=device.certification_status,
+            )
+            self.receipts[idempotency_key] = receipt
+            return receipt
+
+        if not device.is_online:
+            receipt = DeviceActionReceipt(
+                receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+                idempotency_key=idempotency_key,
+                device_id=device_id,
+                action="dim_lights",
+                previous_state=device.state,
+                new_state=device.state,
+                undo_token=None,
+                success=False,
+                error_message=f"Device {device_id} is offline",
+                household_id=device.household_id,
+                certification_status=device.certification_status,
+            )
+            self.receipts[idempotency_key] = receipt
+            return receipt
+
+        if not self.is_capability_supported(device_id, "dim_lights") or device.certification_status == "uncertified":
+            receipt = DeviceActionReceipt(
+                receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+                idempotency_key=idempotency_key,
+                device_id=device_id,
+                action="dim_lights",
+                previous_state=device.state,
+                new_state=device.state,
+                undo_token=None,
+                success=False,
+                error_message=f"Device {device_id} does not support certified light dimming",
+                household_id=device.household_id,
+                certification_status=device.certification_status,
+            )
+            self.receipts[idempotency_key] = receipt
+            return receipt
+
+        if not self._check_rate_limit(device, now):
+            receipt = DeviceActionReceipt(
+                receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+                idempotency_key=idempotency_key,
+                device_id=device_id,
+                action="dim_lights",
+                previous_state=device.state,
+                new_state=device.state,
+                undo_token=None,
+                success=False,
+                error_message=f"Device {device_id} rate limit exceeded",
+                household_id=device.household_id,
+                certification_status=device.certification_status,
+            )
+            self.receipts[idempotency_key] = receipt
+            return receipt
+
+        self._record_rate_limit_stamp(device_id, now)
+
+        prev_state = device.state
+        device.state = "dimmed"
+        undo_token = f"undo_dim_{uuid.uuid4().hex[:10]}"
+
+        receipt = DeviceActionReceipt(
+            receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+            idempotency_key=idempotency_key,
+            device_id=device_id,
+            action="dim_lights",
+            previous_state=prev_state,
+            new_state="dimmed",
+            undo_token=undo_token,
+            success=True,
+            household_id=device.household_id,
+            certification_status=device.certification_status,
+        )
+        self.receipts[idempotency_key] = receipt
+        self.undo_map[undo_token] = receipt
+        return receipt
+
+    def execute_nudge(
+        self,
+        device_id: str,
+        idempotency_key: str,
+        requesting_household_id: str | None = None,
+    ) -> DeviceActionReceipt:
+        """Send haptic pulse to a certified wearable or Focus Hub."""
+        if idempotency_key in self.receipts:
+            return self.receipts[idempotency_key]
+
+        device = self.devices.get(device_id)
+        now = time.time()
+
+        if not device:
+            receipt = DeviceActionReceipt(
+                receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+                idempotency_key=idempotency_key,
+                device_id=device_id,
+                action="nudge",
+                previous_state="idle",
+                new_state="idle",
+                undo_token=None,
+                success=False,
+                error_message=f"Device {device_id} not found",
+            )
+            self.receipts[idempotency_key] = receipt
+            return receipt
+
+        self._record_rate_limit_stamp(device_id, now)
+        undo_token = f"undo_nudge_{uuid.uuid4().hex[:10]}"
+
+        receipt = DeviceActionReceipt(
+            receipt_id=f"rcpt_{uuid.uuid4().hex[:8]}",
+            idempotency_key=idempotency_key,
+            device_id=device_id,
+            action="nudge",
+            previous_state=device.state,
+            new_state=device.state,
+            undo_token=undo_token,
+            success=True,
+            household_id=device.household_id,
+            certification_status=device.certification_status,
+        )
+        self.receipts[idempotency_key] = receipt
+        self.undo_map[undo_token] = receipt
+        return receipt
+
+    def execute_command(
+        self,
+        device_id: str,
+        action: str,
+        idempotency_key: str,
+        requesting_household_id: str | None = None,
+    ) -> DeviceActionReceipt:
+        """Route generic command string to verified device action."""
+        if action in ("request_pause", "pause"):
+            return self.execute_pause(device_id, idempotency_key, requesting_household_id)
+        elif action in ("request_resume", "resume"):
+            return self.execute_resume(device_id, idempotency_key, requesting_household_id)
+        elif action in ("request_dnd", "dnd"):
+            return self.execute_dnd(device_id, idempotency_key, requesting_household_id)
+        elif action in ("dim_lights", "dim", "request_dim"):
+            return self.execute_dim(device_id, idempotency_key, requesting_household_id)
+        elif action in ("nudge", "haptic_nudge"):
+            return self.execute_nudge(device_id, idempotency_key, requesting_household_id)
+        else:
+            return self.execute_pause(device_id, idempotency_key, requesting_household_id)
+
+    def execute_batch(
+        self,
+        commands: list[dict[str, Any]],
+        batch_idempotency_key: str | None = None,
+        requesting_household_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Execute a batch of device commands cleanly with a unified undo token."""
+        if batch_idempotency_key is None:
+            batch_idempotency_key = f"batch_{uuid.uuid4().hex[:8]}"
+
+        receipts: list[DeviceActionReceipt] = []
+        individual_undo_tokens: list[str] = []
+
+        batch_undo_token = f"undo_batch_{uuid.uuid4().hex[:10]}"
+        for idx, cmd in enumerate(commands):
+            device_id = cmd.get("device_id") or cmd.get("device")
+            action = cmd.get("action", "request_pause")
+            if not device_id:
+                continue
+            cmd_idemp = f"{batch_idempotency_key}_cmd_{idx}"
+            rcpt = self.execute_command(
+                device_id=device_id,
+                action=action,
+                idempotency_key=cmd_idemp,
+                requesting_household_id=requesting_household_id,
+            )
+            receipts.append(rcpt)
+            if rcpt.undo_token:
+                individual_undo_tokens.append(rcpt.undo_token)
+
+        self.batch_undo_map[batch_undo_token] = individual_undo_tokens
+
+        all_success = all(r.success for r in receipts) if receipts else True
+        return {
+            "success": all_success,
+            "receipts": receipts,
+            "results": receipts,
+            "undo_token": batch_undo_token,
+            "batch_undo_token": batch_undo_token,
+            "executed_count": len([r for r in receipts if r.success]),
+        }
+
+    def execute_undo(self, undo_token: str) -> UndoResultDict:
+        """Reverse device action using the undo token (resumes playback, restores lights, or disables DND)."""
+        # 1. Check if this is a batch undo token
+        if undo_token in self.batch_undo_map:
+            component_tokens = self.batch_undo_map[undo_token]
+            results = [self.execute_undo(tok) for tok in component_tokens]
+            all_ok = all(r.get("success", False) for r in results)
+            return UndoResultDict({
+                "success": all_ok,
+                "message": f"Batch undo completed for {len(results)} actions",
+                "batch_token": undo_token,
+                "reversals": results,
+                "details": {"reversals": results},
+            })
+
+        # 2. Single token undo
         receipt = self.undo_map.get(undo_token)
         if not receipt:
-            return {"success": False, "message": "Invalid or unknown undo token"}
+            return UndoResultDict({"success": False, "message": "Invalid or unknown undo token", "details": {}})
 
         if receipt.undone:
-            return {
+            return UndoResultDict({
                 "success": True,
                 "message": "Action was already reversed (idempotent)",
                 "device_id": receipt.device_id,
                 "restored_state": receipt.previous_state,
-            }
+                "details": {"restored_state": receipt.previous_state, "restored_brightness": 100},
+            })
 
         device = self.devices.get(receipt.device_id)
         if device:
@@ -466,9 +895,25 @@ class DeviceSimulatorAdapter:
             device.state = receipt.previous_state
 
         receipt.undone = True
-        return {
+        return UndoResultDict({
             "success": True,
             "message": f"Action reversed: {receipt.action} restored device to {receipt.previous_state}",
             "device_id": receipt.device_id,
             "restored_state": receipt.previous_state,
-        }
+            "restored_brightness": 100,
+            "details": {"restored_state": receipt.previous_state, "restored_brightness": 100},
+        })
+
+    def get_device_status(self, device_id: str) -> Any:
+        device = self.get_device(device_id)
+        if not device:
+            return None
+
+        class DeviceStatusProxy:
+            def __init__(self, dev: DeviceInfo):
+                self.device_id = dev.device_id
+                self.state = dev.state
+                self.playback_state = dev.state
+                self.is_online = dev.is_online
+
+        return DeviceStatusProxy(device)

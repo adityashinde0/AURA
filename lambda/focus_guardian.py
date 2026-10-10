@@ -41,10 +41,12 @@ class FocusRequest(BaseModel):
     explicit_signal: Literal["none", "self_report_distracted", "focus_started"] = "none"
     evidence: list[dict[str, Any]] = Field(default_factory=list, max_length=5)
     consented_signal_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    user_intent: str | None = Field(default=None, max_length=280)
+    connected_devices: list[str] = Field(default_factory=list, max_length=10)
 
 
 class FocusProposal(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
     prep_summary: str = Field(max_length=500)
     questions: list[str] = Field(min_length=3, max_length=3, alias="3_questions")
     emotion_tone: Literal["calm", "confident", "supportive", "neutral", "cautious"]
@@ -63,25 +65,30 @@ class FocusProposal(BaseModel):
         return value
 
 
-SYSTEM_PROMPT = """You are AURA, a privacy-first focus assistant.
+SYSTEM_PROMPT = """You are AURA, a privacy-first focus assistant powered by Claude 3.5 Sonnet.
 Return JSON only matching the required schema. Use only supplied evidence IDs.
 Never claim certainty beyond evidence. Never diagnose a person. Never execute or
 promise external actions: recommend at most a reversible, consent-gated action.
-If evidence is insufficient, provide a neutral brief and action 'none'."""
+When user_intent or connected_devices are supplied, reason over the intent and context,
+recommending actions across available certified devices (e.g., device: "dev_firetv_living_room",
+action: "request_pause"). If evidence is insufficient, provide a neutral brief and action 'none'."""
 
 
 def build_prompt(request: FocusRequest) -> str:
     """Build minimized model input; raw Bee transcripts must be redacted locally."""
-    return json.dumps(
-        {
-            "system": SYSTEM_PROMPT,
-            "purpose": request.purpose,
-            "explicit_signal": request.explicit_signal,
-            "consented_signal_score": request.consented_signal_score,
-            "evidence": request.evidence,
-            "required_schema": FocusProposal.model_json_schema(by_alias=True),
-        }
-    )
+    prompt_dict: dict[str, Any] = {
+        "system": SYSTEM_PROMPT,
+        "purpose": request.purpose,
+        "explicit_signal": request.explicit_signal,
+        "consented_signal_score": request.consented_signal_score,
+        "evidence": request.evidence,
+        "required_schema": FocusProposal.model_json_schema(by_alias=True),
+    }
+    if request.user_intent:
+        prompt_dict["user_intent"] = request.user_intent
+    if request.connected_devices:
+        prompt_dict["connected_devices"] = request.connected_devices
+    return json.dumps(prompt_dict)
 
 
 def safe_fallback(request: FocusRequest, fallback_reason: str = "") -> FocusProposal:
@@ -94,6 +101,72 @@ def safe_fallback(request: FocusRequest, fallback_reason: str = "") -> FocusProp
     and keeps existing callers and tests unchanged.
     """
     distracted = request.explicit_signal == "self_report_distracted"
+    user_intent = (request.user_intent or "").strip().lower()
+
+    if "tired" in user_intent or "sleep" in user_intent or "wind down" in user_intent:
+        prep_summary = "Intent indicates fatigue or desire to sleep. Proposing a calm wind-down routine."
+        questions = ["Would you like to wind down now?", "Should we dim ambient lights?", "Pause active screen playback?"]
+        tone: Literal["calm", "confident", "supportive", "neutral", "cautious"] = "calm"
+        rec_action: Literal["none", "nudge", "request_dnd", "request_pause"] = "request_pause"
+        score = 0.5
+        bank_delta = 0
+        reason = "Using a safe fallback for rest/sleep intent; recommending pausing media devices and dimming lights."
+        device_actions = [
+            {"device": d, "action": "request_pause"}
+            for d in request.connected_devices
+            if "firetv" in d or "tv" in d
+        ] + [
+            {"device": d, "action": "dim_lights"}
+            for d in request.connected_devices
+            if "light" in d
+        ]
+        if not device_actions and request.connected_devices:
+            device_actions = [{"device": request.connected_devices[0], "action": "request_pause"}]
+    elif "break" in user_intent:
+        prep_summary = "Short break requested. Proposing 15-minute pause and breather status."
+        questions = ["Ready for a 15-minute breather?", "Set Slack status to away?", "Resume deep work afterwards?"]
+        tone = "supportive"
+        rec_action = "request_pause"
+        score = 0.3
+        bank_delta = 0
+        reason = "Using a safe fallback for quick break; pausing focus session and media playback."
+        device_actions = [
+            {"device": d, "action": "request_pause"}
+            for d in request.connected_devices
+            if "firetv" in d or "tv" in d
+        ]
+    elif distracted or "distracted" in user_intent:
+        prep_summary = "Self-reported distraction detected. A gentle refocus nudge is recommended."
+        questions = ["What outcome matters most?", "What decision is needed?", "What is the next concrete step?"]
+        tone = "neutral"
+        rec_action = "nudge"
+        score = 0.8
+        bank_delta = -1
+        reason = "Using a safe fallback for self-reported distraction; recommending haptic refocus nudge."
+        device_actions = [{"device": "dev_orbit_wearable", "action": "nudge"}]
+    elif user_intent:
+        prep_summary = f"Custom intent '{request.user_intent}' recognized. Proposing supportive adjustment."
+        questions = ["Would a brief pause help reset?", "Should we minimize notifications?", "Adjust ambient environment?"]
+        tone = "calm"
+        rec_action = "request_pause"
+        score = 0.4
+        bank_delta = 0
+        reason = f"Using a safe fallback for custom intent '{request.user_intent}' with low-stimulation routine."
+        device_actions = [
+            {"device": d, "action": "request_pause"}
+            for d in request.connected_devices
+            if "firetv" in d or "tv" in d
+        ]
+    else:
+        prep_summary = "No high-confidence context is available. Open the event details and add your own intention."
+        questions = ["What outcome matters most?", "What decision is needed?", "What is the next concrete step?"]
+        tone = "neutral"
+        rec_action = "none"
+        score = request.consented_signal_score
+        bank_delta = 0
+        reason = "Using a safe fallback because no validated model proposal was available."
+        device_actions = []
+
     _log(
         "WARNING",
         "focus_guardian_safe_fallback_activated",
@@ -102,19 +175,25 @@ def safe_fallback(request: FocusRequest, fallback_reason: str = "") -> FocusProp
         purpose=request.purpose,
         explicit_signal=request.explicit_signal,
         evidence_count=len(request.evidence),
+        user_intent=request.user_intent,
         fallback_reason=fallback_reason or "unspecified",
     )
-    return FocusProposal(
-        prep_summary="No high-confidence context is available. Open the event details and add your own intention.",
-        questions=["What outcome matters most?", "What decision is needed?", "What is the next concrete step?"],
-        emotion_tone="neutral",
-        is_distracted=distracted,
-        distraction_score=0.8 if distracted else request.consented_signal_score,
-        deep_work_bank_delta=-1 if distracted else 0,
-        evidence_ids=[],
-        recommended_action="nudge" if distracted else "none",
-        reason="Using a safe fallback because no validated model proposal was available.",
-    )
+
+    fallback_dict: dict[str, Any] = {
+        "prep_summary": prep_summary,
+        "3_questions": questions,
+        "emotion_tone": tone,
+        "is_distracted": distracted or ("distracted" in user_intent),
+        "distraction_score": score,
+        "deep_work_bank_delta": bank_delta,
+        "evidence_ids": [],
+        "recommended_action": rec_action,
+        "reason": reason,
+    }
+    if device_actions:
+        fallback_dict["device_actions"] = device_actions
+
+    return FocusProposal.model_validate(fallback_dict)
 
 
 def invoke_model(_prompt: str) -> dict[str, Any]:
@@ -212,10 +291,20 @@ def lambda_handler(
             is_distracted=proposal.is_distracted,
             policy_required=True,
         )
+        dumped_proposal = proposal.model_dump(by_alias=True)
+        resp_body: dict[str, Any] = {
+            "proposal": dumped_proposal,
+            "policy_required": True,
+        }
+        if hasattr(proposal, "device_actions") and getattr(proposal, "device_actions"):
+            resp_body["device_actions"] = getattr(proposal, "device_actions")
+        elif "device_actions" in dumped_proposal:
+            resp_body["device_actions"] = dumped_proposal["device_actions"]
+
         return {
             "statusCode": 200,
             "headers": {"content-type": "application/json"},
-            "body": json.dumps({"proposal": proposal.model_dump(by_alias=True), "policy_required": True}),
+            "body": json.dumps(resp_body),
         }
     except ValidationError as exc:
         _log(

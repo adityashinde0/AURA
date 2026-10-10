@@ -30,6 +30,9 @@ class ConsentGrant:
     created_at: float = field(default_factory=time.time)
     expires_at: float | None = None
     revoked: bool = False
+    intent_pattern: str | None = None
+    routine_actions: list[dict[str, str]] | None = None
+    routine_name: str | None = None
 
     def is_valid(self) -> bool:
         if self.revoked:
@@ -93,6 +96,7 @@ class PolicyEngine:
             self.grants[key].revoked = True
             return True
         return False
+
 
     def evaluate_and_execute(
         self,
@@ -599,6 +603,103 @@ class PolicyEngine:
                 self.undo_guardrail.record_undo(record.user_id, record.action_type)
                 return True
         return False
+
+    def remember_routine(
+        self,
+        user_id: str,
+        intent: str,
+        routine_actions: list[dict[str, Any]],
+        routine_name: str | None = None,
+        tenant_id: str = "tenant_default",
+        target_devices: list[str] | None = None,
+    ) -> ConsentGrant:
+        """Persist a ConsentGrant with scope='always' for an adaptive intent routine."""
+        intent_clean = intent.strip().lower()
+        target_dev = target_devices[0] if target_devices else (
+            routine_actions[0].get("device") if routine_actions and isinstance(routine_actions[0], dict) else None
+        )
+        grant = ConsentGrant(
+            tenant_id=tenant_id,
+            user_id=user_id,
+            action_type="request_pause",
+            scope="always",
+            intent_pattern=intent_clean,
+            routine_actions=routine_actions,
+            routine_name=routine_name or f"Routine: {intent}",
+            target_device_id=target_dev,
+        )
+        self.grants[f"{user_id}:routine:{intent_clean}"] = grant
+        self.grants[f"{user_id}:intent:{intent_clean}"] = grant
+        return grant
+
+    def evaluate_routine(
+        self,
+        user_id: str,
+        intent: str,
+        session_id: str | None = None,
+        idempotency_key: str | None = None,
+        proposed_actions: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """Evaluate whether a learned routine exists and auto-execute it if scope is 'always'."""
+        intent_clean = intent.strip().lower()
+        key = f"{user_id}:routine:{intent_clean}"
+        grant = self.grants.get(key)
+        if not grant:
+            grant = self.grants.get(f"{user_id}:intent:{intent_clean}")
+        if not grant:
+            for g in self.grants.values():
+                if g.user_id == user_id and g.intent_pattern and g.intent_pattern == intent_clean:
+                    grant = g
+                    break
+
+        actions_to_execute = (grant.routine_actions if (grant and grant.routine_actions) else proposed_actions) or []
+
+        if not grant or not grant.is_valid() or not actions_to_execute:
+            return {
+                "decision": "ask_user_confirmation",
+                "executed": False,
+                "reason": "No valid persistent routine grant found; user approval required",
+            }
+
+        # Auto-execute routine actions via device_adapter.execute_batch()
+        undo_token = None
+        if self.device_adapter and hasattr(self.device_adapter, "execute_batch"):
+            batch_result = self.device_adapter.execute_batch(actions_to_execute)
+            undo_token = batch_result.get("batch_undo_token") or batch_result.get("undo_token")
+
+        audit_id = str(uuid.uuid4())
+        record = AuditRecord(
+            audit_id=audit_id,
+            timestamp=time.time(),
+            user_id=user_id,
+            action_type="request_pause",
+            target_device_id=",".join(a.get("device", "") for a in actions_to_execute if isinstance(a, dict)),
+            status="executed",
+            reason=f"Executed learned routine '{grant.routine_name}' for intent '{intent}'",
+            idempotency_key=idempotency_key or str(uuid.uuid4()),
+            undo_token=undo_token,
+        )
+        self._record(record)
+
+        return {
+            "decision": "executed_consent_rule",
+            "executed": True,
+            "undo_token": undo_token,
+            "routine_name": grant.routine_name,
+            "device_actions": actions_to_execute,
+            "audit_id": audit_id,
+        }
+
+    def undo_action(self, undo_token: str, user_id: str | None = None) -> Any:
+        """Alias for execute_undo returning an object with status."""
+        success = self.execute_undo(undo_token)
+
+        class UndoStatus:
+            def __init__(self, s: bool):
+                self.success = s
+                self.status = "undone" if s else "failed"
+
+        return UndoStatus(success)
 
     def _record(self, record: AuditRecord) -> None:
         self.audit_log.append(record)

@@ -64,6 +64,37 @@ class InMemoryDataStore:
         self.undo_guardrail: UndoRateGuardrail = UndoRateGuardrail()
         self.slack_adapter: SlackAdapter = SlackAdapter()
         self.sms_adapter: SmsAdapter = SmsAdapter()
+        # Learned adaptive intent routines: routine_id -> routine dict
+        self.learned_routines: dict[str, dict[str, Any]] = {
+            "rtn_wind_down": {
+                "routine_id": "rtn_wind_down",
+                "user_id": "usr_marcus",
+                "intent": "Tired / Sleep",
+                "intent_pattern": "tired",
+                "name": "Evening Wind-Down",
+                "actions": [
+                    {"device": "dev_firetv_living_room", "action": "request_pause", "description": "Pause Fire TV playback"},
+                    {"device": "dev_smart_lights", "action": "dim_lights", "description": "Dim living room lights to 20%"},
+                ],
+                "scope": "always",
+                "active": True,
+                "created_at": time.time() - 86400,
+            },
+            "rtn_quick_break": {
+                "routine_id": "rtn_quick_break",
+                "user_id": "usr_marcus",
+                "intent": "Quick Break",
+                "intent_pattern": "break",
+                "name": "15-Min Breather",
+                "actions": [
+                    {"device": "dev_firetv_living_room", "action": "request_pause", "description": "Pause active media"},
+                    {"device": "dev_echo_office", "action": "request_dnd", "description": "Enable Echo Do Not Disturb"},
+                ],
+                "scope": "always",
+                "active": True,
+                "created_at": time.time() - 43200,
+            },
+        }
         # Wearable push-token bindings: user_id -> binding record
         self.wearable_bindings: dict[str, dict[str, Any]] = {}
         # Safety escalation timestamps for rate-limiting: user_id -> last escalation epoch
@@ -313,6 +344,136 @@ def handle_focus_signal(body: dict[str, Any], store: InMemoryDataStore = default
     target_device = None
     now = time.time()
     idempotency_key = body.get("idempotency_key") or f"{user_id}:{session_id}:{now:.6f}_{uuid.uuid4().hex[:6]}"
+
+    user_intent = body.get("user_intent")
+    if user_intent:
+        intent_lower = user_intent.strip().lower()
+        if "tired" in intent_lower or "sleep" in intent_lower or "wind down" in intent_lower:
+            recommended_action = "request_pause"
+            device_actions = [
+                {"device": "dev_firetv_living_room", "action": "request_pause", "description": "Pause Fire TV playback"},
+                {"device": "dev_smart_lights", "action": "dim_lights", "description": "Dim smart lights to 20%"},
+            ]
+            prep_summary = "Intent indicates fatigue or desire to sleep. Proposing a calm wind-down routine."
+            questions = ["Would you like to wind down now?", "Should we dim ambient lights?", "Pause active screen playback?"]
+            emotion_tone = "calm"
+            reason = "User requested rest / sleep; recommending pausing media devices and dimming lights."
+        elif "break" in intent_lower:
+            recommended_action = "request_pause"
+            device_actions = [
+                {"device": "dev_firetv_living_room", "action": "request_pause", "description": "Pause active media"},
+                {"device": "dev_echo_office", "action": "request_dnd", "description": "Set Echo DND"},
+            ]
+            prep_summary = "Short break requested. Proposing 15-minute pause and breather status."
+            questions = ["Ready for a 15-minute breather?", "Set Slack status to away?", "Resume deep work afterwards?"]
+            emotion_tone = "supportive"
+            reason = "User requested a quick break; pausing focus session and media playback."
+        elif "distracted" in intent_lower or is_distracted:
+            recommended_action = "nudge"
+            device_actions = [{"device": "dev_orbit_wearable", "action": "nudge", "description": "Haptic refocus pulse"}]
+            prep_summary = "Self-reported distraction detected. A gentle refocus nudge is recommended."
+            questions = ["What outcome matters most?", "What decision is needed?", "What is the next concrete step?"]
+            emotion_tone = "neutral"
+            reason = "Self-reported distraction signal; recommending haptic refocus nudge."
+        else:
+            recommended_action = "request_pause"
+            device_actions = [
+                {"device": "dev_firetv_living_room", "action": "request_pause", "description": "Pause background media"},
+                {"device": "dev_smart_lights", "action": "dim_lights", "description": "Reduce ambient glare"},
+            ]
+            prep_summary = f"Custom intent '{user_intent}' recognized. Proposing supportive adjustment."
+            questions = ["Would a brief pause help reset?", "Should we minimize notifications?", "Adjust ambient environment?"]
+            emotion_tone = "calm"
+            reason = f"Responding to custom intent '{user_intent}' with low-stimulation routine."
+
+        # Check if user has an active 'always' consent grant or learned routine
+        has_learned_grant = False
+        for g in store.grants.values():
+            if (
+                g.get("user_id") == user_id
+                and g.get("active", True)
+                and g.get("scope") in ("allow_always", "always")
+                and (
+                    g.get("intent_pattern") == intent_lower
+                    or g.get("action_type") in ("routine", recommended_action)
+                )
+            ):
+                has_learned_grant = True
+                break
+
+        if not has_learned_grant:
+            for r in store.learned_routines.values():
+                if (
+                    r.get("user_id") == user_id
+                    and r.get("active", True)
+                    and r.get("intent_pattern") in intent_lower
+                ):
+                    has_learned_grant = True
+                    break
+
+        if has_learned_grant:
+            # Deterministic auto-execution under persistent grant
+            batch_res = store.device_adapter.execute_batch(
+                commands=device_actions,
+                batch_idempotency_key=idempotency_key,
+                requesting_household_id=requesting_household,
+            )
+            undo_token = batch_res.get("undo_token") or f"undo_rtn_{uuid.uuid4().hex[:10]}"
+            action_decision = "executed"
+            store.undo_guardrail.record_execution(user_id, recommended_action)
+            store.audit_records.append(
+                {
+                    "action_id": f"act_{uuid.uuid4().hex[:8]}",
+                    "user_id": user_id,
+                    "action_type": recommended_action,
+                    "target_device_id": device_actions[0]["device"] if device_actions else None,
+                    "status": "executed",
+                    "reason": f"Executed learned routine for intent '{user_intent}'",
+                    "undo_token": undo_token,
+                    "idempotency_key": idempotency_key,
+                    "timestamp": now,
+                }
+            )
+        else:
+            action_decision = "ask_user_confirmation"
+            store.audit_records.append(
+                {
+                    "action_id": f"sug_{uuid.uuid4().hex[:8]}",
+                    "user_id": user_id,
+                    "action_type": recommended_action,
+                    "target_device_id": device_actions[0]["device"] if device_actions else None,
+                    "status": "suggested_only",
+                    "reason": f"User confirmation required for intent routine '{user_intent}'",
+                    "idempotency_key": idempotency_key,
+                    "timestamp": now,
+                }
+            )
+
+        proposal = {
+            "prep_summary": prep_summary,
+            "3_questions": questions,
+            "emotion_tone": emotion_tone,
+            "is_distracted": is_distracted or ("distracted" in intent_lower),
+            "distraction_score": distraction_score,
+            "deep_work_bank_delta": bank_delta,
+            "evidence_ids": [],
+            "recommended_action": recommended_action,
+            "reason": reason,
+        }
+
+        return _json_resp(
+            200,
+            {
+                "proposal": proposal,
+                "policy_required": True,
+                "decision": action_decision,
+                "learned_routine": has_learned_grant,
+                "undo_token": undo_token,
+                "target_device_id": device_actions[0]["device"] if device_actions else None,
+                "device_actions": device_actions,
+                "routine_actions": device_actions,
+            },
+        )
 
     if is_distracted:
         # Check Feature Flag & Kill Switch
@@ -1252,6 +1413,7 @@ _ALLOWED_PREFERENCE_KEYS = frozenset({
     "location_in_sos",
     "muted_series",
     "quiet_hours",
+    "learned_routines",
 })
 
 _DEFAULT_USER_PREFERENCES: dict[str, Any] = {
@@ -1334,6 +1496,104 @@ def handle_update_preferences(
     _log("INFO", "user_preferences_updated", user_id=user_id, updated_keys=list(patch.keys()))
 
     return _json_resp(200, {"ok": True, "user_id": user_id, "preferences": current})
+
+
+# ---------------------------------------------------------------------------
+# Adaptive Intent Routines API
+# ---------------------------------------------------------------------------
+
+def handle_get_routines(user_id: str, store: InMemoryDataStore = default_store) -> dict[str, Any]:
+    """Retrieve learned adaptive intent routines for user."""
+    routines = [
+        r for r in store.learned_routines.values()
+        if r.get("user_id") == user_id and r.get("active", True)
+    ]
+    return _json_resp(200, {"user_id": user_id, "routines": routines, "total": len(routines)})
+
+
+def handle_create_routine(body: dict[str, Any], store: InMemoryDataStore = default_store) -> dict[str, Any]:
+    """Create or remember an adaptive intent routine with scope='always'."""
+    user_id = body.get("user_id")
+    intent = body.get("intent")
+    actions = body.get("actions", [])
+
+    if not user_id or not intent:
+        return _json_resp(400, {"error": "invalid_parameters", "message": "user_id and intent are required"})
+
+    routine_id = body.get("routine_id") or f"rtn_{uuid.uuid4().hex[:8]}"
+    intent_clean = intent.strip().lower()
+    now = time.time()
+
+    routine = {
+        "routine_id": routine_id,
+        "user_id": user_id,
+        "intent": intent,
+        "intent_pattern": intent_clean,
+        "name": body.get("name", f"Routine: {intent}"),
+        "actions": actions,
+        "scope": body.get("scope", "always"),
+        "active": True,
+        "created_at": now,
+    }
+    store.learned_routines[routine_id] = routine
+
+    # Create matching persistent grant in store.grants
+    grant_id = f"grant_{routine_id}"
+    store.grants[grant_id] = {
+        "grant_id": grant_id,
+        "user_id": user_id,
+        "tenant_id": body.get("tenant_id", "tenant_default"),
+        "action_type": "request_pause",
+        "scope": "allow_always",
+        "intent_pattern": intent_clean,
+        "target_allowlist": [a.get("device") for a in actions if isinstance(a, dict) and a.get("device")],
+        "active": True,
+        "created_at": now,
+    }
+
+    # Record audit log
+    store.audit_records.append(
+        {
+            "action_id": f"rtn_log_{uuid.uuid4().hex[:8]}",
+            "user_id": user_id,
+            "action_type": "routine_learned",
+            "target_device_id": actions[0].get("device") if actions and isinstance(actions[0], dict) else None,
+            "status": "executed",
+            "reason": f"Learned routine registered for intent '{intent}'",
+            "timestamp": now,
+        }
+    )
+
+    return _json_resp(201, routine)
+
+
+def handle_revoke_routine(routine_id: str, user_id: str, store: InMemoryDataStore = default_store) -> dict[str, Any]:
+    """Revoke a saved intent routine."""
+    routine = store.learned_routines.get(routine_id)
+    if routine and routine.get("user_id") == user_id:
+        routine["active"] = False
+        routine["revoked_at"] = time.time()
+        grant = store.grants.get(f"grant_{routine_id}")
+        if grant:
+            grant["active"] = False
+    return _json_resp(200, {"revoked": True, "routine_id": routine_id, "revoked_at": time.time()})
+
+
+def handle_update_routine(routine_id: str, body: dict[str, Any], store: InMemoryDataStore = default_store) -> dict[str, Any]:
+    """Update actions or intent name for an existing routine."""
+    routine = store.learned_routines.get(routine_id)
+    if not routine:
+        return _json_resp(404, {"error": "not_found", "message": f"Routine {routine_id} not found"})
+
+    if "name" in body:
+        routine["name"] = body["name"]
+    if "actions" in body:
+        routine["actions"] = body["actions"]
+    if "intent" in body:
+        routine["intent"] = body["intent"]
+        routine["intent_pattern"] = body["intent"].strip().lower()
+    routine["updated_at"] = time.time()
+    return _json_resp(200, {"ok": True, "routine": routine})
 
 
 def lambda_handler(
@@ -1435,6 +1695,25 @@ def lambda_handler(
         if not user_id:
             return _json_resp(400, {"error": "missing_query_param", "message": "user_id is required"})
         return handle_delete_user_data(user_id, store=store)
+
+    # Adaptive Intent Routines
+    if path == "/api/v1/routines" and http_method == "GET":
+        user_id = query_params.get("user_id", "")
+        if not user_id:
+            return _json_resp(400, {"error": "missing_query_param", "message": "user_id is required"})
+        return handle_get_routines(user_id, store=store)
+
+    if path == "/api/v1/routines" and http_method == "POST":
+        return handle_create_routine(body, store=store)
+
+    if path.startswith("/api/v1/routines/") and http_method == "DELETE":
+        routine_id = path.split("/")[-1]
+        user_id = query_params.get("user_id", "")
+        return handle_revoke_routine(routine_id, user_id, store=store)
+
+    if path.startswith("/api/v1/routines/") and http_method in ("PUT", "PATCH"):
+        routine_id = path.split("/")[-1]
+        return handle_update_routine(routine_id, body, store=store)
 
     # Phase 6 Slack Ambient Status & OAuth PKCE Endpoints
     if path == "/api/v1/slack/oauth/authorize" and http_method == "POST":

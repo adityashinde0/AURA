@@ -670,18 +670,29 @@
                 </div>
               </article>
 
-              <!-- Explicit Self-Report Distraction Card -->
+              <!-- Explicit Self-Report Distraction Card & Adaptive Intent Engine -->
               <article class="dash-card distraction-trigger-card">
                 <div class="card-callout">
                   <div class="callout-icon" aria-hidden="true">⚡</div>
                   <div class="callout-content">
-                    <h3 class="callout-title">Explicit Distraction Trigger</h3>
-                    <p class="callout-desc">Zero surveillance. You own the signal. Pauses authorized media with instant undo.</p>
+                    <h3 class="callout-title">Adaptive State Signals &amp; Routines</h3>
+                    <p class="callout-desc">Zero surveillance. Signal your state for Bedrock-reasoned multi-device actions with 30s undo.</p>
                   </div>
                 </div>
-                <button class="btn btn-accent btn-large" id="btn-report-distracted" aria-label="Report distraction">
-                  <span class="btn-icon" aria-hidden="true">🚨</span> I'm Distracted
-                </button>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
+                  <button class="btn btn-accent btn-large" id="btn-report-distracted" aria-label="Report distraction">
+                    <span class="btn-icon" aria-hidden="true">🚨</span> Distracted
+                  </button>
+                  <button class="btn btn-outline" id="btn-intent-tired" title="Trigger tired / sleep wind-down routine">
+                    <span class="btn-icon" aria-hidden="true">🌙</span> Tired / Sleep
+                  </button>
+                  <button class="btn btn-outline" id="btn-intent-break" title="Trigger quick 15-min break">
+                    <span class="btn-icon" aria-hidden="true">☕</span> Quick Break
+                  </button>
+                  <button class="btn btn-outline" id="btn-intent-custom" title="Input custom intent phrase">
+                    <span class="btn-icon" aria-hidden="true">✨</span> Custom Intent
+                  </button>
+                </div>
               </article>
 
               <!-- Transparent Score Card -->
@@ -1025,6 +1036,34 @@
                   </tr>
                 </thead>
                 <tbody id="grants-tbody">
+                  <!-- Populated dynamically via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <!-- Learned Adaptive Intent Routines (Bedrock Multi-Device Engine) -->
+          <article class="dash-card mb-3" id="learned-routines-panel">
+            <div class="dash-card-header">
+              <div>
+                <h3 class="dash-card-title">Learned Adaptive Intent Routines</h3>
+                <p class="dash-card-desc">Persistent multi-device routines created via Bedrock proposals and user "Remember" consents, deterministically enforced by the Policy Engine.</p>
+              </div>
+              <span class="badge badge-success" id="routines-count-badge">2 Active</span>
+            </div>
+            <div class="grants-table-container">
+              <table class="aura-table" id="routines-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Intent Pattern</th>
+                    <th scope="col">Routine Name</th>
+                    <th scope="col">Certified Device Actions</th>
+                    <th scope="col">Scope</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="routines-tbody">
                   <!-- Populated dynamically via app.js -->
                 </tbody>
               </table>

@@ -19,6 +19,9 @@ public enum CommandType: String, Codable, Sendable {
     case briefFeedback           = "brief.feedback"
     case sosOK                   = "sos.ok"
     case sosEscalate             = "sos.escalate"
+    case userIntent              = "user.intent"
+    case applyRoutine            = "routine.apply"
+    case undoRoutine             = "routine.undo"
 }
 
 /// Feedback choices from the pre-meeting brief card.
@@ -217,7 +220,7 @@ public struct RelayEnvelope: Codable, Sendable {
     public let source: String           // "aura_watch"
     public let signalPayload: SignalPayload?
 
-    // MARK: Nested types
+// MARK: Nested types
 
     public enum RelayEventType: String, Codable, Sendable {
         case focusSignal = "focus_signal"
@@ -226,6 +229,8 @@ public struct RelayEnvelope: Codable, Sendable {
     public struct SignalPayload: Codable, Sendable {
         public let explicitSignal: ExplicitSignal
         public let app: String?
+        public let userIntent: String?
+        public let connectedDevices: [String]?
 
         public enum ExplicitSignal: String, Codable, Sendable {
             case none                 = "none"
@@ -233,9 +238,23 @@ public struct RelayEnvelope: Codable, Sendable {
             case focusStarted         = "focus_started"
         }
 
+        public init(
+            explicitSignal: ExplicitSignal = .none,
+            app: String? = nil,
+            userIntent: String? = nil,
+            connectedDevices: [String]? = nil
+        ) {
+            self.explicitSignal    = explicitSignal
+            self.app               = app
+            self.userIntent        = userIntent
+            self.connectedDevices  = connectedDevices
+        }
+
         private enum CodingKeys: String, CodingKey {
-            case explicitSignal = "explicit_signal"
+            case explicitSignal   = "explicit_signal"
             case app
+            case userIntent       = "user_intent"
+            case connectedDevices = "connected_devices"
         }
     }
 
@@ -265,5 +284,63 @@ public struct RelayEnvelope: Codable, Sendable {
         case userID        = "user_id"
         case sessionID     = "session_id"
         case signalPayload = "signal_payload"
+    }
+}
+
+// ---------------------------------------------------------------------------
+// MARK: - Adaptive Intent Routine Models (watchOS ↔ iOS ↔ Backend)
+// ---------------------------------------------------------------------------
+
+/// Device action recommendation within an adaptive intent routine.
+public struct RoutineDeviceAction: Codable, Sendable, Identifiable {
+    public var id: String { "\(device):\(action)" }
+    public let device: String
+    public let action: String
+    public let description: String?
+
+    public init(device: String, action: String, description: String? = nil) {
+        self.device = device
+        self.action = action
+        self.description = description
+    }
+}
+
+/// Adaptive routine payload for companion synchronization.
+public struct IntentRoutinePayload: Codable, Sendable, Identifiable {
+    public var id: String { routineID ?? intent }
+    public let routineID: String?
+    public let intent: String
+    public let recommendedAction: String
+    public let deviceActions: [RoutineDeviceAction]
+    public let rememberRoutine: Bool
+    public let undoToken: String?
+    public let emotionTone: String?
+
+    public init(
+        routineID: String? = nil,
+        intent: String,
+        recommendedAction: String = "request_pause",
+        deviceActions: [RoutineDeviceAction] = [],
+        rememberRoutine: Bool = false,
+        undoToken: String? = nil,
+        emotionTone: String? = "calm"
+    ) {
+        self.routineID         = routineID
+        self.intent            = intent
+        self.recommendedAction = recommendedAction
+        self.deviceActions     = deviceActions
+        self.rememberRoutine   = rememberRoutine
+        self.undoToken         = undoToken
+        self.emotionTone       = emotionTone
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case routineID         = "routine_id"
+        case intent
+        case recommendedAction = "recommended_action"
+        case deviceActions     = "device_actions"
+        case rememberRoutine   = "remember_routine"
+        case undoToken         = "undo_token"
+        case emotionTone       = "emotion_tone"
     }
 }

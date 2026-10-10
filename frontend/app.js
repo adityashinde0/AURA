@@ -54,6 +54,29 @@ const state = {
       target_allowlist: ['#marcus-focus'],
       active: true,
     },
+  learnedRoutines: [
+    {
+      routine_id: 'rtn_wind_down',
+      intent_pattern: 'I am tired, want to sleep',
+      name: 'Evening Wind-Down Routine',
+      scope: 'always',
+      active: true,
+      actions: [
+        { device: 'dev_firetv_living_room', action: 'request_pause', description: 'Pause video playback' },
+        { device: 'dev_smart_lights', action: 'dim_lights', description: 'Dim lighting to 20%' },
+      ],
+    },
+    {
+      routine_id: 'rtn_quick_break',
+      intent_pattern: 'Need a quick break',
+      name: '15-min Breather Routine',
+      scope: 'always',
+      active: true,
+      actions: [
+        { device: 'dev_firetv_living_room', action: 'request_pause', description: 'Pause active screens' },
+        { device: 'dev_echo_office', action: 'request_dnd', description: '15-min Breather status' },
+      ],
+    },
   ],
   featureFlags: {
     global_switches: {
@@ -397,6 +420,13 @@ const DOM = {
   auditTimeline: document.getElementById('audit-timeline'),
   auditFilter: document.getElementById('audit-filter-select'),
   btnRefreshAudit: document.getElementById('btn-refresh-audit'),
+
+  // Adaptive Routines & Intent Triggers
+  routinesTbody: document.getElementById('routines-tbody'),
+  routinesCountBadge: document.getElementById('routines-count-badge'),
+  btnIntentTired: document.getElementById('btn-intent-tired'),
+  btnIntentBreak: document.getElementById('btn-intent-break'),
+  btnIntentCustom: document.getElementById('btn-intent-custom'),
 };
 
 // Theme Management
@@ -494,6 +524,7 @@ function setupNavigation() {
       // Dynamic surface refresh on tab activation
       if (targetId === 'view-permissions' || targetId === 'view-settings') {
         renderGrants();
+        renderLearnedRoutines();
         renderGuardrailMetrics();
       }
       if (targetId === 'view-audit') renderAuditTimeline();
@@ -930,6 +961,127 @@ function renderGrants() {
   });
 }
 
+// Render Learned Adaptive Intent Routines
+function renderLearnedRoutines() {
+  if (!DOM.routinesTbody) return;
+  DOM.routinesTbody.innerHTML = '';
+  const activeCount = state.learnedRoutines.filter((r) => r.active).length;
+  if (DOM.routinesCountBadge) {
+    DOM.routinesCountBadge.textContent = `${activeCount} Active`;
+    DOM.routinesCountBadge.className = `badge ${activeCount > 0 ? 'badge-success' : 'badge-status'}`;
+  }
+
+  if (state.learnedRoutines.length === 0) {
+    DOM.routinesTbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:16px;">No learned adaptive routines saved.</td></tr>';
+    return;
+  }
+
+  state.learnedRoutines.forEach((rtn) => {
+    const tr = document.createElement('tr');
+    const actionsHtml = rtn.actions
+      .map((a) => `<code>${a.device}: ${a.action}</code>`)
+      .join('<br/>');
+
+    tr.innerHTML = `
+      <td><strong>"${rtn.intent_pattern}"</strong></td>
+      <td>${rtn.name}</td>
+      <td>${actionsHtml}</td>
+      <td>
+        <select class="form-select form-select-sm routine-scope-select" data-routine-id="${rtn.routine_id}">
+          <option value="always" ${rtn.scope === 'always' ? 'selected' : ''}>Always (Auto-Run)</option>
+          <option value="allow_session" ${rtn.scope === 'allow_session' ? 'selected' : ''}>This Session</option>
+          <option value="ask_every_time" ${rtn.scope === 'ask_every_time' ? 'selected' : ''}>Ask Every Time</option>
+        </select>
+      </td>
+      <td><span class="badge ${rtn.active ? 'badge-success' : 'badge-status'}">${rtn.active ? 'Active' : 'Revoked'}</span></td>
+      <td>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn btn-sm btn-outline btn-run-routine" data-routine-id="${rtn.routine_id}" title="Execute this learned routine">Run</button>
+          <button class="btn btn-sm btn-outline btn-edit-routine" data-routine-id="${rtn.routine_id}" title="Rename or modify routine">Edit</button>
+          <button class="btn btn-sm btn-danger-outline btn-revoke-routine" data-routine-id="${rtn.routine_id}">${rtn.active ? 'Revoke' : 'Reactivate'}</button>
+        </div>
+      </td>
+    `;
+    DOM.routinesTbody.appendChild(tr);
+  });
+
+  // Attach routine handlers
+  document.querySelectorAll('.btn-revoke-routine').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const rid = e.target.getAttribute('data-routine-id');
+      const r = state.learnedRoutines.find((x) => x.routine_id === rid);
+      if (r) {
+        r.active = !r.active;
+        renderLearnedRoutines();
+        showToast(`${r.active ? 'Reactivated' : 'Revoked'} routine "${r.name}".`);
+        addAuditRecord(
+          r.active ? 'routine_reactivated' : 'routine_revoked',
+          r.actions.map((a) => a.device).join(', '),
+          'executed',
+          `Routine "${r.name}" (${r.intent_pattern}) ${r.active ? 'reactivated' : 'revoked'} by user`,
+        );
+      }
+    });
+  });
+
+  document.querySelectorAll('.btn-edit-routine').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const rid = e.target.getAttribute('data-routine-id');
+      const r = state.learnedRoutines.find((x) => x.routine_id === rid);
+      if (r) {
+        const newName = prompt('Edit Routine Name:', r.name);
+        if (newName && newName.trim()) {
+          r.name = newName.trim();
+          renderLearnedRoutines();
+          showToast(`Updated routine: "${r.name}"`);
+          addAuditRecord('routine_updated', r.routine_id, 'executed', `Renamed routine to "${r.name}"`);
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll('.routine-scope-select').forEach((sel) => {
+    sel.addEventListener('change', (e) => {
+      const rid = e.target.getAttribute('data-routine-id');
+      const r = state.learnedRoutines.find((x) => x.routine_id === rid);
+      if (r) {
+        r.scope = e.target.value;
+        showToast(`Updated scope for "${r.name}" to ${r.scope}`);
+        addAuditRecord('routine_scope_updated', r.routine_id, 'executed', `Scope set to ${r.scope}`);
+      }
+    });
+  });
+
+  document.querySelectorAll('.btn-run-routine').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const rid = e.target.getAttribute('data-routine-id');
+      const r = state.learnedRoutines.find((x) => x.routine_id === rid);
+      if (r) {
+        executeAdaptiveRoutine(r.intent_pattern, r.actions, r.name);
+      }
+    });
+  });
+}
+
+function executeAdaptiveRoutine(intent, actions, routineName = 'Adaptive Routine') {
+  const undoToken = 'undo_rtn_' + Math.random().toString(36).substring(2, 9);
+  state.activeUndoToken = undoToken;
+  enableUndoUI(30);
+
+  const targets = actions.map((a) => a.device).join(', ');
+  const actionTypes = actions.map((a) => a.action).join(' + ');
+
+  addAuditRecord(
+    'routine_execution',
+    targets,
+    'executed',
+    `Executed "${routineName}" for intent: "${intent}" across [${targets}] (${actionTypes})`,
+    undoToken,
+  );
+
+  showToast(`Bedrock routine executed: ${actionTypes} across ${actions.length} devices. Undo ready (30s).`);
+}
+
 // Render Audit Timeline
 function renderAuditTimeline() {
   const filter = DOM.auditFilter.value;
@@ -1085,6 +1237,49 @@ function setupEventListeners() {
   // Explicit Distraction Button
   DOM.btnReportDistracted.addEventListener('click', triggerDistraction);
 
+  // Adaptive State Intent Buttons
+  if (DOM.btnIntentTired) {
+    DOM.btnIntentTired.addEventListener('click', () => {
+      executeAdaptiveRoutine(
+        'I am tired, want to sleep',
+        [
+          { device: 'dev_firetv_living_room', action: 'request_pause' },
+          { device: 'dev_smart_lights', action: 'dim_lights' },
+        ],
+        'Evening Wind-Down Routine',
+      );
+    });
+  }
+
+  if (DOM.btnIntentBreak) {
+    DOM.btnIntentBreak.addEventListener('click', () => {
+      executeAdaptiveRoutine(
+        'Need a quick break',
+        [
+          { device: 'dev_firetv_living_room', action: 'request_pause' },
+          { device: 'dev_echo_office', action: 'request_dnd' },
+        ],
+        '15-Min Quick Breather Routine',
+      );
+    });
+  }
+
+  if (DOM.btnIntentCustom) {
+    DOM.btnIntentCustom.addEventListener('click', () => {
+      const phrase = prompt('Enter your current state or custom intent phrase (e.g., "Brain fog", "Headache"):', 'Brain fog');
+      if (phrase && phrase.trim()) {
+        executeAdaptiveRoutine(
+          phrase.trim(),
+          [
+            { device: 'dev_firetv_living_room', action: 'request_pause' },
+            { device: 'dev_smart_lights', action: 'dim_lights' },
+          ],
+          `Custom Intent: ${phrase.trim()}`,
+        );
+      }
+    });
+  }
+
   // Test Fire TV Pause
   DOM.btnSimulateAction.addEventListener('click', () => {
     executeDevicePause();
@@ -1145,9 +1340,11 @@ function setupEventListeners() {
   // Revoke All
   DOM.btnRevokeAll.addEventListener('click', () => {
     state.grants.forEach((g) => (g.active = false));
+    state.learnedRoutines.forEach((r) => (r.active = false));
     renderGrants();
-    showToast('⚠️ All capability grants revoked. Any remote execution blocked in <60s.');
-    addAuditRecord('all_grants_revoked', 'Policy Engine', 'executed', 'Revoked all user capability grants');
+    renderLearnedRoutines();
+    showToast('⚠️ All capability grants and learned routines revoked. Any remote execution blocked in <60s.');
+    addAuditRecord('all_grants_revoked', 'Policy Engine', 'executed', 'Revoked all user capability grants and learned routines');
   });
 
   // Export Data (JSON Download)
@@ -1162,6 +1359,7 @@ function setupEventListeners() {
         employer_reporting: 'STRICTLY_PROHIBITED',
       },
       consent_grants: state.grants,
+      learned_routines: state.learnedRoutines,
       audit_records: state.audit,
     };
     const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
@@ -1178,11 +1376,13 @@ function setupEventListeners() {
   DOM.btnPurgeData.addEventListener('click', () => {
     if (confirm('Are you sure you want to cryptographically purge all local AURA records? This action is irreversible.')) {
       state.grants = [];
+      state.learnedRoutines = [];
       state.audit = [];
       state.bank.balance = 0;
       DOM.bankBalance.textContent = '0';
       if (DOM.modalBankBalance) DOM.modalBankBalance.textContent = '0';
       renderGrants();
+      renderLearnedRoutines();
       renderAuditTimeline();
       showToast('🗑️ All user records cryptographically purged.');
     }
@@ -1814,6 +2014,7 @@ function initApp() {
   setupHomeDashboard();
   renderMeeting(state.activeMeetingId);
   renderGrants();
+  renderLearnedRoutines();
   renderAuditTimeline();
   renderGuardrailMetrics();
   renderDevicesRegistry();
