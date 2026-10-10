@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "splash": {
-      "backgroundColor": "#0c0e14",
+      "backgroundColor": "#0A0D12",
       "resizeMode": "contain"
     },
     "assetBundlePatterns": [
@@ -15,14 +15,41 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.aura.companion"
+      "bundleIdentifier": "com.aura.mobile",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "AURA uses Bluetooth to communicate with your Orbit wearable.",
+        "NSBluetoothPeripheralUsageDescription": "AURA uses Bluetooth to communicate with your Orbit wearable."
+      }
     },
     "android": {
+      "package": "com.aura.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0c0e14"
+        "backgroundColor": "#0A0D12"
       },
-      "package": "com.aura.mobile"
-    }
+      "permissions": [
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN",
+        "BLUETOOTH_CONNECT",
+        "BLUETOOTH_SCAN",
+        "ACCESS_FINE_LOCATION",
+        "INTERNET"
+      ]
+    },
+    "plugins": [
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "modes": [
+            "peripheral",
+            "central"
+          ],
+          "bluetoothAlwaysPermission": "AURA uses Bluetooth to communicate with your Orbit wearable."
+        }
+      ],
+      "expo-secure-store",
+      "expo-notifications"
+    ]
   }
 }

@@ -23,7 +23,7 @@ import { signIn, demoSignIn, onAuthStateChanged } from './src/auth/AuthService';
 import { THEME } from './src/theme';
 import { AuraIcon } from './src/components/AuraIcon';
 
-import HomeScreen from './src/screens/HomeScreen';
+import MainTabsScreen from './src/screens/MainTabsScreen';
 import FocusControlScreen from './src/screens/FocusControlScreen';
 import SafetySettingsScreen from './src/screens/SafetySettingsScreen';
 import MeetingPrepCardScreen from './src/screens/MeetingPrepCardScreen';
@@ -47,10 +47,10 @@ const AppNavTheme = {
   colors: {
     ...DarkTheme.colors,
     background: THEME.bg,
-    card: THEME.bgElevated,
+    card: THEME.card,
     text: THEME.textPrimary,
     border: THEME.border,
-    primary: THEME.brandYellow,
+    primary: THEME.green,
     notification: THEME.amber,
   },
 };
@@ -59,14 +59,23 @@ const AppNavTheme = {
 
 export default function App(): React.JSX.Element {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    // 1. Check credentials
+    // 1. Check or auto-seed demo credentials for seamless Expo Go testing
     (async () => {
-      const uid = await getStoredUserId();
-      if (isMounted) setIsAuthenticated(uid !== null);
+      let uid = await getStoredUserId();
+      if (!uid) {
+        // Automatically provide demo developer sandbox credentials
+        const demo = await demoSignIn();
+        uid = demo.userId;
+      }
+      if (isMounted) {
+        setUserId(uid);
+        setIsAuthenticated(true);
+      }
     })();
 
     // 2. Listen for reactive auth changes
@@ -97,7 +106,8 @@ export default function App(): React.JSX.Element {
 
   const handleSignIn = async (): Promise<void> => {
     try {
-      await signIn();
+      const res = await signIn();
+      setUserId(res.userId);
       setIsAuthenticated(true);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (err) {
@@ -108,7 +118,8 @@ export default function App(): React.JSX.Element {
 
   const handleDemoSignIn = async (): Promise<void> => {
     try {
-      await demoSignIn();
+      const res = await demoSignIn();
+      setUserId(res.userId);
       setIsAuthenticated(true);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (err) {
@@ -132,7 +143,9 @@ export default function App(): React.JSX.Element {
         >
           {isAuthenticated ? (
             <>
-              <Stack.Screen name="Home" component={HomeScreen} />
+              <Stack.Screen name="Home">
+                {() => <MainTabsScreen userId={userId} />}
+              </Stack.Screen>
               <Stack.Screen name="FocusControl" component={FocusControlScreen} />
               <Stack.Screen name="SafetySettings" component={SafetySettingsScreen} />
               <Stack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} />

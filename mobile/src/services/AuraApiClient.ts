@@ -30,6 +30,25 @@ export interface EvidenceItem {
   snippet: string;
 }
 
+export interface RoutineDeviceAction {
+  device: string;
+  device_name?: string;
+  action: string;
+  description?: string;
+}
+
+export interface LearnedRoutine {
+  routine_id: string;
+  user_id: string;
+  intent: string;
+  intent_pattern: string;
+  name: string;
+  actions: RoutineDeviceAction[];
+  scope: 'always' | 'allow_always' | 'ask_every_time';
+  active: boolean;
+  created_at: number;
+}
+
 // POST /api/v1/focus/signal
 export interface FocusSignalRequest {
   event_id: string;
@@ -40,6 +59,8 @@ export interface FocusSignalRequest {
   evidence: EvidenceItem[];
   consented_signal_score?: number;
   idempotency_key?: string;
+  user_intent?: string;
+  connected_devices?: string[];
 }
 
 export interface FocusProposal {
@@ -52,11 +73,19 @@ export interface FocusProposal {
   evidence_ids?: string[];
   recommended_action: RecommendedAction;
   reason: string;
+  device_actions?: RoutineDeviceAction[];
+  routine_name?: string;
 }
 
 export interface FocusSignalResponse {
   proposal: FocusProposal;
   policy_required: boolean;
+  decision?: string;
+  undo_token?: string | null;
+  target_device_id?: string | null;
+  device_actions?: RoutineDeviceAction[];
+  routine_actions?: RoutineDeviceAction[];
+  learned_routine?: boolean;
 }
 
 // POST /api/v1/focus/session
@@ -291,6 +320,32 @@ class AuraHttpClient {
 
   async revokeConsentGrant(grantId: string): Promise<void> {
     await this.request<unknown>('DELETE', `/api/v1/consent/grants/${grantId}`);
+  }
+
+  // ── Adaptive Intent Routines ───────────────────────────────────────────────
+
+  async getRoutines(userId: string): Promise<LearnedRoutine[]> {
+    const data = await this.request<{ routines: LearnedRoutine[] }>(
+      'GET',
+      '/api/v1/routines',
+      undefined,
+      { user_id: userId },
+    );
+    return data.routines ?? [];
+  }
+
+  async createRoutine(payload: {
+    user_id: string;
+    intent: string;
+    actions: RoutineDeviceAction[];
+    name?: string;
+    scope?: string;
+  }): Promise<LearnedRoutine> {
+    return this.request<LearnedRoutine>('POST', '/api/v1/routines', payload);
+  }
+
+  async revokeRoutine(routineId: string, userId: string): Promise<void> {
+    await this.request<unknown>('DELETE', `/api/v1/routines/${routineId}`, undefined, { user_id: userId });
   }
 
   // ── Audit ──────────────────────────────────────────────────────────────────
