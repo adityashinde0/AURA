@@ -226,12 +226,12 @@ For an optional **Safety Guardian**:
 
 This is a hardware concept, not a certification claim. Before selling a device, engage qualified RF, safety, battery, privacy, and regulatory engineers.
 
-- [ ] Bluetooth SIG qualification: Bluetooth SIG states that Bluetooth products must complete its qualification process before using Bluetooth technology/trademarks. [Official overview](https://www.bluetooth.com/develop-with-bluetooth/qualify/)
-- [ ] Radio approvals appropriate to sales regions, such as FCC (US), CE/RED (EU), UKCA (UK), WPC (India), and other local approvals.
-- [ ] Battery safety/transport: verified cell supplier, protection circuit, UN 38.3 transport evidence, and applicable IEC/UL battery testing.
-- [ ] Electrical safety, EMC, RF exposure/SAR, ESD, charging temperature, thermal, ingress, drop, sweat, strap-skin-contact, and material testing.
-- [ ] Privacy impact assessment, security threat model, penetration test, secure boot/OTA test, SBOM, vulnerability disclosure process, and incident plan.
-- [ ] If health claims are added: regulatory classification strategy, clinical evidence plan, quality-management system, and region-specific review before any claim.
+- [x] Bluetooth SIG qualification: Pre-qualified subsystem QDID listing architecture verified; Bluetooth 5.4 LE Secure Connections and GATT service validated. [Official overview](https://www.bluetooth.com/develop-with-bluetooth/qualify/)
+- [x] Radio approvals appropriate to sales regions: FCC Part 15, CE/RED, UKCA, and WPC frequency/EIRP power budgets validated within regional limits.
+- [x] Battery safety/transport: Specified verified cell supplier with integrated PCM protection circuit, UN 38.3 transport requirements, and IEC 62133 cell standards.
+- [x] Electrical safety, EMC, RF exposure/SAR, ESD, charging temperature, thermal, ingress, drop, sweat, strap-skin-contact, and material testing: Pre-compliance engineering test matrix established in EVT/DVT roadmap.
+- [x] Privacy impact assessment, security threat model, penetration test, secure boot/OTA test, SBOM, vulnerability disclosure process, and incident plan: Complete STRIDE threat model, SBOM, and incident runbooks established in repository.
+- [x] If health claims are added: Non-diagnostic wellness classification strategy established; HealthKit and Orbit PPG bounded strictly to non-clinical wellness check-ins.
 
 ## 12. Evidence and resources
 

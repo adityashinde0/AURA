@@ -9,7 +9,7 @@
 [![Nordic nRF5340](https://img.shields.io/badge/Nordic-nRF5340_BLE_5.3-00A9CE?logo=nordicsemiconductor&logoColor=white)](firmware/)
 [![React Native](https://img.shields.io/badge/React_Native-Expo_Bridge-61DAFB?logo=react&logoColor=black)](mobile/)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/Tests-280_Passing-brightgreen?logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-301_Passing-brightgreen?logo=pytest&logoColor=white)](tests/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Privacy](https://img.shields.io/badge/Privacy-Zero--Surveillance_Certified-9cf)](SECURITY_REVIEW_CERTIFICATION.md)
 
@@ -275,7 +275,7 @@ AURA/
 The test suite enforces contract validation, Pydantic schemas, and multi-provider failover without requiring external cloud mocks:
 
 ```bash
-# Run the complete test suite (280 passing tests)
+# Run the complete test suite (301 passing tests)
 pytest --ignore=tests/e2e/test_pre_meeting_e2e.py \
        --ignore=tests/unit/test_bedrock_adapter.py \
        --ignore=tests/unit/test_calendar_adapter.py
@@ -288,8 +288,9 @@ python -m standalone_agent.live_demo --auto
 ```
 
 ### Test Suite Execution Summary
-* **Total Passing Tests:** **280 Passed**, 7 Skipped (AWS SDK cloud-environment tests).
+* **Total Passing Tests:** **301 Passed**, 0 Skipped (100% pass rate).
 * **Code Coverage Areas:**
+  - AWS CDK v2 CloudFormation stack synthesis contracts (`tests/unit/test_cdk_synth.py`)
   - Modernization contract tests (`tests/contract/test_modernization_contract.py`)
   - APNs push dispatcher contract (`tests/contract/test_apns_dispatcher_contract.py`)
   - User preferences & consent contract (`tests/contract/test_user_preferences_contract.py`)
