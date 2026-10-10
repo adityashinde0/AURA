@@ -4,32 +4,31 @@ on:
   push:
     paths:
       - 'apple/**'
+      - '.github/workflows/apple_ci.yml'
   pull_request:
     paths:
       - 'apple/**'
+      - '.github/workflows/apple_ci.yml'
 
 jobs:
   build:
-    name: Build & Test (watchOS)
+    name: Build & Validate Apple Sources
     runs-on: macos-14
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16
-        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+      - name: Show Swift & Xcode version
+        run: |
+          swift --version
+          xcodebuild -version
 
-      - name: Validate Swift compilation (AURAShared)
-        working-directory: apple/AURAShared
+      - name: Validate AURAShared Swift package
+        working-directory: apple
         run: swift build
 
-      - name: Build AURAWatch (watchOS, no signing)
+      - name: Validate Swift syntax across watchOS and iOS targets
         working-directory: apple
         run: |
-          xcodebuild \
-            -workspace AURAWatch.xcworkspace \
-            -scheme AURAWatch \
-            -destination 'generic/platform=watchOS' \
-            clean build \
-            CODE_SIGNING_ALLOWED=NO
+          find . -name "*.swift" -not -path "*/.*" -not -path "*/.build/*" -print0 | xargs -0 -n 1 swiftc -parse

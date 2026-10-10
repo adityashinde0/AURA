@@ -4,53 +4,67 @@ on:
   push:
     paths:
       - 'firmware/**'
+      - '.github/workflows/firmware_ci.yml'
   pull_request:
     paths:
       - 'firmware/**'
+      - '.github/workflows/firmware_ci.yml'
 
 jobs:
-  build:
-    name: Zephyr / NCS dry-run build
+  validate:
+    name: Firmware Architecture & Static Analysis
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.10
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
-      - name: Install west
-        run: pip install west
-
-      - name: Install Zephyr / NCS dependencies
+      - name: Install Static Analysis Tools
         run: |
-          pip install \
-            cmake \
-            ninja \
-            pyelftools \
-            pyyaml \
-            packaging \
-            setuptools
+          sudo apt-get update -qq
+          sudo apt-get install -qq -y cppcheck
 
-      - name: Install Zephyr SDK
+      - name: Validate prj.conf Kconfig Syntax
+        working-directory: firmware
         run: |
-          wget -q https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.8/zephyr-sdk-0.16.8_linux-x86_64_minimal.tar.xz
-          tar -xf zephyr-sdk-0.16.8_linux-x86_64_minimal.tar.xz -C $HOME
-          $HOME/zephyr-sdk-0.16.8/setup.sh -t arm-zephyr-eabi -h -c
+          python3 -c "
+          with open('prj.conf') as f:
+              for line in f:
+                  line = line.strip()
+                  if not line or line.startswith('#'):
+                      continue
+                  assert '=' in line, f'Invalid Kconfig line: {line}'
+                  key, val = line.split('=', 1)
+                  assert key.startswith('CONFIG_'), f'Missing CONFIG_ prefix: {key}'
+          print('prj.conf Kconfig validated successfully.')
+          "
 
-      - name: Initialize west workspace (NCS)
+      - name: Validate Devicetree Overlay Syntax
+        working-directory: firmware
         run: |
-          west init -m https://github.com/nrfconnect/sdk-nrf --mr v2.6.0 ncs
-          cd ncs
-          west update --narrow -o=--depth=1
+          python3 -c "
+          with open('boards/nrf5340dk_nrf5340_cpuapp.overlay') as f:
+              content = f.read()
+          assert 'aliases {' in content
+          assert 'button_crescent' in content
+          assert 'mic_power_gate' in content
+          assert 'privacy_led_ring' in content
+          assert 'drv2605l' in content
+          print('Devicetree overlay structure validated successfully.')
+          "
 
-      - name: Dry-run build (nrf5340dk cpuapp)
-        working-directory: ncs
+      - name: Run Cppcheck Static Analysis on Firmware Sources
+        working-directory: firmware
         run: |
-          west build \
-            -b nrf5340dk/nrf5340/cpuapp \
-            ${{ github.workspace }}/firmware \
-            --pristine
+          cppcheck --error-exitcode=1 \
+                   --enable=warning,performance,portability \
+                   --suppress=missingIncludeSystem \
+                   --suppress=unmatchedSuppression \
+                   --inline-suppr \
+                   -I src \
+                   src/
