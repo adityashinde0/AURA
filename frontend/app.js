@@ -54,6 +54,7 @@ const state = {
       target_allowlist: ['#marcus-focus'],
       active: true,
     },
+  ],
   learnedRoutines: [
     {
       routine_id: 'rtn_wind_down',
@@ -489,7 +490,17 @@ function setupNavigation() {
   const panels = document.querySelectorAll('.view-panel');
 
   tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
+    tab.addEventListener('click', (e) => {
+      // If it's an external/page navigation link (like orbit.html), let normal navigation happen
+      if (tab.tagName.toLowerCase() === 'a' && tab.getAttribute('href')) {
+        return;
+      }
+
+      const targetId = tab.getAttribute('aria-controls');
+      if (!targetId) return;
+      const targetPanel = document.getElementById(targetId);
+      if (!targetPanel) return;
+
       tabs.forEach((t) => {
         t.classList.remove('active');
         t.setAttribute('aria-selected', 'false');
@@ -504,12 +515,8 @@ function setupNavigation() {
       tab.setAttribute('aria-selected', 'true');
       tab.setAttribute('tabindex', '0');
 
-      const targetId = tab.getAttribute('aria-controls');
-      const targetPanel = document.getElementById(targetId);
-      if (targetPanel) {
-        targetPanel.classList.add('active');
-        targetPanel.removeAttribute('hidden');
-      }
+      targetPanel.classList.add('active');
+      targetPanel.removeAttribute('hidden');
 
       // Close mobile sidebar if open
       const sidebar = document.getElementById('app-sidebar');
@@ -828,10 +835,26 @@ function updateScoreUI(score, reason) {
   DOM.scoreReason.textContent = reason;
 }
 
+// Undo UI Management
+function enableUndoUI(seconds = 30) {
+  if (DOM.btnImmediateUndo) DOM.btnImmediateUndo.disabled = false;
+  const btnHomeUndo = document.getElementById('btn-home-undo');
+  if (btnHomeUndo) btnHomeUndo.disabled = false;
+
+  if (state.undoTimeout) clearTimeout(state.undoTimeout);
+  state.undoTimeout = setTimeout(() => {
+    if (DOM.btnImmediateUndo) DOM.btnImmediateUndo.disabled = true;
+    const bhu = document.getElementById('btn-home-undo');
+    if (bhu) bhu.disabled = true;
+    state.activeUndoToken = null;
+  }, seconds * 1000);
+}
+
 // Device Action Execution & Undo
 function executeDevicePause() {
   const undoToken = 'undo_pause_' + Math.random().toString(36).substring(2, 9);
   state.activeUndoToken = undoToken;
+  enableUndoUI(300);
 
   // Update Fire TV state
   state.devices.firetv.state = 'paused';
@@ -849,6 +872,12 @@ function executeDevicePause() {
   const btnHomeUndo = document.getElementById('btn-home-undo');
   if (btnHomeUndo) btnHomeUndo.disabled = false;
 
+  const btnHomePauseTv = document.getElementById('btn-home-pause-tv');
+  if (btnHomePauseTv) btnHomePauseTv.textContent = '▶️ Resume Fire TV';
+
+  const tileTvInd = document.getElementById('tile-tv-indicator');
+  if (tileTvInd) tileTvInd.style.background = '#f59e0b';
+
   addRecentActivity('TV paused (MediaSession)', 'Just now', true);
 
   addAuditRecord(
@@ -862,6 +891,7 @@ function executeDevicePause() {
 
 function executeUndo() {
   if (!state.activeUndoToken) return;
+  if (state.undoTimeout) clearTimeout(state.undoTimeout);
 
   // Restore Fire TV playback
   state.devices.firetv.state = 'playing';
@@ -878,6 +908,12 @@ function executeUndo() {
 
   const btnHomeUndo = document.getElementById('btn-home-undo');
   if (btnHomeUndo) btnHomeUndo.disabled = true;
+
+  const btnHomePauseTv = document.getElementById('btn-home-pause-tv');
+  if (btnHomePauseTv) btnHomePauseTv.textContent = '📺 Pause Fire TV';
+
+  const tileTvInd = document.getElementById('tile-tv-indicator');
+  if (tileTvInd) tileTvInd.style.background = '#10B981';
 
   addRecentActivity('TV playback restored (Undo)', 'Just now', true);
 
@@ -1070,6 +1106,21 @@ function executeAdaptiveRoutine(intent, actions, routineName = 'Adaptive Routine
 
   const targets = actions.map((a) => a.device).join(', ');
   const actionTypes = actions.map((a) => a.action).join(' + ');
+
+  // If Fire TV is among targets, pause it in state & UI
+  if (actions.some((a) => (a.device || '').includes('firetv') && a.action === 'request_pause')) {
+    state.devices.firetv.state = 'paused';
+    if (DOM.firetvBadge) {
+      DOM.firetvBadge.textContent = 'Paused';
+      DOM.firetvBadge.className = 'badge badge-status';
+    }
+    const btnHomePauseTv = document.getElementById('btn-home-pause-tv');
+    if (btnHomePauseTv) btnHomePauseTv.textContent = '▶️ Resume Fire TV';
+    const tileTvInd = document.getElementById('tile-tv-indicator');
+    if (tileTvInd) tileTvInd.style.background = '#f59e0b';
+  }
+
+  addRecentActivity(`Routine: ${routineName}`, 'Just now', true);
 
   addAuditRecord(
     'routine_execution',
