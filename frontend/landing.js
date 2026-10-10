@@ -272,6 +272,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // 4. Hero Corner Video Link handler
+  const heroCornerVideo = document.getElementById('hero-corner-video');
+  if (heroCornerVideo) {
+    heroCornerVideo.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        window.open(heroCornerVideo.href, '_blank', 'noopener,noreferrer');
+      }
+    });
+  }
+
   // Initialize image auto rotation
   startImageTimer();
 });

@@ -388,39 +388,55 @@ body {
   transform: translateY(-2px);
 }
 
-.hero-floating-badge {
+/* Hero Corner Normal Video (Exact size & location, clean frame, redirect on click) */
+.hero-corner-video {
   position: absolute;
-  top: 36px;
-  right: 36px;
-  background-color: rgba(18, 20, 13, 0.85);
-  backdrop-filter: blur(16px);
+  top: 32px;
+  right: 32px;
+  width: 250px;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: #FFFFFF;
-  box-shadow: var(--shadow-float);
+  background: #000 url('assets/aura-orbit-video-thumb.jpg') center/cover no-repeat;
+  display: block;
+  text-decoration: none;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
-.floating-logo-icon {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--brand-yellow);
-  letter-spacing: -0.04em;
+.hero-corner-video:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 207, 0, 0.4);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
 }
 
-.floating-play-pill {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FFF;
+.hero-corner-video:focus-visible {
+  outline: 2px solid var(--brand-yellow);
+  outline-offset: 3px;
+}
+
+.corner-video-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  pointer-events: none; /* Allows direct click on parent anchor link to redirect */
+}
+
+.corner-video-click-target {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: pointer;
+}
+
+/* Legacy floating badge fallback support */
+.hero-floating-badge {
+  display: none;
 }
 
 /* ==========================================================================
@@ -2250,8 +2266,10 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .footer-top-row {
-    grid-template-columns: 1fr 1fr;
+  .hero-corner-video {
+    top: 20px;
+    right: 20px;
+    width: 210px;
   }
 }
 
@@ -2316,6 +2334,13 @@ body {
 
   .hero-floating-badge {
     display: none;
+  }
+
+  .hero-corner-video {
+    top: 14px;
+    right: 14px;
+    width: 165px;
+    border-radius: 12px;
   }
 
   .giant-watermark-text {

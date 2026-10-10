@@ -10,13 +10,16 @@
 [![React Native](https://img.shields.io/badge/React_Native-Expo_Bridge-61DAFB?logo=react&logoColor=black)](mobile/)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/Tests-301_Passing-brightgreen?logo=pytest&logoColor=white)](tests/)
+[![Official Teaser](https://img.shields.io/badge/YouTube-Official_Teaser-FF0000?logo=youtube&logoColor=white)](https://youtu.be/TGYBgcJrPzw)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Privacy](https://img.shields.io/badge/Privacy-Zero--Surveillance_Certified-9cf)](docs/SECURITY_REVIEW_CERTIFICATION.md)
 [![Hardware Dossier PDF](https://img.shields.io/badge/Hardware_Dossier-PDF_Spec_6.3MB-red?logo=adobe-acrobat-reader&logoColor=white)](docs/hardware/AURA_ORBIT_HARDWARE_SPECIFICATION.pdf)
 
 **Bee remembers what you forgot. AURA remembers what you're about to forget, and orchestrates your physical and digital world to defend your focus.**
 
-[🌐 Live Web Control Plane & Simulator](#-live-web-control-plane--hardware-simulator) • [⌚ Multi-Device Ecosystem](#-multi-device-hardware--software-ecosystem) • [📄 Hardware PDF Dossier](docs/hardware/AURA_ORBIT_HARDWARE_SPECIFICATION.pdf) • [🏠 Ambient Smart Home Integrations](#-ambient-smart-home--iot-integrations) • [🏗️ System Architecture](#-end-to-end-system-architecture) • [📊 Multi-LLM Benchmarks](#-multi-llm-resilience-gateway--benchmarks) • [☁️ AWS Cloud (11 Services)](#-aws-cloud-architecture-11-enterprise-services) • [📚 Documentation Hub](#-documentation-hub--system-specifications)
+> 🎬 **Official Teaser Video:** [Watch the Aura Orbit Edition Teaser on YouTube](https://youtu.be/TGYBgcJrPzw)
+
+[🎬 Official Teaser](https://youtu.be/TGYBgcJrPzw) • [🌐 Live Web Control Plane & Simulator](#-live-web-control-plane--hardware-simulator) • [⌚ Multi-Device Ecosystem](#-multi-device-hardware--software-ecosystem) • [📄 Hardware PDF Dossier](docs/hardware/AURA_ORBIT_HARDWARE_SPECIFICATION.pdf) • [🏠 Ambient Smart Home Integrations](#-ambient-smart-home--iot-integrations) • [🏗️ System Architecture](#-end-to-end-system-architecture) • [📊 Multi-LLM Benchmarks](#-multi-llm-resilience-gateway--benchmarks) • [☁️ AWS Cloud (11 Services)](#-aws-cloud-architecture-11-enterprise-services) • [📚 Documentation Hub](#-documentation-hub--system-specifications)
 
 </div>
 
@@ -347,6 +350,7 @@ All comprehensive technical specifications, architecture blueprints, operational
 | **System Architecture** | Full production event-driven architecture, personal device trust boundaries, and AWS integration matrix | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
 | **Product Requirements (PRD)** | Core product thesis, competitive baseline (Plaud, Limitless, Omi), user flows, and privacy boundaries | [`docs/PRD.md`](docs/PRD.md) |
 | **Hardware Engineering Docs** | 1,000+ line engineering specification: BOM, exploded assembly, PMIC nPM1300 power budget, Zephyr drivers | [`docs/hardware/AURA_ORBIT_HARDWARE_DOCS.md`](docs/hardware/AURA_ORBIT_HARDWARE_DOCS.md) |
+| **Official Teaser** | **Aura Orbit Edition official hardware & concept teaser video** | [**Watch on YouTube**](https://youtu.be/TGYBgcJrPzw) |
 | **Hardware Dossier (PDF)** | **Official 6.35 MB production engineering reference publication & industrial design dossier** | [`docs/hardware/AURA_ORBIT_HARDWARE_SPECIFICATION.pdf`](docs/hardware/AURA_ORBIT_HARDWARE_SPECIFICATION.pdf) |
 | **Wearable Concept Design** | Original exploratory industrial design rationale and calm wearable philosophy | [`docs/hardware/aura_wearable_hardware_design.md`](docs/hardware/aura_wearable_hardware_design.md) |
 | **Security & Certification** | Fire TV `MediaSession`, Alexa DND, STRIDE threat model, and zero-raw-media boundary certification | [`docs/SECURITY_REVIEW_CERTIFICATION.md`](docs/SECURITY_REVIEW_CERTIFICATION.md) |
