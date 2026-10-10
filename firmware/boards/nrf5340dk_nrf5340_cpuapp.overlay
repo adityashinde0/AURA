@@ -1,0 +1,98 @@
+/*
+ * AURA Orbit — nRF5340 DK Application Core board overlay
+ *
+ * Devicetree overlay for:
+ *   - Tactile crescent dome switch (INT_BTN) on P0.11 (active-low, pull-up)
+ *   - Microphone P-FET power gate (GPIO_MIC_GATE) on P0.28 (active-high)
+ *   - Amber privacy LED ring (PRIVACY_LED) on P0.29 (active-high)
+ *   - TI DRV2605L haptic driver on I2C1 @ 0x5A (400 kHz)
+ */
+
+/ {
+	/*
+	 * Aliases let application code reference nodes by stable names
+	 * regardless of SoC-internal GPIO numbering.
+	 */
+	aliases {
+		int-btn     = &button_crescent;
+		mic-gate    = &mic_power_gate;
+		privacy-led = &privacy_led_ring;
+		haptic-drv  = &drv2605l;
+	};
+
+	/*
+	 * Crescent dome button — hardware interrupt, active-low.
+	 * GPIO_PULL_UP: internal pull-up so the line sits HIGH at rest.
+	 */
+	buttons {
+		compatible = "gpio-keys";
+
+		button_crescent: button_0 {
+			label       = "INT_BTN";
+			gpios       = <&gpio0 11 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+		};
+	};
+
+	/*
+	 * Microphone P-FET power gate.
+	 * Driving this pin HIGH enables the FET (powers the microphone).
+	 * Default state: LOW (microphone off, privacy-safe boot).
+	 */
+	mic-power-gate {
+		compatible = "gpio-leds";
+
+		mic_power_gate: mic_gate_0 {
+			label  = "GPIO_MIC_GATE";
+			gpios  = <&gpio0 28 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	/*
+	 * Amber privacy LED ring.
+	 * Lit whenever the microphone gate is open.
+	 */
+	privacy-led {
+		compatible = "gpio-leds";
+
+		privacy_led_ring: led_0 {
+			label  = "PRIVACY_LED";
+			gpios  = <&gpio0 29 GPIO_ACTIVE_HIGH>;
+		};
+	};
+};
+
+/*
+ * I2C1 bus — DRV2605L haptic driver at 400 kHz.
+ *
+ * On the nRF5340 DK:
+ *   SDA → P1.02
+ *   SCL → P1.03
+ *
+ * Adjust sda-pin / scl-pin for the production PCB if different.
+ */
+&i2c1 {
+	compatible = "nordic,nrf-twim";
+	status     = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;   /* 400 kHz */
+
+	pinctrl-0  = <&i2c1_default>;
+	pinctrl-names = "default";
+
+	drv2605l: drv2605l@5a {
+		compatible = "ti,drv2605l";
+		reg        = <0x5a>;
+		label      = "DRV2605L";
+	};
+};
+
+/*
+ * Pin-control block — maps I2C1 signals to physical pads.
+ */
+&pinctrl {
+	i2c1_default: i2c1_default {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 1, 2)>,
+			        <NRF_PSEL(TWIM_SCL, 1, 3)>;
+		};
+	};
+};

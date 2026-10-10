@@ -105,19 +105,62 @@ def test_calculate_trigger_epoch_and_idempotency_key(base_epoch):
 
 
 def test_is_in_quiet_hours():
-    # Quiet hours: 22:00 to 07:00 UTC (overnight)
-    qh = {"enabled": True, "start_time": "22:00", "end_time": "07:00", "timezone": "UTC"}
+    # Quiet hours: 22:00 to 07:00 UTC (overnight / midnight-crossing)
+    qh_utc = {"enabled": True, "start_time": "22:00", "end_time": "07:00", "timezone": "UTC"}
 
     # 23:30 UTC -> inside
     dt_2330 = 1791156600  # corresponds to 23:30 on a day
-    assert is_in_quiet_hours(dt_2330, qh) is True
+    assert is_in_quiet_hours(dt_2330, qh_utc) is True
 
     # 14:00 UTC -> outside
     dt_1400 = 1791122400
-    assert is_in_quiet_hours(dt_1400, qh) is False
+    assert is_in_quiet_hours(dt_1400, qh_utc) is False
 
-    # Disabled quiet hours -> always False
+    # Disabled quiet hours or None -> always False
     assert is_in_quiet_hours(dt_2330, {"enabled": False}) is False
+    assert is_in_quiet_hours(dt_2330, None) is False
+
+
+def test_is_in_quiet_hours_same_day_window():
+    # Same-day daytime window: 13:00 to 15:00 UTC
+    qh = {"enabled": True, "start_time": "13:00", "end_time": "15:00", "timezone": "UTC"}
+    # 14:00 UTC -> inside
+    assert is_in_quiet_hours(1791122400, qh) is True
+    # 12:59 UTC -> outside
+    assert is_in_quiet_hours(1791122400 - 3660, qh) is False
+    # 15:01 UTC -> outside
+    assert is_in_quiet_hours(1791122400 + 3660, qh) is False
+
+
+def test_is_in_quiet_hours_named_timezone_and_dst():
+    from zoneinfo import ZoneInfo
+    import datetime
+
+    # Quiet hours 22:00 to 07:00 in Europe/London
+    qh_london = {"enabled": True, "start_time": "22:00", "end_time": "07:00", "timezone": "Europe/London"}
+
+    # Summer date (BST = UTC+1): July 15, 2026
+    # 21:30 UTC is 22:30 BST -> inside quiet hours
+    summer_dt_utc = datetime.datetime(2026, 7, 15, 21, 30, tzinfo=datetime.timezone.utc)
+    summer_epoch = int(summer_dt_utc.timestamp())
+    assert is_in_quiet_hours(summer_epoch, qh_london) is True
+
+    # In winter (GMT = UTC+0): January 15, 2026
+    # 21:30 UTC is 21:30 GMT -> outside quiet hours
+    winter_dt_utc = datetime.datetime(2026, 1, 15, 21, 30, tzinfo=datetime.timezone.utc)
+    winter_epoch = int(winter_dt_utc.timestamp())
+    assert is_in_quiet_hours(winter_epoch, qh_london) is False
+
+
+def test_is_in_quiet_hours_invalid_timezone_fallback(capsys):
+    # Unknown timezone should fallback to UTC and log warning
+    qh_invalid = {"enabled": True, "start_time": "22:00", "end_time": "07:00", "timezone": "Invalid/Nonexistent_TZ"}
+    dt_2330 = 1791156600  # 23:30 UTC -> inside
+    assert is_in_quiet_hours(dt_2330, qh_invalid) is True
+
+    captured = capsys.readouterr()
+    assert "invalid_quiet_hours_timezone" in captured.out
+    assert "Invalid/Nonexistent_TZ" in captured.out
 
 
 def test_create_meeting_prep_event(base_epoch):

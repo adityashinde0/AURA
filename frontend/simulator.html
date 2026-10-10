@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA Multi-Device Simulation Lab &amp; Verifiable Test Suite</title>
+  <meta name="description" content="Interactive multi-device hardware simulation lab and verifiable testbed for Project AURA. Test AURA Orbit Wearable, Apple Watch watchOS 10 companion, and policy engine state machines in real-time.">
+  <link rel="icon" type="image/jpeg" href="assets/aura-logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="simulator.css">
+  <script>
+    // Immediate Theme Initialization
+    (function() {
+      const savedTheme = localStorage.getItem('aura-color-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- =========================================================================
+       STICKY HEADER & NAVIGATION
+       ========================================================================= -->
+  <header class="sim-header" role="banner">
+    <div class="sim-container sim-nav-wrapper">
+      <a href="index.html" class="sim-brand" aria-label="AURA Home">
+        <div class="sim-brand-mark" aria-hidden="true">
+          <div class="sim-brand-ring"></div>
+        </div>
+        <span class="sim-brand-title">AURA</span>
+        <span class="sim-brand-badge">Simulation Lab</span>
+      </a>
+
+      <nav class="sim-nav-links" aria-label="Simulator Navigation">
+        <a href="index.html" class="sim-nav-link">Platform Overview</a>
+        <a href="orbit.html" class="sim-nav-link">AURA Orbit Hardware</a>
+        <a href="control-plane.html" class="sim-nav-link">Web Control Plane</a>
+        <a href="simulator.html" class="sim-nav-link active">Live Simulator &amp; Tests</a>
+
+        <button id="theme-toggle-btn" class="theme-pill-btn" aria-label="Toggle display theme" title="Toggle theme">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <span id="theme-toggle-label">Dark Mode</span>
+        </button>
+
+        <a href="index.html#architecture" class="btn-nav-outline">
+          <span>AWS Bedrock Spec</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="sim-container">
+
+      <!-- =======================================================================
+           HERO & EXECUTIVE TESTBED BANNER
+           ======================================================================= -->
+      <section class="sim-hero-section" aria-label="Simulation Overview">
+        <div class="sim-arch-pill">
+          <span class="sim-pulse-dot" aria-hidden="true"></span>
+          <span>CONNECTED MULTI-CLIENT ARCHITECTURE · INTERACTIVE TESTBED</span>
+        </div>
+        <h1 class="sim-hero-headline">Multi-Device Simulation Lab &amp; Test Suite</h1>
+        <p class="sim-hero-sub">
+          Test real-time wearable interactions across the custom <strong>AURA Orbit Nordic nRF5340 Pebble</strong> and 
+          <strong>Apple Watch Series 9 watchOS 10 Companion</strong>. Verify Bedrock Claude 3.5 Sonnet context delivery, 
+          haptic state machines, and autonomous policy engine safeguards with live assertions and telemetry wire logs.
+        </p>
+
+        <!-- =====================================================================
+             MASTER CONTROLS TOOLBAR (Device Switcher & Scenarios)
+             ===================================================================== -->
+        <div class="sim-master-toolbar" role="toolbar" aria-label="Simulator Controls">
+          <!-- Device Selector -->
+          <div class="toolbar-group">
+            <span class="toolbar-label">Device Client:</span>
+            <div class="device-toggle-pills" role="radiogroup" aria-label="Select device">
+              <button type="button" class="device-pill active" id="sim-device-orbit-btn" data-device="orbit" role="radio" aria-checked="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>AURA Orbit Watch</span>
+                <span class="device-sub-tag">Hardware MIP</span>
+              </button>
+              <button type="button" class="device-pill" id="sim-device-apple-btn" data-device="apple-watch" role="radio" aria-checked="false">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="12" height="16" rx="4"/><path d="M9 1h6"/><path d="M9 23h6"/></svg>
+                <span>Apple Watch</span>
+                <span class="device-sub-tag">watchOS 10</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Scenario Tabs -->
+          <div class="toolbar-group">
+            <span class="toolbar-label">Interactive Scenarios:</span>
+            <div class="scenario-tabs-list" role="tablist" aria-label="Interactive scenarios">
+              <button type="button" class="scenario-tab-btn active" data-scenario="t5" role="tab" aria-selected="true">
+                <span class="tab-num-circle">1</span>
+                <span>T-5 Meeting Prep</span>
+              </button>
+              <button type="button" class="scenario-tab-btn" data-scenario="focus" role="tab" aria-selected="false">
+                <span class="tab-num-circle">2</span>
+                <span>Start Focus</span>
+              </button>
+              <button type="button" class="scenario-tab-btn" data-scenario="distracted" role="tab" aria-selected="false">
+                <span class="tab-num-circle">3</span>
+                <span>I'm Distracted</span>
+              </button>
+              <button type="button" class="scenario-tab-btn" data-scenario="safety" role="tab" aria-selected="false">
+                <span class="tab-num-circle">4</span>
+                <span>Safety Check-in</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =======================================================================
+           PRIMARY SIMULATOR STAGE GRID (Left: Watch Chassis | Right: Cockpit & Tests)
+           ======================================================================= -->
+      <section class="sim-stage-main-grid" aria-label="Interactive Watch Stage and Test Cockpit">
+
+        <!-- LEFT COLUMN: EXPANDED FULL-EXPERIENCE WATCH CHASSIS -->
+        <div class="watch-viewport-stage">
+          <div class="watch-strap-top" aria-hidden="true"></div>
+
+          <!-- 1. ORBIT PHYSICAL PEBBLE CHASSIS -->
+          <div class="orbit-pebble-frame" id="orbit-chassis-frame" role="region" aria-label="AURA Orbit Physical Hardware Wearable">
+            <!-- Hardware Amber LED Ring Indicator -->
+            <div class="orbit-amber-indicator" id="orbit-amber-ring" title="Click to toggle hardware amber ring pulse" role="button" tabindex="0" aria-label="Hardware Amber Ring Indicator">
+              <div class="amber-bloom"></div>
+              <div class="amber-core"></div>
+              <span class="amber-label-tag">Hardware Amber Ring</span>
+            </div>
+
+            <!-- Tactile Crescent Control Key (Clickable physical button) -->
+            <button type="button" class="orbit-crescent-button" id="orbit-hardware-crescent-key" title="Tactile Crescent Key (Click to Trigger/Acknowledge)" aria-label="Tactile Crescent Key">
+              <span class="key-notch"></span>
+            </button>
+
+            <!-- Transflective Memory-in-Pixel Display Bezel -->
+            <div class="orbit-bezel-enclosure">
+              <div class="orbit-mip-canvas" id="orbit-screen-surface" role="document" aria-label="Orbit Screen Content">
+                <!-- Content dynamically injected by simulator.js -->
+              </div>
+            </div>
+
+            <!-- Bottom Acoustic Mic / Vent Mesh -->
+            <div class="orbit-mesh-ports" aria-hidden="true">
+              <span class="mesh-circle"></span>
+              <span class="mesh-circle"></span>
+              <span class="mesh-circle"></span>
+              <span class="mesh-circle"></span>
+              <span class="mesh-circle"></span>
+            </div>
+          </div>
+
+          <!-- 2. APPLE WATCH CHASSIS (watchOS 10 OLED) -->
+          <div class="apple-watch-frame" id="apple-watch-chassis-frame" style="display: none;" role="region" aria-label="AURA Apple Watch Series 9 Companion">
+            <!-- Digital Crown (Rotatable / Clickable) -->
+            <button type="button" class="apple-crown-button" id="apple-digital-crown" title="Digital Crown (Click to Cycle Scenarios)" aria-label="Digital Crown"></button>
+            
+            <!-- Side App Switcher / Action Button -->
+            <button type="button" class="apple-side-key" id="apple-side-button" title="Side Button (Click to Trigger Undo / Dismiss)" aria-label="Apple Watch Side Button"></button>
+
+            <!-- Curved Retina OLED Bezel -->
+            <div class="apple-oled-bezel">
+              <div class="watchos-top-bar">
+                <span>09:41</span>
+                <div class="watchos-icons-strip">
+                  <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981;"></span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                </div>
+              </div>
+              <div class="watchos-oled-surface" id="apple-screen-surface" role="document" aria-label="Apple Watch Screen Content">
+                <!-- Content dynamically injected by simulator.js -->
+              </div>
+            </div>
+          </div>
+
+          <div class="watch-strap-bottom" aria-hidden="true"></div>
+
+          <!-- Stage Captions & Tactile Hint -->
+          <div class="watch-stage-caption-box">
+            <div class="stage-instruction-pill">
+              <span aria-hidden="true">💡</span>
+              <span id="stage-instruction-text">Click <strong>Mark as Reviewed</strong> on the screen or press the physical Crescent Key to acknowledge readiness.</span>
+            </div>
+            <div class="stage-mode-label" id="stage-mode-label">
+              Active Client: AURA Orbit Hardware (Transflective MIP Screen + Amber Ring)
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: INTERACTIVE TEST SUITE & CLOUD TELEMETRY COCKPIT -->
+        <div class="cockpit-panel-col">
+
+          <!-- 1. VERIFIABLE TEST CASES RUNNER CARD -->
+          <div class="test-cases-suite-card">
+            <div class="suite-header-bar">
+              <div class="suite-title-group">
+                <span class="suite-kicker">Architecture Audit &amp; Judge Verification</span>
+                <h2 class="suite-title">Verifiable Test Cases Suite</h2>
+              </div>
+              <button type="button" class="btn-run-all-tests" id="btn-run-all-tests" title="Execute automated verification sequence across all 4 test cases">
+                <span>▶ Run All 4 Test Cases</span>
+              </button>
+            </div>
+
+            <div class="test-cases-grid">
+
+              <!-- TC-01 -->
+              <div class="test-case-item" id="tc-item-1">
+                <div class="tc-top-row">
+                  <span class="tc-id-badge">TC-01</span>
+                  <span class="tc-status-badge" id="tc-badge-1">READY</span>
+                </div>
+                <h3 class="tc-name">T-5 Meeting Prep — Glanceable 3-Question Prompt</h3>
+                <p class="tc-assertion-desc">
+                  Validates Bedrock Claude 3.5 Sonnet payload returns exactly 3 high-leverage questions under 70 words total, zero raw audio buffer in payload, and single-tap acknowledgment.
+                </p>
+                <div class="tc-actions-bar">
+                  <div class="tc-assertions-list">
+                    <span class="tc-assert-chip">assert 3_questions</span>
+                    <span class="tc-assert-chip">assert &lt;70 words</span>
+                    <span class="tc-assert-chip">assert no_audio_buffer</span>
+                  </div>
+                  <button type="button" class="btn-run-tc" data-tcid="1" title="Execute TC-01">Run TC-01</button>
+                </div>
+              </div>
+
+              <!-- TC-02 -->
+              <div class="test-case-item" id="tc-item-2">
+                <div class="tc-top-row">
+                  <span class="tc-id-badge">TC-02</span>
+                  <span class="tc-status-badge" id="tc-badge-2">READY</span>
+                </div>
+                <h3 class="tc-name">Deep Work Defense — Peripheral Interception</h3>
+                <p class="tc-assertion-desc">
+                  Validates start of Pomodoro focus mode automatically triggers Amazon Fire TV HDMI-CEC playback pause and Slack DND status without streaming background ambient voice.
+                </p>
+                <div class="tc-actions-bar">
+                  <div class="tc-assertions-list">
+                    <span class="tc-assert-chip">assert firetv_paused</span>
+                    <span class="tc-assert-chip">assert slack_dnd</span>
+                    <span class="tc-assert-chip">assert points_banked</span>
+                  </div>
+                  <button type="button" class="btn-run-tc" data-tcid="2" title="Execute TC-02">Run TC-02</button>
+                </div>
+              </div>
+
+              <!-- TC-03 -->
+              <div class="test-case-item" id="tc-item-3">
+                <div class="tc-top-row">
+                  <span class="tc-id-badge">TC-03</span>
+                  <span class="tc-status-badge" id="tc-badge-3">READY</span>
+                </div>
+                <h3 class="tc-name">Autonomous Intervention &amp; Reversible Undo Gate</h3>
+                <p class="tc-assertion-desc">
+                  Validates standalone agent policy engine gate (policy_required: true) and asserts that the physical Crescent Key / Digital Crown trigger a deterministic 1-tap undo action that restores prior peripheral state.
+                </p>
+                <div class="tc-actions-bar">
+                  <div class="tc-assertions-list">
+                    <span class="tc-assert-chip">assert policy_required: true</span>
+                    <span class="tc-assert-chip">assert undo_token_valid</span>
+                    <span class="tc-assert-chip">assert state_restored</span>
+                  </div>
+                  <button type="button" class="btn-run-tc" data-tcid="3" title="Execute TC-03">Run TC-03</button>
+                </div>
+              </div>
+
+              <!-- TC-04 -->
+              <div class="test-case-item" id="tc-item-4">
+                <div class="tc-top-row">
+                  <span class="tc-id-badge">TC-04</span>
+                  <span class="tc-status-badge" id="tc-badge-4">READY</span>
+                </div>
+                <h3 class="tc-name">Safety Guardian — HealthKit / IMU Escalation Timeout</h3>
+                <p class="tc-assertion-desc">
+                  Validates non-medical safety check-in countdown (30s window), disclaimer enforcement, and escalation to AWS SNS emergency contacts if user does not dismiss.
+                </p>
+                <div class="tc-actions-bar">
+                  <div class="tc-assertions-list">
+                    <span class="tc-assert-chip">assert 30s_window</span>
+                    <span class="tc-assert-chip">assert disclaimer_present</span>
+                    <span class="tc-assert-chip">assert sns_escalation</span>
+                  </div>
+                  <button type="button" class="btn-run-tc" data-tcid="4" title="Execute TC-04">Run TC-04</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 2. CONNECTED CLOUD TELEMETRY COCKPIT CARD -->
+          <div class="telemetry-cockpit-card">
+            <div class="telemetry-header-row">
+              <div class="telemetry-title-wrap">
+                <span class="telemetry-live-dot" aria-hidden="true"></span>
+                <span class="telemetry-title">Connected Edge &amp; Cloud Telemetry Bus</span>
+              </div>
+              <span class="telemetry-pipe-tag">WebSocket: wss://ws.aura.internal/v1</span>
+            </div>
+
+            <!-- KPI Matrix -->
+            <div class="kpi-matrix-2x2">
+              <div class="kpi-stat-box">
+                <div class="kpi-label">Active Client</div>
+                <div class="kpi-value amber" id="kpi-active-client">Orbit nRF5340 (BLE 5.3)</div>
+              </div>
+              <div class="kpi-stat-box">
+                <div class="kpi-label">Policy Engine Gate</div>
+                <div class="kpi-value green" id="kpi-policy-status">policy_required: true</div>
+              </div>
+              <div class="kpi-stat-box">
+                <div class="kpi-label">AWS Bedrock Model</div>
+                <div class="kpi-value">Claude 3.5 Sonnet (P95 &lt; 390ms)</div>
+              </div>
+              <div class="kpi-stat-box">
+                <div class="kpi-label">DynamoDB State</div>
+                <div class="kpi-value">KMS Partitioned (30d TTL)</div>
+              </div>
+            </div>
+
+            <!-- Peripheral Defense Status -->
+            <div class="peripheral-matrix-card">
+              <div class="peripheral-matrix-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Ambient Peripheral Defense Interception (Live Status)</span>
+              </div>
+              <div class="peripheral-list">
+                <div class="periph-row">
+                  <div>
+                    <div class="periph-name-title">Amazon Fire TV</div>
+                    <div class="periph-name-sub">Living Room &amp; Bedroom</div>
+                  </div>
+                  <span class="periph-badge standby" id="periph-status-firetv">STANDBY (Playback Normal)</span>
+                </div>
+                <div class="periph-row">
+                  <div>
+                    <div class="periph-name-title">Slack Workplace Status</div>
+                    <div class="periph-name-sub">Executive Team Workspace</div>
+                  </div>
+                  <span class="periph-badge standby" id="periph-status-slack">AVAILABLE (No DND)</span>
+                </div>
+                <div class="periph-row">
+                  <div>
+                    <div class="periph-name-title">Safety Guardian Escalation</div>
+                    <div class="periph-name-sub">HealthKit / IMU Sensor Relay</div>
+                  </div>
+                  <span class="periph-badge standby" id="periph-status-safety">MONITORING (Normal)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Wire Log Stream Box -->
+            <div class="wire-stream-box">
+              <div class="stream-top-bar">
+                <div class="stream-dots">
+                  <span></span><span></span><span></span>
+                </div>
+                <span class="stream-label">JSON Wire Telemetry Stream</span>
+                <button type="button" class="stream-clear-btn" id="wire-stream-clear-btn">Clear Stream</button>
+              </div>
+              <div class="stream-entries-container" id="wire-stream-entries">
+                <!-- Wire packets logged here dynamically -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- =======================================================================
+           BOTTOM: 3 CONNECTED CLIENTS ECOSYSTEM OVERVIEW
+           ======================================================================= -->
+      <section class="ecosystem-summary-section" aria-label="Unified 3-Client Ecosystem">
+        <h2 class="eco-summary-title">The Complete AURA Multi-Client Ecosystem</h2>
+        <p class="eco-summary-sub">
+          A synchronized edge-and-cloud architecture where dedicated hardware, commercial smartwatches, and 
+          mobile bridges execute under a single verifiable policy engine with strict physical privacy guarantees.
+        </p>
+
+        <div class="eco-cards-row">
+
+          <!-- 1. Orbit Pebble -->
+          <article class="eco-item-card orbit">
+            <div class="eco-item-thumb">
+              <img src="assets/orbit-hero.jpg" alt="AURA Orbit custom Nordic wearable pebble" loading="lazy">
+            </div>
+            <h3 class="eco-item-name">AURA Orbit Wearable</h3>
+            <p class="eco-item-desc">
+              Custom dual-core Nordic nRF5340 pebble with hardware-gated amber ring. Microphones physically cannot receive power without visible LED illumination.
+            </p>
+            <ul class="eco-item-specs">
+              <li><strong>Display:</strong> Transflective Memory-in-Pixel (Always-On)</li>
+              <li><strong>Silicon:</strong> Nordic nRF5340 + ATECC608B Vault</li>
+              <li><strong>Interface:</strong> Tactile Crescent Key + Amber Ring</li>
+            </ul>
+            <a href="orbit.html" class="eco-item-link">Explore Orbit Hardware 360° →</a>
+          </article>
+
+          <!-- 2. Apple Watch -->
+          <article class="eco-item-card apple">
+            <div class="eco-item-thumb">
+              <img src="assets/aura-apple-watch.jpg" alt="Apple Watch Series 9 running AURA companion watchOS app" loading="lazy">
+            </div>
+            <h3 class="eco-item-name">Apple Watch Companion</h3>
+            <p class="eco-item-desc">
+              Native watchOS 10 SwiftUI client communicating via WatchConnectivity (WCSession). Features glanceable T-5 meeting cards, tactile crown controls, and HealthKit IMU monitoring.
+            </p>
+            <ul class="eco-item-specs">
+              <li><strong>Display:</strong> 2000-nit Edge-to-Edge Retina OLED</li>
+              <li><strong>OS:</strong> watchOS 10 (SwiftUI + Combine)</li>
+              <li><strong>HealthKit:</strong> Heart rate &amp; IMU fall safety relay</li>
+            </ul>
+            <a href="simulator.html" class="eco-item-link" onclick="document.getElementById('sim-device-apple-btn').click(); window.scrollTo({top:0, behavior:'smooth'}); return false;">Test Apple Watch Experience →</a>
+          </article>
+
+          <!-- 3. Mobile Bridge -->
+          <article class="eco-item-card mobile">
+            <div class="eco-item-thumb">
+              <img src="assets/aura-mobile-bridge.jpg" alt="AURA Mobile Bridge relay app on iPhone" loading="lazy">
+            </div>
+            <h3 class="eco-item-name">AURA Mobile Bridge</h3>
+            <p class="eco-item-desc">
+              React Native Expo companion coordinating BLE GATT peripheral connections, AWS API Gateway signed relays, and offline state synchronization.
+            </p>
+            <ul class="eco-item-specs">
+              <li><strong>Framework:</strong> React Native + Expo Modules</li>
+              <li><strong>Cloud Relay:</strong> AWS SigV4 signed WebSocket stream</li>
+              <li><strong>Offline Store:</strong> Encrypted SQLite state cache</li>
+            </ul>
+            <a href="control-plane.html" class="eco-item-link">Open Web Control Plane →</a>
+          </article>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       FOOTER
+       ========================================================================= -->
+  <footer class="sim-footer" role="contentinfo">
+    <div class="sim-container">
+      <p>© 2026 Project AURA. Enterprise Edge &amp; Cloud Multi-Client Architecture. Built with AWS Bedrock, Claude 3.5 Sonnet &amp; Bee CLI.</p>
+    </div>
+  </footer>
+
+  <script src="simulator.js"></script>
+</body>
+</html>

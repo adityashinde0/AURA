@@ -15,11 +15,15 @@ Implements REST API Gateway endpoints:
 - /api/v1/actions/undo (POST)
 - /api/v1/user/export (GET)
 - /api/v1/user/data (DELETE)
+- /apns/register (POST)
+- /api/v1/devices/wearable (POST)
+- /api/v1/safety/escalate (POST)
 """
 from __future__ import annotations
 
 import json
 import os
+import sys
 import time
 import uuid
 from typing import Any
@@ -33,6 +37,7 @@ from standalone_agent.slack_adapter import (
     ChannelNotAllowlistedError,
     WorkspaceNotApprovedError,
 )
+from standalone_agent.sms_adapter import SmsAdapter
 
 # Optional boto3 clients when running in live AWS Lambda
 try:
@@ -58,6 +63,30 @@ class InMemoryDataStore:
         self.feature_flags: FeatureFlagManager = FeatureFlagManager()
         self.undo_guardrail: UndoRateGuardrail = UndoRateGuardrail()
         self.slack_adapter: SlackAdapter = SlackAdapter()
+        self.sms_adapter: SmsAdapter = SmsAdapter()
+        # Wearable push-token bindings: user_id -> binding record
+        self.wearable_bindings: dict[str, dict[str, Any]] = {}
+        # Safety escalation timestamps for rate-limiting: user_id -> last escalation epoch
+        self.escalation_timestamps: dict[str, float] = {}
+        # Pending safety escalations (60s cancel window): user_id -> details
+        self.pending_escalations: dict[str, dict[str, Any]] = {}
+
+
+# ---------------------------------------------------------------------------
+# Structured logger (same pattern as lambda/focus_guardian.py)
+# ---------------------------------------------------------------------------
+
+def _log(level: str, event: str, **fields: Any) -> None:
+    """Emit a single structured JSON log line to stdout."""
+    import json as _json
+    record = {
+        "timestamp": time.time(),
+        "level": level,
+        "service": "aura.control_plane",
+        "event": event,
+        **fields,
+    }
+    print(_json.dumps(record, default=str), file=sys.stdout, flush=True)
 
 
 default_store = InMemoryDataStore()
@@ -854,6 +883,459 @@ def handle_delete_user_data(user_id: str, store: InMemoryDataStore = default_sto
     )
 
 
+# --- Phase 7 Wearable & Safety Escalation Endpoints ---
+
+_VALID_PLATFORMS = {"watchos", "ios", "android"}
+_ESCALATION_RATE_LIMIT_SECONDS = 60
+
+
+def handle_register_wearable(body: dict[str, Any], store: InMemoryDataStore = default_store) -> dict[str, Any]:
+    """Register a wearable push token (APNs/FCM).
+
+    Enforces the Single Active Watch Binding rule (apple_implementation_plan.md §7.1):
+    a new binding for the same user but a different device_id revokes the old binding
+    and appends a security audit record.
+    """
+    user_id = body.get("user_id")
+    device_id = body.get("device_id")
+    push_token = body.get("push_token")
+    platform = body.get("platform")
+
+    if not user_id or not device_id or not push_token or not platform:
+        return _json_resp(
+            400,
+            {"error": "invalid_parameters", "message": "user_id, device_id, push_token, platform are required"},
+        )
+
+    if platform not in _VALID_PLATFORMS:
+        return _json_resp(
+            400,
+            {"error": "invalid_enum", "message": f"platform must be one of {sorted(_VALID_PLATFORMS)}"},
+        )
+
+    now = time.time()
+    revoked_previous = False
+    existing = store.wearable_bindings.get(user_id)
+
+    if existing and existing.get("device_id") != device_id and existing.get("active", True):
+        # Revoke old binding — Single Active Watch Binding rule
+        existing["active"] = False
+        existing["revoked_at"] = now
+        revoked_previous = True
+        store.audit_records.append(
+            {
+                "action_id": f"sec_{uuid.uuid4().hex[:8]}",
+                "user_id": user_id,
+                "category": "security",
+                "event": "wearable_binding_revoked",
+                "old_device_id": existing["device_id"],
+                "new_device_id": device_id,
+                "timestamp": now,
+            }
+        )
+
+    binding = {
+        "user_id": user_id,
+        "device_id": device_id,
+        "push_token": push_token,
+        "platform": platform,
+        "public_key": body.get("public_key"),
+        "active": True,
+        "registered_at": now,
+    }
+    store.wearable_bindings[user_id] = binding
+
+    return _json_resp(
+        200,
+        {"registered": True, "device_id": device_id, "revoked_previous": revoked_previous},
+    )
+
+
+def handle_safety_escalate(body: dict[str, Any], store: InMemoryDataStore = default_store) -> dict[str, Any]:
+    """Escalate a Safety Guardian incident.
+
+    Requires an active opt-in consent grant for "safety_guardian".
+    Checks 60s pending escalation window for prior cancellation.
+    Rate-limits duplicate escalations for the same user within 60 s.
+    Sends SMS via SmsAdapter without ever logging phone numbers.
+    Records a privacy-minimised audit entry (category + timestamp only).
+    """
+    user_id = body.get("user_id")
+    incident_id = body.get("incident_id")
+    reason = body.get("reason")
+    timestamp = body.get("timestamp", time.time())
+
+    if not user_id or not incident_id or not reason:
+        return _json_resp(
+            400,
+            {"error": "invalid_parameters", "message": "user_id, incident_id, reason are required"},
+        )
+
+    # Consent gate — must have an active opt-in grant for "safety_guardian"
+    active_safety_grants = [
+        g
+        for g in store.grants.values()
+        if g.get("user_id") == user_id
+        and g.get("action_type") == "safety_guardian"
+        and g.get("active", True)
+    ]
+    if not active_safety_grants:
+        return _json_resp(
+            403,
+            {"error": "consent_required", "message": "An active opt-in consent grant for safety_guardian is required"},
+        )
+
+    now = time.time()
+
+    # Check if escalation was cancelled within window
+    pending = store.pending_escalations.get(user_id)
+    if pending and pending.get("cancelled", False):
+        return _json_resp(
+            200,
+            {
+                "status": "cancelled",
+                "incident_id": incident_id,
+                "contacts_notified": False,
+                "message": "Escalation was cancelled within window",
+            },
+        )
+
+    # Rate-limit: idempotent within 60 s
+    last_ts = store.escalation_timestamps.get(user_id, 0.0)
+    if now - last_ts < _ESCALATION_RATE_LIMIT_SECONDS:
+        return _json_resp(
+            200,
+            {
+                "status": "escalated",
+                "incident_id": incident_id,
+                "contacts_notified": True,
+                "rate_limited": True,
+            },
+        )
+
+    # Track 60-second pending escalation window
+    store.pending_escalations[user_id] = {
+        "expires_at": now + 60,
+        "incident_id": incident_id,
+        "timestamp": now,
+        "cancelled": False,
+    }
+
+    audit_id = f"esc_{uuid.uuid4().hex[:8]}"
+    contact_phone = body.get("contact_phone") or body.get("emergency_contact_phone") or "+15550001111"
+    msg_text = f"AURA Safety Guardian alert for incident {incident_id}. Please verify contact status."
+
+    # Publish SMS to approved emergency contact via SmsAdapter
+    try:
+        store.sms_adapter.send_sms(contact_phone, msg_text)
+        store.escalation_timestamps[user_id] = now
+
+        # Privacy-minimised audit entry — category + timestamp only; zero health/location telemetry
+        store.audit_records.append(
+            {
+                "action_id": audit_id,
+                "user_id": user_id,
+                "category": "safety_escalation",
+                "timestamp": now,
+            }
+        )
+
+        _log(
+            "INFO",
+            "safety_escalation_sms_sent",
+            user_id=user_id,
+            incident_id=incident_id,
+            audit_id=audit_id,
+        )
+
+        return _json_resp(
+            200,
+            {
+                "status": "escalated",
+                "incident_id": incident_id,
+                "contacts_notified": True,
+                "audit_id": audit_id,
+            },
+        )
+    except Exception as exc:
+        store.audit_records.append(
+            {
+                "action_id": audit_id,
+                "user_id": user_id,
+                "category": "safety_escalation",
+                "status": "escalation_failed",
+                "timestamp": now,
+            }
+        )
+        _log(
+            "ERROR",
+            "safety_escalation_failed",
+            user_id=user_id,
+            incident_id=incident_id,
+            error=str(exc),
+        )
+        return _json_resp(
+            502,
+            {
+                "error": "escalation_failed",
+                "message": "Failed to send safety notification to contacts",
+                "incident_id": incident_id,
+                "status": "escalation_failed",
+                "contacts_notified": False,
+                "audit_id": audit_id,
+            },
+        )
+
+
+def handle_safety_cancel(
+    body: dict[str, Any], store: InMemoryDataStore = default_store
+) -> dict[str, Any]:
+    """Cancel a pending Safety Guardian escalation within the 60-second window."""
+    user_id = body.get("user_id")
+    incident_id = body.get("incident_id", "")
+    if not user_id:
+        return _json_resp(400, {"error": "invalid_parameters", "message": "user_id is required"})
+
+    now = time.time()
+    store.pending_escalations[user_id] = {
+        "expires_at": 0.0,
+        "cancelled": True,
+        "incident_id": incident_id,
+        "cancelled_at": now,
+    }
+
+    audit_id = f"esc_cancel_{uuid.uuid4().hex[:8]}"
+    store.audit_records.append(
+        {
+            "action_id": audit_id,
+            "user_id": user_id,
+            "category": "escalation_cancelled",
+            "incident_id": incident_id,
+            "timestamp": now,
+        }
+    )
+
+    _log("INFO", "safety_escalation_cancelled", user_id=user_id, incident_id=incident_id, audit_id=audit_id)
+
+    return _json_resp(
+        200,
+        {
+            "status": "cancelled",
+            "incident_id": incident_id,
+            "contacts_notified": False,
+            "audit_id": audit_id,
+            "ok": True,
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# Notification Feedback API (Sub-Task 3)
+# ---------------------------------------------------------------------------
+
+_VALID_FEEDBACK_ACTIONS = frozenset({
+    "Read",
+    "Save",
+    "Not useful",
+    "Mute this event series",
+})
+
+
+def handle_notification_feedback(
+    body: dict[str, Any], store: InMemoryDataStore = default_store
+) -> dict[str, Any]:
+    """Record user feedback on a pre-meeting card.
+
+    Accepts ``{card_id, calendar_event_id, user_id, action}``  where ``action``
+    is one of ``Read | Save | Not useful | Mute this event series``.
+
+    For ``Mute this event series`` the optional ``series_id`` field is added to
+    ``user_preferences["muted_series"]`` so that future ``calendar_scheduler``
+    calls will return ``status: "muted"`` for that series.
+    """
+    user_id = body.get("user_id")
+    card_id = body.get("card_id")
+    calendar_event_id = body.get("calendar_event_id")
+    action = body.get("action")
+    series_id: str | None = body.get("series_id")
+
+    if not user_id or not card_id or not calendar_event_id or not action:
+        return _json_resp(
+            400,
+            {
+                "error": "invalid_parameters",
+                "message": "user_id, card_id, calendar_event_id, action are required",
+            },
+        )
+
+    if action not in _VALID_FEEDBACK_ACTIONS:
+        return _json_resp(
+            400,
+            {
+                "error": "invalid_enum",
+                "message": f"action must be one of {sorted(_VALID_FEEDBACK_ACTIONS)}",
+            },
+        )
+
+    # Delegate to WhisperAdapter for preference persistence
+    from standalone_agent.whisper_adapter import WhisperAdapter
+
+    adapter = WhisperAdapter()
+    # Attach the store's whisper-preference dict so preferences survive between calls
+    if not hasattr(store, "whisper_preferences"):
+        store.whisper_preferences: dict[str, Any] = {}  # type: ignore[attr-defined]
+    adapter.user_preferences = store.whisper_preferences
+
+    result = adapter.record_feedback(
+        user_id=user_id,
+        feedback_action=action,
+        calendar_event_id=calendar_event_id,
+        series_id=series_id,
+    )
+
+    # For Mute, also reflect series into the store's whisper_preferences directly
+    # (WhisperAdapter.record_feedback already does this; this is belt-and-suspenders)
+    if action == "Mute this event series" and series_id:
+        prefs = store.whisper_preferences.setdefault(
+            user_id,
+            {"user_id": user_id, "muted_series": [], "feedback_history": []},
+        )
+        if series_id not in prefs.get("muted_series", []):
+            prefs.setdefault("muted_series", []).append(series_id)
+
+    now = time.time()
+    audit_id = f"fb_{uuid.uuid4().hex[:8]}"
+    store.audit_records.append(
+        {
+            "action_id": audit_id,
+            "user_id": user_id,
+            "action_type": "notification_feedback",
+            "card_id": card_id,
+            "calendar_event_id": calendar_event_id,
+            "action": action,
+            "timestamp": now,
+        }
+    )
+
+    _log(
+        "INFO",
+        "notification_feedback_recorded",
+        user_id=user_id,
+        card_id=card_id,
+        action=action,
+        muted_series_count=result.get("muted_series_count", 0),
+    )
+
+    return _json_resp(
+        200,
+        {
+            "ok": True,
+            "user_id": user_id,
+            "card_id": card_id,
+            "action": action,
+            "muted_series_count": result.get("muted_series_count", 0),
+            "audit_id": audit_id,
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# User Preferences API (Sub-Task 10)
+# ---------------------------------------------------------------------------
+
+_ALLOWED_PREFERENCE_KEYS = frozenset({
+    "pre_meeting_enabled",
+    "notification_preview",
+    "focus_action_scope",
+    "slack_status_enabled",
+    "safety_guardian_enabled",
+    "location_in_sos",
+    "muted_series",
+    "quiet_hours",
+})
+
+_DEFAULT_USER_PREFERENCES: dict[str, Any] = {
+    "pre_meeting_enabled": False,
+    "notification_preview": "generic",
+    "focus_action_scope": "ask_every_time",
+    "slack_status_enabled": False,
+    "safety_guardian_enabled": False,
+    "location_in_sos": "ask_each_time",
+    "muted_series": [],
+}
+
+
+def handle_get_preferences(
+    user_id: str, store: InMemoryDataStore = default_store
+) -> dict[str, Any]:
+    """Retrieve non-sensitive user preferences."""
+    if not user_id:
+        return _json_resp(400, {"error": "invalid_parameters", "message": "user_id is required"})
+
+    if not hasattr(store, "whisper_preferences"):
+        store.whisper_preferences = {}
+
+    user_prefs = store.whisper_preferences.get(user_id, {})
+    merged = {**_DEFAULT_USER_PREFERENCES, **user_prefs, "user_id": user_id}
+
+    # Security: ensure no sensitive keys are ever returned
+    for sensitive_key in ("contacts", "phone_numbers", "auth_token", "oauth_token"):
+        merged.pop(sensitive_key, None)
+
+    return _json_resp(200, {"user_id": user_id, "preferences": merged})
+
+
+def handle_update_preferences(
+    body: dict[str, Any], store: InMemoryDataStore = default_store
+) -> dict[str, Any]:
+    """Update user preferences with allowlist validation."""
+    user_id = body.get("user_id")
+    patch = body.get("preferences")
+
+    if not user_id or not isinstance(patch, dict):
+        return _json_resp(
+            400,
+            {"error": "invalid_parameters", "message": "user_id and preferences object are required"},
+        )
+
+    # Validate allowlist keys
+    for key in patch:
+        if key not in _ALLOWED_PREFERENCE_KEYS:
+            return _json_resp(
+                400,
+                {"error": "unknown_preference_key", "message": f"Preference key '{key}' is not permitted"},
+            )
+
+    # Validate value constraints
+    if "notification_preview" in patch and patch["notification_preview"] not in {"generic", "private_context"}:
+        return _json_resp(400, {"error": "invalid_enum", "message": "notification_preview must be generic or private_context"})
+    if "focus_action_scope" in patch and patch["focus_action_scope"] not in {"ask_every_time", "this_session", "never"}:
+        return _json_resp(400, {"error": "invalid_enum", "message": "focus_action_scope must be ask_every_time, this_session, or never"})
+    if "location_in_sos" in patch and patch["location_in_sos"] not in {"off", "ask_each_time", "approved_contacts_only"}:
+        return _json_resp(400, {"error": "invalid_enum", "message": "location_in_sos must be off, ask_each_time, or approved_contacts_only"})
+
+    if not hasattr(store, "whisper_preferences"):
+        store.whisper_preferences = {}
+
+    current = store.whisper_preferences.setdefault(user_id, {**_DEFAULT_USER_PREFERENCES, "user_id": user_id})
+    current.update(patch)
+
+    now = time.time()
+    audit_id = f"pref_{uuid.uuid4().hex[:8]}"
+    store.audit_records.append(
+        {
+            "action_id": audit_id,
+            "user_id": user_id,
+            "category": "preferences_updated",
+            "timestamp": now,
+        }
+    )
+
+    _log("INFO", "user_preferences_updated", user_id=user_id, updated_keys=list(patch.keys()))
+
+    return _json_resp(200, {"ok": True, "user_id": user_id, "preferences": current})
+
+
 def lambda_handler(
     event: dict[str, Any],
     _context: object = None,
@@ -978,5 +1460,29 @@ def lambda_handler(
 
     if path == "/api/v1/slack/admin-review" and http_method == "POST":
         return handle_slack_admin_review(body, store=store)
+
+    # Phase 7 Wearable registration & Safety escalation
+    if path in ("/apns/register", "/api/v1/devices/wearable") and http_method == "POST":
+        return handle_register_wearable(body, store=store)
+
+    if path == "/api/v1/safety/escalate" and http_method == "POST":
+        return handle_safety_escalate(body, store=store)
+
+    if path == "/api/v1/safety/cancel" and http_method == "POST":
+        return handle_safety_cancel(body, store=store)
+
+    # Notification feedback (Sub-Task 3)
+    if path == "/api/v1/notifications/feedback" and http_method == "POST":
+        return handle_notification_feedback(body, store=store)
+
+    # Preferences (Sub-Task 10)
+    if path == "/api/v1/preferences" and http_method == "GET":
+        user_id = query_params.get("user_id", "")
+        if not user_id:
+            return _json_resp(400, {"error": "missing_query_param", "message": "user_id is required"})
+        return handle_get_preferences(user_id, store=store)
+
+    if path == "/api/v1/preferences" and http_method in ("POST", "PATCH"):
+        return handle_update_preferences(body, store=store)
 
     return _json_resp(404, {"error": "not_found", "message": f"Resource {http_method} {path} not found"})

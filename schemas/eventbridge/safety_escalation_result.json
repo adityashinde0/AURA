@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuraSafetyEscalationResult",
+  "description": "Result of a Safety Guardian escalation event dispatched when user does not respond to check-in",
+  "type": "object",
+  "required": ["status", "incident_id", "contacts_notified"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["escalated", "cancelled", "escalation_failed", "pending"]
+    },
+    "incident_id": {
+      "type": "string"
+    },
+    "contacts_notified": {
+      "type": "boolean"
+    },
+    "rate_limited": {
+      "type": "boolean"
+    },
+    "audit_id": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "error": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

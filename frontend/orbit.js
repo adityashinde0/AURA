@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initGalleryLightbox();
   initScreenPresets();
   initBetaModal();
+  initLiveSimulator();
 });
 
 /* ==========================================================================
@@ -634,5 +635,654 @@ function initPioneerInteractions() {
       wideWatchImg.style.transform = '';
     });
   }
+}
+
+/* ==========================================================================
+   Interactive Live Simulation Lab Engine
+   Multi-device switcher, 4 scenario state-machines, haptic cues & telemetry
+   ========================================================================== */
+function initLiveSimulator() {
+  const orbitFrame = document.getElementById('orbit-chassis-frame');
+  const appleFrame = document.getElementById('apple-watch-chassis-frame');
+  const orbitScreen = document.getElementById('orbit-screen-surface');
+  const appleScreen = document.getElementById('apple-screen-surface');
+  const amberRing = document.getElementById('orbit-amber-ring');
+  const crescentKey = document.getElementById('orbit-hardware-crescent-key');
+  const digitalCrown = document.getElementById('apple-digital-crown');
+  const sideButton = document.getElementById('apple-side-button');
+
+  const btnOrbit = document.getElementById('sim-device-orbit-btn');
+  const btnApple = document.getElementById('sim-device-apple-btn');
+  const tabT5 = document.getElementById('sim-tab-t5');
+  const tabFocus = document.getElementById('sim-tab-focus');
+  const tabDistracted = document.getElementById('sim-tab-distracted');
+  const tabSafety = document.getElementById('sim-tab-safety');
+  const scenarioTabs = [tabT5, tabFocus, tabDistracted, tabSafety].filter(Boolean);
+
+  const activeClientLabel = document.getElementById('hud-active-client');
+  const modeLabel = document.getElementById('sim-active-mode-label');
+  const instructionLabel = document.getElementById('sim-instruction-text');
+  const streamConsole = document.getElementById('hud-event-log-stream');
+  const clearStreamBtn = document.getElementById('terminal-clear-btn');
+
+  // Peripheral status pills
+  const pillFireTV = document.getElementById('status-pill-firetv');
+  const pillSlack = document.getElementById('status-pill-slack');
+  const pillSafety = document.getElementById('status-pill-safety');
+
+  if (!orbitFrame || !orbitScreen) return;
+
+  // Simulator State
+  let currentDevice = 'orbit'; // 'orbit' | 'apple-watch'
+  let currentScenario = 't5';  // 't5' | 'focus' | 'distracted' | 'safety'
+
+  // Focus Timer Variables
+  let focusSeconds = 1492; // 24m 52s
+  let focusInterval = null;
+  let isFocusRunning = false;
+  let deepWorkPoints = 12;
+
+  // Safety Timer Variables
+  let safetySeconds = 30;
+  let safetyInterval = null;
+  let safetyEscalated = false;
+
+  // Distraction Undo state
+  let distractionPending = false;
+
+  // Audio cue helper
+  function triggerHaptic(type = 'click') {
+    if (typeof playSubtlePulse === 'function') {
+      if (type === 'click') playSubtlePulse([520]);
+      else if (type === 'ack') playSubtlePulse([440, 880]);
+      else if (type === 'focus') playSubtlePulse([330, 495, 660]);
+      else if (type === 'alert') playSubtlePulse([220, 220, 220]);
+    }
+  }
+
+  // Telemetry Wire Logger
+  function logTelemetry(type, msg, payload = null) {
+    if (!streamConsole) return;
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+    
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+
+    let badgeClass = 'event';
+    if (type === 'RELAY') badgeClass = 'relay';
+    else if (type === 'POLICY') badgeClass = 'policy';
+    else if (type === 'WARN') badgeClass = 'warn';
+
+    let jsonSnippet = '';
+    if (payload) {
+      jsonSnippet = ' ' + JSON.stringify(payload);
+    }
+
+    entry.innerHTML = `
+      <span class="log-time">${timeStr}</span>
+      <span class="log-badge ${badgeClass}">${type}</span>
+      <span class="log-body">${msg}${jsonSnippet}</span>
+    `;
+
+    streamConsole.appendChild(entry);
+    streamConsole.scrollTop = streamConsole.scrollHeight;
+  }
+
+  if (clearStreamBtn) {
+    clearStreamBtn.addEventListener('click', () => {
+      if (streamConsole) streamConsole.innerHTML = '';
+      logTelemetry('EVENT', 'Telemetry wire log reset by user');
+    });
+  }
+
+  // Peripheral Management
+  function setPeripherals(state) {
+    if (!pillFireTV || !pillSlack || !pillSafety) return;
+
+    if (state === 'focus') {
+      pillFireTV.className = 'periph-status-pill paused';
+      pillFireTV.textContent = 'PAUSED (DND Muted)';
+      pillSlack.className = 'periph-status-pill dnd';
+      pillSlack.textContent = 'DND (:hourglass: In Focus)';
+      pillSafety.className = 'periph-status-pill standby';
+      pillSafety.textContent = 'MONITORING (Normal)';
+    } else if (state === 'safety_escalated') {
+      pillSafety.className = 'periph-status-pill escalated';
+      pillSafety.textContent = 'ALERT: ESCALATED TO CONTACTS';
+    } else {
+      pillFireTV.className = 'periph-status-pill standby';
+      pillFireTV.textContent = 'STANDBY (Playback Normal)';
+      pillSlack.className = 'periph-status-pill standby';
+      pillSlack.textContent = 'AVAILABLE (No DND)';
+      pillSafety.className = 'periph-status-pill standby';
+      pillSafety.textContent = 'MONITORING (Normal)';
+    }
+  }
+
+  // Device Switching
+  function switchDevice(device) {
+    currentDevice = device;
+    const isOrbit = device === 'orbit';
+
+    btnOrbit?.classList.toggle('active', isOrbit);
+    btnOrbit?.setAttribute('aria-checked', isOrbit ? 'true' : 'false');
+    btnApple?.classList.toggle('active', !isOrbit);
+    btnApple?.setAttribute('aria-checked', !isOrbit ? 'true' : 'false');
+
+    if (orbitFrame && appleFrame) {
+      orbitFrame.style.display = isOrbit ? 'flex' : 'none';
+      appleFrame.style.display = isOrbit ? 'none' : 'flex';
+    }
+
+    if (activeClientLabel) {
+      activeClientLabel.textContent = isOrbit ? 'Orbit nRF5340 (BLE 5.3)' : 'Apple Watch Series 9 (watchOS 10)';
+      activeClientLabel.style.color = isOrbit ? '#fbbf24' : '#818cf8';
+    }
+
+    if (modeLabel) {
+      modeLabel.textContent = isOrbit 
+        ? 'Mode: AURA Orbit Hardware (Transflective MIP Display + Amber Ring)'
+        : 'Mode: Apple Watch Companion (watchOS 10 SwiftUI + WCSession)';
+    }
+
+    triggerHaptic('click');
+    logTelemetry('RELAY', `Device client changed to ${device}`, {
+      client: isOrbit ? 'orbit_nrf5340' : 'apple_watch_series9',
+      transport: isOrbit ? 'BLE_GATT_0xFE40' : 'WatchConnectivity_WCSession',
+      policy_required: true
+    });
+
+    renderCurrentScenario();
+  }
+
+  btnOrbit?.addEventListener('click', () => switchDevice('orbit'));
+  btnApple?.addEventListener('click', () => switchDevice('apple-watch'));
+
+  // Quick Switch Buttons in Bento Cards
+  document.querySelectorAll('[data-target-sim-device]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const targetDevice = e.currentTarget.getAttribute('data-target-sim-device');
+      const simSection = document.getElementById('interactive-sim-lab');
+      if (simSection) {
+        simSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setTimeout(() => switchDevice(targetDevice), 350);
+    });
+  });
+
+  // Scenario Switching
+  function switchScenario(scenario) {
+    currentScenario = scenario;
+
+    scenarioTabs.forEach(tab => {
+      const isActive = tab.dataset.scenario === scenario;
+      tab.classList.toggle('active', isActive);
+      tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    // Reset safety timer if leaving safety
+    if (scenario !== 'safety' && safetyInterval) {
+      clearInterval(safetyInterval);
+      safetyInterval = null;
+    }
+
+    triggerHaptic('click');
+    renderCurrentScenario();
+  }
+
+  tabT5?.addEventListener('click', () => switchScenario('t5'));
+  tabFocus?.addEventListener('click', () => switchScenario('focus'));
+  tabDistracted?.addEventListener('click', () => switchScenario('distracted'));
+  tabSafety?.addEventListener('click', () => switchScenario('safety'));
+
+  // Render Screen Content
+  function renderCurrentScenario() {
+    const targetSurface = currentDevice === 'orbit' ? orbitScreen : appleScreen;
+    if (!targetSurface) return;
+
+    if (currentScenario === 't5') {
+      renderT5Screen(targetSurface);
+    } else if (currentScenario === 'focus') {
+      renderFocusScreen(targetSurface);
+    } else if (currentScenario === 'distracted') {
+      renderDistractedScreen(targetSurface);
+    } else if (currentScenario === 'safety') {
+      renderSafetyScreen(targetSurface);
+    }
+  }
+
+  /* ------------------------------------------------------------------------
+     1. SCENARIO: T-5 MEETING PREP
+     ------------------------------------------------------------------------ */
+  function renderT5Screen(surface) {
+    if (amberRing) amberRing.querySelector('.amber-led-core').style.boxShadow = '0 0 14px #f59e0b';
+    setPeripherals('normal');
+
+    if (instructionLabel) {
+      instructionLabel.innerHTML = 'Click <strong>Mark as Reviewed</strong> on the screen or press the crescent key / crown to acknowledge readiness.';
+    }
+
+    surface.innerHTML = `
+      <div class="sim-screen-card" id="screen-t5-inner">
+        <div class="screen-top-meta">
+          <span class="screen-kicker-tag">T-5 Intelligence</span>
+          <span class="screen-starts-pill">Starts in 5m</span>
+        </div>
+        <div class="screen-title-text">Sprint Alignment / AWS Bedrock Sync</div>
+        <div class="screen-info-block">
+          <div class="info-block-label">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Last Decision
+          </div>
+          <div class="info-block-val">Ship authenticated BLE relay before customer production rollout</div>
+        </div>
+        <div class="screen-questions-container">
+          <div class="question-item">
+            <span class="q-index-badge">1</span>
+            <span>Fallback latency budget if DynamoDB throttles?</span>
+          </div>
+          <div class="question-item">
+            <span class="q-index-badge">2</span>
+            <span>Gate microphone recording purely at hardware level?</span>
+          </div>
+          <div class="question-item">
+            <span class="q-index-badge">3</span>
+            <span>Who approves emergency contact escalation?</span>
+          </div>
+        </div>
+        <button type="button" class="screen-action-btn-primary" id="btn-t5-ack">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Mark as Reviewed</span>
+        </button>
+      </div>
+    `;
+
+    const ackBtn = surface.querySelector('#btn-t5-ack');
+    ackBtn?.addEventListener('click', acknowledgeT5);
+
+    logTelemetry('EVENT', 'T-5 Meeting Prep card rendered', {
+      meeting: 'Sprint Alignment / AWS Bedrock Sync',
+      startsInMinutes: 5,
+      questionsCount: 3,
+      model: 'anthropic.claude-3-5-sonnet'
+    });
+  }
+
+  function acknowledgeT5() {
+    triggerHaptic('ack');
+    const surface = currentDevice === 'orbit' ? orbitScreen : appleScreen;
+    const card = surface?.querySelector('#screen-t5-inner');
+    if (card) {
+      const btn = card.querySelector('#btn-t5-ack');
+      if (btn) {
+        btn.outerHTML = `
+          <div class="ack-confirmed-banner">
+            ✓ Acknowledged · Ready for Sprint (Tactile Cue Emitted)
+          </div>
+        `;
+      }
+    }
+    logTelemetry('RELAY', 'T-5 Briefing acknowledged by user', {
+      status: 'ACKNOWLEDGED',
+      device: currentDevice,
+      haptic_profile: 'DRV2605_DOUBLE_TAP'
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     2. SCENARIO: START FOCUS (DEEP WORK & AMBIENT DEFENSE)
+     ------------------------------------------------------------------------ */
+  function renderFocusScreen(surface) {
+    setPeripherals('focus');
+    isFocusRunning = true;
+
+    if (amberRing) {
+      amberRing.querySelector('.amber-led-core').style.boxShadow = '0 0 24px #fbbf24, 0 0 40px #f59e0b';
+    }
+
+    if (instructionLabel) {
+      instructionLabel.innerHTML = 'Focus active: Notice <strong>Amazon Fire TV paused</strong> and <strong>Slack muted</strong> on the HUD. Click <strong>Report Distraction</strong> to test policy gate.';
+    }
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const rem = s % 60;
+      return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+    }
+
+    surface.innerHTML = `
+      <div class="sim-screen-card">
+        <div class="focus-active-center">
+          <div class="focus-kicker-badge">
+            <span class="eco-dot amber"></span>
+            Deep Work Sprint Active
+          </div>
+          <div class="focus-timer-clock" id="sim-focus-countdown">${formatTime(focusSeconds)}</div>
+          <div class="focus-timer-sub">remaining in protected block</div>
+          <div class="focus-points-pill" id="sim-focus-points">+${deepWorkPoints} Deep Work Bank</div>
+        </div>
+
+        <div class="focus-connected-shield-box">
+          ⚡ <strong>Peripheral Defense Interception:</strong><br>
+          Fire TV playback paused · Slack DND active
+        </div>
+
+        <div class="focus-btn-strip">
+          <button type="button" class="btn-distracted-trigger" id="btn-focus-distracted">
+            I'm Distracted
+          </button>
+          <button type="button" class="btn-end-focus" id="btn-focus-end">
+            End Focus
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Start timer interval
+    if (focusInterval) clearInterval(focusInterval);
+    focusInterval = setInterval(() => {
+      if (focusSeconds > 0) {
+        focusSeconds--;
+        const clockEl = surface.querySelector('#sim-focus-countdown');
+        if (clockEl) clockEl.textContent = formatTime(focusSeconds);
+      }
+    }, 1000);
+
+    surface.querySelector('#btn-focus-distracted')?.addEventListener('click', () => {
+      switchScenario('distracted');
+    });
+
+    surface.querySelector('#btn-focus-end')?.addEventListener('click', () => {
+      clearInterval(focusInterval);
+      focusInterval = null;
+      setPeripherals('normal');
+      switchScenario('t5');
+      logTelemetry('EVENT', 'Focus session ended early by user', {
+        remainingSeconds: focusSeconds,
+        deepWorkPointsEarned: deepWorkPoints
+      });
+    });
+
+    logTelemetry('POLICY', 'Focus Guardian engaged: ambient defense deployed', {
+      sessionDurationMin: 25,
+      firetv_pause: 'EXECUTED_REVERSIBLE',
+      slack_dnd: 'ACTIVE_UNTIL_11:30',
+      policy_required: true
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     3. SCENARIO: I'M DISTRACTED & 1-TAP REVERSIBLE UNDO
+     ------------------------------------------------------------------------ */
+  function renderDistractedScreen(surface) {
+    setPeripherals('normal');
+
+    if (instructionLabel) {
+      instructionLabel.innerHTML = 'Distraction reported: Test <strong>1-Tap Intervention</strong> and verify the <strong>Undo Button</strong> reverses state deterministically.';
+    }
+
+    surface.innerHTML = `
+      <div class="sim-screen-card" id="distracted-screen-card">
+        <div class="distracted-header-warning">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Focus Check-In
+        </div>
+
+        <div class="distracted-policy-box">
+          <div class="policy-source-tag">Bedrock Policy Suggestion</div>
+          <div class="policy-suggestion-text" id="policy-suggestion-body">
+            You reported distraction. Suggested intervention: Pause media, silence tabs, and take a 2-min mindful reset.
+          </div>
+        </div>
+
+        <div class="distraction-actions-col" id="distraction-actions-container">
+          <button type="button" class="btn-apply-intervention" id="btn-apply-intervention">
+            Yes, Apply Intervention (1-Tap)
+          </button>
+          <button type="button" class="btn-end-focus" id="btn-dismiss-distraction">
+            Dismiss &amp; Continue
+          </button>
+        </div>
+      </div>
+    `;
+
+    const applyBtn = surface.querySelector('#btn-apply-intervention');
+    const dismissBtn = surface.querySelector('#btn-dismiss-distraction');
+    const actionsContainer = surface.querySelector('#distraction-actions-container');
+
+    applyBtn?.addEventListener('click', () => {
+      triggerHaptic('ack');
+      distractionPending = true;
+
+      if (actionsContainer) {
+        actionsContainer.innerHTML = `
+          <button type="button" class="btn-undo-intervention" id="btn-undo-intervention">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            <span>↩️ Undo Intervention (1-Tap)</span>
+          </button>
+          <div class="undo-feedback-msg">
+            ✓ Intervention active. Undo available anytime.
+          </div>
+        `;
+
+        actionsContainer.querySelector('#btn-undo-intervention')?.addEventListener('click', () => {
+          triggerHaptic('click');
+          distractionPending = false;
+          actionsContainer.innerHTML = `
+            <div class="undo-feedback-msg" style="border-color:#38bdf8; color:#7dd3fc; background:rgba(56,189,248,0.15);">
+              ✓ Intervention undone! Returned to flow state.
+            </div>
+            <button type="button" class="btn-end-focus" style="margin-top:8px;" id="btn-return-focus">Return to Focus</button>
+          `;
+          actionsContainer.querySelector('#btn-return-focus')?.addEventListener('click', () => {
+            switchScenario('focus');
+          });
+
+          logTelemetry('POLICY', 'Intervention REVERTED via 1-tap Undo', {
+            undo_successful: true,
+            reversible_audit: 'RECORDED_IN_DYNAMODB',
+            policy_required: true
+          });
+        });
+      }
+
+      logTelemetry('POLICY', 'Distraction intervention applied by user', {
+        action: 'PAUSE_MEDIA_2MIN_BREATH',
+        reversible: true,
+        undo_token: 'undo_' + Math.random().toString(36).substring(7)
+      });
+    });
+
+    dismissBtn?.addEventListener('click', () => {
+      switchScenario('focus');
+    });
+
+    logTelemetry('EVENT', 'Distraction check-in dialog initiated', {
+      context: 'User pressed crescent key / distraction button'
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     4. SCENARIO: SAFETY CHECK-IN (30S TIMEOUT & ESCALATION)
+     ------------------------------------------------------------------------ */
+  function renderSafetyScreen(surface) {
+    safetySeconds = 30;
+    safetyEscalated = false;
+    triggerHaptic('alert');
+
+    if (instructionLabel) {
+      instructionLabel.innerHTML = 'Safety check-in: <strong>30-second countdown active</strong>. Tap <strong>I\'m OK</strong> to confirm safety or let it expire / tap <strong>Notify Contacts</strong> to simulate emergency escalation.';
+    }
+
+    surface.innerHTML = `
+      <div class="safety-screen-wrapper" id="safety-screen-card">
+        <div class="safety-alert-title">
+          <span class="eco-dot amber"></span>
+          Are you okay?
+        </div>
+        <div class="safety-disclaimer-pill">
+          Not medical advice. Not emergency detection. Solo work check-in.
+        </div>
+
+        <div class="safety-progress-bar-wrap">
+          <div class="safety-progress-bar-fill" id="safety-progress-bar" style="width: 100%;"></div>
+        </div>
+
+        <div class="safety-timer-readout">
+          <span>Check-in response window</span>
+          <span class="safety-timer-digits" id="safety-digits-text">30s</span>
+        </div>
+
+        <div class="safety-actions-grid" id="safety-actions-box">
+          <button type="button" class="btn-safety-ok" id="btn-safety-ok">
+            I'm OK
+          </button>
+          <button type="button" class="btn-safety-escalate" id="btn-safety-escalate">
+            Notify Contacts (Emergency Relay)
+          </button>
+        </div>
+      </div>
+    `;
+
+    const barEl = surface.querySelector('#safety-progress-bar');
+    const digitsEl = surface.querySelector('#safety-digits-text');
+    const okBtn = surface.querySelector('#btn-safety-ok');
+    const escalateBtn = surface.querySelector('#btn-safety-escalate');
+    const actionsBox = surface.querySelector('#safety-actions-box');
+
+    // Run 30s countdown
+    if (safetyInterval) clearInterval(safetyInterval);
+    safetyInterval = setInterval(() => {
+      if (safetySeconds > 0) {
+        safetySeconds--;
+        if (digitsEl) {
+          digitsEl.textContent = `${safetySeconds}s`;
+          if (safetySeconds <= 10) {
+            digitsEl.classList.add('danger');
+            barEl?.classList.add('danger');
+          }
+        }
+        if (barEl) {
+          barEl.style.width = `${(safetySeconds / 30) * 100}%`;
+        }
+      } else {
+        // Timed out -> Escalation
+        clearInterval(safetyInterval);
+        safetyInterval = null;
+        triggerSafetyEscalation('TIMEOUT_30S_EXPIRED');
+      }
+    }, 1000);
+
+    okBtn?.addEventListener('click', () => {
+      clearInterval(safetyInterval);
+      safetyInterval = null;
+      triggerHaptic('ack');
+      setPeripherals('normal');
+
+      if (actionsBox) {
+        actionsBox.innerHTML = `
+          <div class="ack-confirmed-banner">
+            ✓ Check-in resolved: Safety confirmed.
+          </div>
+          <button type="button" class="btn-end-focus" style="margin-top:6px;" id="btn-safety-done">Return to Overview</button>
+        `;
+        actionsBox.querySelector('#btn-safety-done')?.addEventListener('click', () => {
+          switchScenario('t5');
+        });
+      }
+
+      logTelemetry('RELAY', 'Safety check-in RESOLVED: User clicked I\'m OK', {
+        status: 'RESOLVED_HEALTHY',
+        responseTimeSec: 30 - safetySeconds,
+        escalation: 'CANCELLED'
+      });
+    });
+
+    escalateBtn?.addEventListener('click', () => {
+      clearInterval(safetyInterval);
+      safetyInterval = null;
+      triggerSafetyEscalation('USER_MANUAL_DISPATCH');
+    });
+
+    function triggerSafetyEscalation(reason) {
+      safetyEscalated = true;
+      triggerHaptic('alert');
+      setPeripherals('safety_escalated');
+
+      if (actionsBox) {
+        actionsBox.innerHTML = `
+          <div class="safety-escalated-banner">
+            ⚠️ <strong>Emergency Contacts Dispatched</strong><br>
+            SMS alert &amp; AWS SNS push sent to pre-approved contacts via Mobile Bridge.<br>
+            <span style="font-size:0.6rem; opacity:0.8;">Reason: ${reason}</span>
+          </div>
+          <button type="button" class="btn-end-focus" style="margin-top:8px;" id="btn-reset-safety">Reset Simulator</button>
+        `;
+        actionsBox.querySelector('#btn-reset-safety')?.addEventListener('click', () => {
+          setPeripherals('normal');
+          switchScenario('t5');
+        });
+      }
+
+      logTelemetry('WARN', 'SAFETY GUARDIAN ESCALATED', {
+        reason: reason,
+        recipients: ['Aditya Shinde (Emergency Contact #1)', 'Core Response Relay'],
+        channel: 'AWS_SNS_SMS_AND_APNS',
+        mobile_bridge: 'RELAY_SUCCESS_200_OK'
+      });
+    }
+
+    logTelemetry('WARN', 'Safety check-in initiated (HealthKit / IMU event)', {
+      trigger: 'INACTIVITY_OR_SHOCK_DETECTED',
+      countdownSeconds: 30,
+      opt_in: true
+    });
+  }
+
+  // Physical Button Listeners (Tactile Crescent Key & Apple Digital Crown)
+  crescentKey?.addEventListener('click', () => {
+    triggerHaptic('click');
+    if (currentScenario === 't5') {
+      acknowledgeT5();
+    } else if (currentScenario === 'focus') {
+      switchScenario('distracted');
+    } else if (currentScenario === 'distracted') {
+      const applyBtn = orbitScreen?.querySelector('#btn-apply-intervention');
+      if (applyBtn) applyBtn.click();
+      else switchScenario('focus');
+    } else if (currentScenario === 'safety') {
+      const okBtn = orbitScreen?.querySelector('#btn-safety-ok');
+      if (okBtn) okBtn.click();
+    }
+  });
+
+  digitalCrown?.addEventListener('click', () => {
+    triggerHaptic('click');
+    // Cycle scenarios on Apple Watch Digital Crown press
+    const order = ['t5', 'focus', 'distracted', 'safety'];
+    const nextIdx = (order.indexOf(currentScenario) + 1) % order.length;
+    switchScenario(order[nextIdx]);
+  });
+
+  sideButton?.addEventListener('click', () => {
+    triggerHaptic('click');
+    if (currentScenario === 'distracted') {
+      const undoBtn = appleScreen?.querySelector('#btn-undo-intervention');
+      if (undoBtn) undoBtn.click();
+    } else if (currentScenario === 'safety') {
+      const okBtn = appleScreen?.querySelector('#btn-safety-ok');
+      if (okBtn) okBtn.click();
+    }
+  });
+
+  // Initial Boot
+  logTelemetry('RELAY', 'AURA Multi-Device Simulation Lab Online', {
+    clients: ['orbit_wearable_nrf5340', 'apple_watch_watchos10', 'mobile_bridge_expo'],
+    status: 'AUTHENTICATED_BLE_READY',
+    backend: 'AWS_BEDROCK_CLAUDE_3_5'
+  });
+
+  renderCurrentScenario();
 }
 

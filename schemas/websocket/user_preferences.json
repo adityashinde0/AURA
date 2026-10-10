@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UserPreferences",
+  "description": "User preference settings for notification briefings, preview mode, and focus scopes",
+  "type": "object",
+  "required": ["user_id", "preferences"],
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "preferences": {
+      "type": "object",
+      "required": [
+        "pre_meeting_enabled",
+        "notification_preview",
+        "focus_action_scope",
+        "slack_status_enabled",
+        "safety_guardian_enabled",
+        "location_in_sos"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string"
+        },
+        "pre_meeting_enabled": {
+          "type": "boolean"
+        },
+        "notification_preview": {
+          "type": "string",
+          "enum": ["generic", "private_context"]
+        },
+        "focus_action_scope": {
+          "type": "string",
+          "enum": ["ask_every_time", "this_session", "never"]
+        },
+        "slack_status_enabled": {
+          "type": "boolean"
+        },
+        "safety_guardian_enabled": {
+          "type": "boolean"
+        },
+        "location_in_sos": {
+          "type": "string",
+          "enum": ["off", "ask_each_time", "approved_contacts_only"]
+        },
+        "muted_series": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "quiet_hours": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

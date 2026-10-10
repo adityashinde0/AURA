@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.aura.watch</string>
+    <key>CFBundleName</key>
+    <string>AURAWatch</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>WKWatchKitApp</key>
+    <true/>
+    <key>NSHealthShareUsageDescription</key>
+    <string>AURA Safety Guardian uses Apple-classified heart rate alerts to prompt for safety check-ins. AURA is not a medical device and performs wellness check-ins only, not medical monitoring.</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>AURA does not write health data.</string>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>remote-notification</string>
+    </array>
+</dict>
+</plist>

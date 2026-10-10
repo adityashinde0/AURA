@@ -8,11 +8,25 @@ from __future__ import annotations
 
 import datetime
 import hashlib
+import json
+import sys
 import time
 from typing import Any, Literal
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+def _log(level: str, event: str, **fields: Any) -> None:
+    """Structured logging helper emitting JSON line to stdout."""
+    record = {
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "level": level,
+        "service": "aura.calendar_scheduler",
+        "event": event,
+        **fields,
+    }
+    print(json.dumps(record, default=str), file=sys.stdout, flush=True)
 
 
 class CalendarEvent(BaseModel):
@@ -208,7 +222,8 @@ def is_in_quiet_hours(
     tz_str = quiet_hours.get("timezone", "UTC")
     try:
         tz = ZoneInfo(tz_str)
-    except Exception:
+    except (ZoneInfoNotFoundError, Exception) as exc:
+        _log("warning", "invalid_quiet_hours_timezone", timezone=tz_str, error=str(exc))
         tz = datetime.timezone.utc
 
     dt = datetime.datetime.fromtimestamp(epoch, tz=tz)

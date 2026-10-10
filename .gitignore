@@ -53,3 +53,21 @@ infra/lib/*.d.ts
 # Temporary scratch files
 scratch/
 
+
+# React Native / Expo
+.expo/
+*.tsbuildinfo
+dist/
+
+# Zephyr / Embedded firmware
+firmware/build/
+.west/
+*.hex
+*.bin
+*.elf
+
+# Apple / Swift
+.build/
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcuserdatad/

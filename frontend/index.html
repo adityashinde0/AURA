@@ -29,6 +29,7 @@
       </a>
 
       <div class="header-links">
+        <a href="simulator.html" class="nav-link" title="Open Multi-Device Watch Simulator &amp; Test Cases">Live Simulator</a>
         <a href="orbit.html" class="nav-link nav-orbit-link" title="Explore AURA Orbit 360° Watch Experience">Explore Watch</a>
         <a href="#architecture" class="nav-link">Architecture</a>
         <a href="#hardware" class="nav-link">Hardware Spec</a>
@@ -514,6 +515,162 @@
       </div>
     </section>
 
+    <!-- =====================================================================
+         UNIFIED MULTI-DEVICE ECOSYSTEM SECTION
+         Multi-Device Connected Production Architecture
+         ===================================================================== -->
+    <section class="landing-ecosystem-section" id="ecosystem" aria-label="Unified Multi-Device Ecosystem">
+      <div class="landing-eco-header">
+        <div class="landing-arch-badge">
+          <span class="arch-badge-dot"></span>
+          <span>Multi-Device Client Architecture</span>
+        </div>
+        <h2 class="landing-eco-title">Complete Multi-Device Client Ecosystem</h2>
+        <p class="landing-eco-subtitle">
+          Three purpose-built client surfaces for ambient awareness, proactive focus defense, and authenticated edge telemetry.
+        </p>
+      </div>
+
+      <!-- 3 Connected Clients Grid -->
+      <div class="landing-eco-grid">
+        
+        <!-- Client A: AURA Orbit Wearable -->
+        <article class="landing-eco-card card-orbit">
+          <div class="landing-eco-card-top">
+            <span class="landing-eco-chip amber">Custom Silicon · Nordic nRF5340</span>
+            <span class="landing-eco-status">
+              <span class="mini-pulse-dot amber"></span>
+              Hardware Gated
+            </span>
+          </div>
+
+          <div class="landing-eco-img-box">
+            <img src="assets/orbit-hero.jpg" alt="AURA Orbit custom Nordic nRF5340 focus wearable with illuminated amber ring" loading="lazy">
+            <div class="landing-eco-overlay-tag">Hardware Client 01</div>
+          </div>
+
+          <div class="landing-eco-card-body">
+            <h3 class="landing-eco-card-title">AURA Orbit Wearable</h3>
+            <p class="landing-eco-card-desc">
+              Custom focus wearable featuring a hardware-gated amber privacy LED physically wired to the microphone power rail: zero recording without visible illumination.
+            </p>
+
+            <div class="landing-eco-tags">
+              <span class="eco-tag">Nordic nRF5340 Dual-Core</span>
+              <span class="eco-tag">Transflective MIP Display</span>
+              <span class="eco-tag">Hardware Amber Ring</span>
+            </div>
+
+            <div class="landing-eco-actions">
+              <a href="simulator.html" class="btn-eco-launch primary-amber" title="Test Orbit in Interactive Simulator">
+                <span>Test in Live Simulator</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="orbit.html" class="btn-eco-launch ghost" title="Explore Hardware Details">360° Specs</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Client B: AURA Apple Watch Companion -->
+        <article class="landing-eco-card card-apple">
+          <div class="landing-eco-card-top">
+            <span class="landing-eco-chip purple">watchOS 10+ · SwiftUI</span>
+            <span class="landing-eco-status">
+              <span class="mini-pulse-dot purple"></span>
+              WCSession Relay
+            </span>
+          </div>
+
+          <div class="landing-eco-img-box">
+            <img src="assets/aura-apple-watch.jpg" alt="AURA Apple Watch companion displaying glanceable T-5 card and HealthKit safety check-in" loading="lazy">
+            <div class="landing-eco-overlay-tag">Companion Client 02</div>
+          </div>
+
+          <div class="landing-eco-card-body">
+            <h3 class="landing-eco-card-title">AURA Apple Watch Companion</h3>
+            <p class="landing-eco-card-desc">
+              Native watchOS companion built with SwiftUI and WatchConnectivity. Delivers glanceable T-5 meeting prep cards, 1-tap distraction interventions, and HealthKit safety check-ins.
+            </p>
+
+            <div class="landing-eco-tags">
+              <span class="eco-tag">watchOS 10 SwiftUI</span>
+              <span class="eco-tag">Glanceable T-5 Prompts</span>
+              <span class="eco-tag">HealthKit Safety Relay</span>
+            </div>
+
+            <div class="landing-eco-actions">
+              <a href="simulator.html" class="btn-eco-launch primary-purple" title="Test Apple Watch in Interactive Simulator">
+                <span>Test in Live Simulator</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="https://github.com/adityashinde0/Project-AURA-Proactive-Memory-That-Fights-For-Your-Focus/tree/main/apple" target="_blank" rel="noopener" class="btn-eco-launch ghost">Swift Code ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Client C: AURA Mobile Bridge -->
+        <article class="landing-eco-card card-mobile">
+          <div class="landing-eco-card-top">
+            <span class="landing-eco-chip yellow">React Native · Expo</span>
+            <span class="landing-eco-status">
+              <span class="mini-pulse-dot green"></span>
+              Sub-50ms Edge Relay
+            </span>
+          </div>
+
+          <div class="landing-eco-img-box">
+            <img src="assets/aura-mobile-bridge.jpg" alt="AURA Mobile Bridge app relaying BLE to AWS API Gateway" loading="lazy">
+            <div class="landing-eco-overlay-tag">Edge Relay Client 03</div>
+          </div>
+
+          <div class="landing-eco-card-body">
+            <h3 class="landing-eco-card-title">AURA Mobile Bridge</h3>
+            <p class="landing-eco-card-desc">
+              Cross-platform mobile companion coordinating authenticated BLE GATT characteristics and streaming real-time signed telemetry to AWS API Gateway WebSockets.
+            </p>
+
+            <div class="landing-eco-tags">
+              <span class="eco-tag">React Native &amp; Expo</span>
+              <span class="eco-tag">BLE 5.4 GATT Stream</span>
+              <span class="eco-tag">AES-GCM SecureStore</span>
+            </div>
+
+            <div class="landing-eco-actions">
+              <a href="control-plane.html" class="btn-eco-launch primary-yellow" title="Open Connected Web Control Plane">
+                <span>Web Control Plane</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="https://github.com/adityashinde0/Project-AURA-Proactive-Memory-That-Fights-For-Your-Focus/tree/main/mobile" target="_blank" rel="noopener" class="btn-eco-launch ghost">Mobile Code ↗</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- Interactive Simulator Callout Banner -->
+      <div class="landing-sim-banner">
+        <div class="sim-banner-left">
+          <span class="sim-banner-tag">LIVE INTERACTIVE LAB</span>
+          <h3 class="sim-banner-title">Experience Multi-Device Interactions Live</h3>
+          <p class="sim-banner-desc">
+            Switch between the <strong>AURA Orbit Pebble</strong> and <strong>Apple Watch</strong> in real time to test state machines, glanceable T-5 prompts, and 1-tap reversible undo.
+          </p>
+          <div class="sim-banner-pills">
+            <span class="sim-pill">T-5 Meeting Prep</span>
+            <span class="sim-pill">Deep Work Defense</span>
+            <span class="sim-pill">Intervention &amp; Undo</span>
+            <span class="sim-pill">Safety Guardian</span>
+          </div>
+        </div>
+        <div class="sim-banner-right">
+          <a href="simulator.html" class="btn-launch-sim-grand" title="Open Dedicated Multi-Device Simulator &amp; Test Cases Lab">
+            <span>Launch Live Simulator</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- Hardware Showcase: "Aura Wearable Companion" -->
     <section class="pioneer-section" id="hardware" aria-label="Hardware Showcase">
       <div class="pioneer-card">
@@ -711,6 +868,7 @@
           <div>
             <div class="footer-col-title">Documentation</div>
             <ul class="footer-nav-list">
+              <li><a href="simulator.html">Multi-Device Simulator &amp; Tests</a></li>
               <li><a href="control-plane.html">Interactive Control Plane</a></li>
               <li><a href="#architecture">Architecture Overview</a></li>
               <li><a href="#hardware">Hardware Specification</a></li>

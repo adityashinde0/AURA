@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NotificationFeedback",
+  "description": "Request and response shapes for POST /api/v1/notifications/feedback",
+  "definitions": {
+    "request": {
+      "title": "NotificationFeedbackRequest",
+      "type": "object",
+      "required": ["user_id", "card_id", "calendar_event_id", "action"],
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 128
+        },
+        "card_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calendar_event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string",
+          "enum": ["Read", "Save", "Not useful", "Mute this event series"]
+        },
+        "series_id": {
+          "type": "string",
+          "description": "Required when action is 'Mute this event series'"
+        }
+      },
+      "additionalProperties": false
+    },
+    "response": {
+      "title": "NotificationFeedbackResponse",
+      "type": "object",
+      "required": ["ok", "user_id", "card_id", "action", "muted_series_count", "audit_id"],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "card_id": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string",
+          "enum": ["Read", "Save", "Not useful", "Mute this event series"]
+        },
+        "muted_series_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audit_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/definitions/request" },
+    { "$ref": "#/definitions/response" }
+  ]
+}

@@ -1,0 +1,35 @@
+name: Apple CI
+
+on:
+  push:
+    paths:
+      - 'apple/**'
+  pull_request:
+    paths:
+      - 'apple/**'
+
+jobs:
+  build:
+    name: Build & Test (watchOS)
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+
+      - name: Validate Swift compilation (AURAShared)
+        working-directory: apple/AURAShared
+        run: swift build
+
+      - name: Build AURAWatch (watchOS, no signing)
+        working-directory: apple
+        run: |
+          xcodebuild \
+            -workspace AURAWatch.xcworkspace \
+            -scheme AURAWatch \
+            -destination 'generic/platform=watchOS' \
+            clean build \
+            CODE_SIGNING_ALLOWED=NO

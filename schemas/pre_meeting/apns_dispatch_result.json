@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApnsDispatchResult",
+  "description": "Response shape returned by lambda/apns_dispatcher after attempting push delivery",
+  "type": "object",
+  "required": ["statusCode", "policy_required", "decision"],
+  "properties": {
+    "statusCode": {
+      "type": "integer",
+      "enum": [200, 400]
+    },
+    "policy_required": {
+      "type": "boolean",
+      "const": true,
+      "description": "Always true — execution gate is handled by policy_engine.py"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "executed",
+        "blocked",
+        "blocked_no_consent",
+        "blocked_feature_flag",
+        "quiet_hours_suppressed",
+        "no_device_binding",
+        "duplicate"
+      ]
+    },
+    "delivered": {
+      "type": "boolean"
+    },
+    "delivery_channel": {
+      "type": "string",
+      "enum": ["bee_watch", "mobile_fallback"]
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["ios", "watchos", "android"]
+    },
+    "provider_status": {
+      "type": "string",
+      "enum": ["delivered", "failed", "dry_run"]
+    },
+    "audit_id": {
+      "type": "string"
+    },
+    "card_id": {
+      "type": ["string", "null"]
+    },
+    "calendar_event_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "error": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    }
+  },
+  "if": {
+    "properties": { "decision": { "const": "executed" } },
+    "required": ["decision"]
+  },
+  "then": {
+    "required": ["delivered", "delivery_channel", "platform", "provider_status", "audit_id", "calendar_event_id"]
+  }
+}
